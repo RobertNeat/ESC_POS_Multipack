@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://esc-pos-multipack.local/schemas/pos-8370-settings.schema.json",
+  "title": "POS-8370 printer settings",
+  "type": "object",
+  "required": ["settings"],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "settings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["title", "options"],
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["label", "rawBytes"],
+              "properties": {
+                "label": {
+                  "type": "string"
+                },
+                "rawBytes": {
+                  "oneOf": [
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 255
+                      }
+                    },
+                    {
+                      "type": "string",
+                      "description": "Hexadecimal bytes separated by spaces or commas, for example: 1B 40"
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

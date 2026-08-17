@@ -1,0 +1,47 @@
+{
+  "$schema": "./settings.schema.json",
+  "settings": [
+    {
+      "title": "Set Printing mode",
+      "description": "Ustawienie trybu drukowania.",
+      "options": [
+        {
+          "label": "Chinese",
+          "rawBytes": "1C 26"
+        },
+        {
+          "label": "English",
+          "rawBytes": "1C 2E"
+        }
+      ]
+    },
+    {
+      "title": "Set up the buzzer",
+      "description": "Włączenie lub wyłączenie buzzera drukarki.",
+      "options": [
+        {
+          "label": "ON",
+          "rawBytes": "1B 42 01 01"
+        },
+        {
+          "label": "OFF",
+          "rawBytes": []
+        }
+      ]
+    },
+    {
+      "title": "Set Default Char",
+      "description": "Ustawienie domyślnego rozmiaru znaków.",
+      "options": [
+        {
+          "label": "ASCII:12X24",
+          "rawBytes": "1B 4D 00"
+        },
+        {
+          "label": "ASCII:9X17",
+          "rawBytes": "1B 4D 01"
+        }
+      ]
+    }
+  ]
+}

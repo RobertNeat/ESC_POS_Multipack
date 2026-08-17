@@ -5,6 +5,7 @@ node_modules/
 # Builds
 dist/
 coverage/
+*.tsbuildinfo
 .angular/
 .cache/
 
