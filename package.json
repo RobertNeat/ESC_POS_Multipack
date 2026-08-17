@@ -1,0 +1,17 @@
+{
+  "name": "esc-pos-multipack",
+  "version": "1.0.0",
+  "description": "BisOffice POS-8370 thermal printer document management suite",
+  "author": "RobertNeat",
+  "keywords": [
+    "POS-8370",
+    "BisOffice",
+    "thermal printer",
+    "ESC",
+    "POS"
+  ],
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.17.0",
+  "scripts": {}
+}

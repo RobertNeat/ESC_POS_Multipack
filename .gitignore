@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Builds
+dist/
+coverage/
+.angular/
+.cache/
+
+# IDE
+.idea/
+.vscode/*
+*.code-workspace
+
+# Environment
+.env
+.env.*
+!.env.example
