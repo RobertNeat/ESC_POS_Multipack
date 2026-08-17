@@ -12,6 +12,7 @@ coverage/
 .idea/
 .vscode/*
 *.code-workspace
+.commitbuilderrc.json
 
 # Environment
 .env
