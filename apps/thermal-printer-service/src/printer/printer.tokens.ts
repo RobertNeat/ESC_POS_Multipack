@@ -1,0 +1,2 @@
+export const PRINTER_ADAPTER = Symbol('PRINTER_ADAPTER');
+export const PRINTER_SETTINGS = Symbol('PRINTER_SETTINGS');
