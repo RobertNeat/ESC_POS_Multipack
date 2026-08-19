@@ -7,11 +7,11 @@
       "options": [
         {
           "label": "Chinese",
-          "rawBytes": "1C 26"
+          "commandHex": "1B 4E 03 01"
         },
         {
-          "label": "English",
-          "rawBytes": "1C 2E"
+          "label": "ASCII",
+          "commandHex": "1B 4E 03 00"
         }
       ]
     },
@@ -21,11 +21,11 @@
       "options": [
         {
           "label": "ON",
-          "rawBytes": "1B 42 01 01"
+          "commandHex": "1F 1B 11 01"
         },
         {
           "label": "OFF",
-          "rawBytes": []
+          "commandHex": "1F 1B 11 00"
         }
       ]
     },
@@ -35,11 +35,11 @@
       "options": [
         {
           "label": "ASCII:12X24",
-          "rawBytes": "1B 4D 00"
+          "commandHex": "1B 4E 13 01"
         },
         {
           "label": "ASCII:9X17",
-          "rawBytes": "1B 4D 01"
+          "commandHex": "1B 4E 13 00"
         }
       ]
     }

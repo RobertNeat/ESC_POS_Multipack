@@ -9,14 +9,23 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./low-level": {
+      "types": "./dist/low-level.d.ts",
+      "default": "./dist/low-level.js"
+    },
+    "./assets/POS-8370_command_mappings.json": {
+      "default": "./assets/POS-8370_command_mappings.json"
     }
   },
   "files": [
     "dist",
+    "assets",
     "settings.schema.json"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "test": "pnpm run build && tsc --noEmit --strict --target ES2022 --module NodeNext --moduleResolution NodeNext test/transport-types.test.ts && node --test test/*.test.mjs",
     "clean": "node -e \"fs.rmSync('dist', { recursive: true, force: true })\""
   },
   "dependencies": {
@@ -24,13 +33,5 @@
   },
   "devDependencies": {
     "typescript": "^5.9.0"
-  },
-  "peerDependencies": {
-    "@node-escpos/core": "*"
-  },
-  "peerDependenciesMeta": {
-    "@node-escpos/core": {
-      "optional": true
-    }
   }
 }
