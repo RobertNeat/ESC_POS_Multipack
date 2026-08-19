@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://esc-pos-multipack.local/schemas/pos-8370-command-mappings.schema.json",
+  "title": "POS-8370 captured command mappings",
+  "type": "object",
+  "required": ["settings"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "printer": { "type": "string" },
+    "transport": { "type": "object", "additionalProperties": true },
+    "settings": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/setting" }
+    },
+    "buttons": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/action" }
+    }
+  },
+  "$defs": {
+    "command": {
+      "type": "object",
+      "required": ["label"],
+      "properties": {
+        "id": { "type": "string" },
+        "label": { "type": "string" },
+        "commandHex": { "$ref": "#/$defs/bytes" },
+        "rawBytes": { "$ref": "#/$defs/bytes" },
+        "ascii": { "type": "string" }
+      },
+      "anyOf": [
+        { "required": ["commandHex"] },
+        { "required": ["rawBytes"] }
+      ],
+      "additionalProperties": false
+    },
+    "setting": {
+      "type": "object",
+      "required": ["title", "options"],
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "options": { "type": "array", "items": { "$ref": "#/$defs/command" } }
+      },
+      "additionalProperties": false
+    },
+    "action": {
+      "type": "object",
+      "required": ["title", "commands"],
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "commands": { "type": "array", "items": { "$ref": "#/$defs/command" } }
+      },
+      "additionalProperties": false
+    },
+    "bytes": {
+      "oneOf": [
+        { "type": "array", "items": { "type": "integer", "minimum": 0, "maximum": 255 } },
+        { "type": "string", "pattern": "^(?:\\s*(?:0x)?[0-9A-Fa-f]{1,2}\\s*(?:,|\\s|$))*$" }
+      ]
+    }
+  },
+  "additionalProperties": false
+}

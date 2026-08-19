@@ -1,0 +1,47 @@
+{
+  "$schema": "./settings.schema.json",
+  "settings": [
+    {
+      "title": "Set Printing mode",
+      "description": "Ustawienie trybu drukowania.",
+      "options": [
+        {
+          "label": "Chinese",
+          "commandHex": "1B 4E 03 01"
+        },
+        {
+          "label": "ASCII",
+          "commandHex": "1B 4E 03 00"
+        }
+      ]
+    },
+    {
+      "title": "Set up the buzzer",
+      "description": "Włączenie lub wyłączenie buzzera drukarki.",
+      "options": [
+        {
+          "label": "ON",
+          "commandHex": "1F 1B 11 01"
+        },
+        {
+          "label": "OFF",
+          "commandHex": "1F 1B 11 00"
+        }
+      ]
+    },
+    {
+      "title": "Set Default Char",
+      "description": "Ustawienie domyślnego rozmiaru znaków.",
+      "options": [
+        {
+          "label": "ASCII:12X24",
+          "commandHex": "1B 4E 13 01"
+        },
+        {
+          "label": "ASCII:9X17",
+          "commandHex": "1B 4E 13 00"
+        }
+      ]
+    }
+  ]
+}

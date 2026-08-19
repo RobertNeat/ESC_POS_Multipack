@@ -1,0 +1,11 @@
+{
+  "files": [],
+  "references": [
+    {
+      "path": "packages/printer-adapter"
+    },
+    {
+      "path": "packages/pos-8370-adapter"
+    }
+  ]
+}

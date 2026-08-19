@@ -1,0 +1,37 @@
+{
+  "name": "@esc-pos-multipack/pos-8370-adapter",
+  "version": "0.1.0",
+  "description": "BisOffice POS-8370 implementation of the printer adapter contracts.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./low-level": {
+      "types": "./dist/low-level.d.ts",
+      "default": "./dist/low-level.js"
+    },
+    "./assets/POS-8370_command_mappings.json": {
+      "default": "./assets/POS-8370_command_mappings.json"
+    }
+  },
+  "files": [
+    "dist",
+    "assets",
+    "settings.schema.json"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "pnpm run build && tsc --noEmit --strict --target ES2022 --module NodeNext --moduleResolution NodeNext test/transport-types.test.ts && node --test test/*.test.mjs",
+    "clean": "node -e \"fs.rmSync('dist', { recursive: true, force: true })\""
+  },
+  "dependencies": {
+    "@esc-pos-multipack/printer-adapter": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.0"
+  }
+}

@@ -1,0 +1,50 @@
+Horizontal Tab  
+Print and line feed  
+Real-time pulse generator  
+Setting the right side character spacing  
+Select print  
+Set absolute point position  
+Select-cancel user-defined character set  
+Define user-defined characters  
+Turn underline  
+Select default line  
+Set line spacing  
+Cancel user-defined characters  
+Initialize printer  
+Set buzzer  
+Set horizontal tab positions  
+Turn emphasized mode on-off  
+Turn on-off double-strike mode  
+Print and feed paper  
+Select character font  
+Turn 90 degrees clockwise rotation mode on-off  
+Set relative point position  
+Select justification  
+Enable-disable panel buttons  
+Print and feed n lines  
+Generate pulse  
+Select character code table  
+Turn on-off upside-down printing mode  
+Part cutter  
+Partial cut  
+Print NV bit image  
+Define NV bit image  
+Set character size  
+Turn white-black reverse printing mode  
+Select printing position for HRI characters  
+Set left margin  
+Select cut mode and cut paper  
+Select font for Human Readable Interpretation HRI characters
+Setting the bar code height  
+Print barcode  
+Print raster bitmap  
+Set bar code width  
+Setting the left pitch of Bar Code Printing  
+Set print mode for Hanzi characters  
+Select Hanzi character mode  
+Turn underline mode onoff for Hanzi characters  
+Cancel Hanzi character mode  
+Set full-width Hanzi character spacing  
+Print QR-CODE  
+Turn quadruple-size mode on-off for Hanzi characters  
+Real-time status transmission
