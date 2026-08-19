@@ -1,0 +1,721 @@
+{
+  "printer": "POS-8730",
+  "transport": {
+    "protocol": "tcp",
+    "defaultHostObserved": "192.168.1.100",
+    "defaultPort": 9100,
+    "senderObserved": "192.168.1.51",
+    "payloadEncoding": "hex bytes separated by spaces"
+  },
+  "settings": [
+    {
+      "title": "Set Printing mode",
+      "description": "Ustawienie trybu drukowania.",
+      "options": [
+        {
+          "label": "Chinese",
+          "commandHex": "1b 4e 03 01"
+        },
+        {
+          "label": "ASCII",
+          "commandHex": "1b 4e 03 00"
+        }
+      ]
+    },
+    {
+      "title": "Cutting Setting",
+      "description": "Wlaczenie lub wylaczenie automatycznego ciecia papieru.",
+      "options": [
+        {
+          "label": "ON",
+          "commandHex": "1f 1b 12 01"
+        },
+        {
+          "label": "OFF",
+          "commandHex": "1f 1b 12 00"
+        }
+      ]
+    },
+    {
+      "title": "Set Density Level",
+      "description": "Ustawienie poziomu intensywnosci druku.",
+      "options": [
+        {
+          "label": "Level1_Light",
+          "commandHex": "1b 4e 04 01"
+        },
+        {
+          "label": "Level2_Light",
+          "commandHex": "1b 4e 04 02"
+        },
+        {
+          "label": "Level3_Dark",
+          "commandHex": "1b 4e 04 03"
+        },
+        {
+          "label": "Level4_Dark",
+          "commandHex": "1b 4e 04 04"
+        }
+      ]
+    },
+    {
+      "title": "Set Default Char",
+      "description": "Ustawienie domyslnego rozmiaru znakow.",
+      "options": [
+        {
+          "label": "ASCII:9x17",
+          "commandHex": "1b 4e 13 00"
+        },
+        {
+          "label": "ASCII:12x24",
+          "commandHex": "1b 4e 13 01"
+        },
+        {
+          "label": "ASCII:9x24",
+          "commandHex": "1b 4e 13 02"
+        }
+      ]
+    },
+    {
+      "title": "USB PID Set",
+      "description": "Ustawienie identyfikatora USB Product ID.",
+      "options": [
+        {
+          "label": "5011",
+          "commandHex": "1f 1b 16 01 11 50"
+        },
+        {
+          "label": "58Label",
+          "commandHex": "1f 1b 16 01 43 57"
+        },
+        {
+          "label": "58KRY",
+          "commandHex": "1f 1b 16 01 00 02"
+        },
+        {
+          "label": "OPOS",
+          "commandHex": "1f 1b 16 01 20 57"
+        },
+        {
+          "label": "80KRY",
+          "commandHex": "1f 1b 16 01 1c 81"
+        },
+        {
+          "label": "POS365",
+          "commandHex": "1f 1b 16 01 1e 81"
+        }
+      ]
+    },
+    {
+      "title": "Set Default Page",
+      "description": "Ustawienie domyslnej strony kodowej.",
+      "options": [
+        {
+          "label": "OEM437(Std.Europe)",
+          "commandHex": "1f 1b 1f ff 00 0a"
+        },
+        {
+          "label": "(Katakana)(1)",
+          "commandHex": "1f 1b 1f ff 01 0a"
+        },
+        {
+          "label": "OEM850(Multiling)",
+          "commandHex": "1f 1b 1f ff 02 0a"
+        },
+        {
+          "label": "OEM860(Portuguese)",
+          "commandHex": "1f 1b 1f ff 03 0a"
+        },
+        {
+          "label": "OEM863(Canadian)",
+          "commandHex": "1f 1b 1f ff 04 0a"
+        },
+        {
+          "label": "OEM865(Nordic)",
+          "commandHex": "1f 1b 1f ff 05 0a"
+        },
+        {
+          "label": "(West Europe)",
+          "commandHex": "1f 1b 1f ff 06 0a"
+        },
+        {
+          "label": "(Greek)",
+          "commandHex": "1f 1b 1f ff 07 0a"
+        },
+        {
+          "label": "(Hebrew)(1)",
+          "commandHex": "1f 1b 1f ff 08 0a"
+        },
+        {
+          "label": "(East Europe)",
+          "commandHex": "1f 1b 1f ff 09 0a"
+        },
+        {
+          "label": "(Iran)",
+          "commandHex": "1f 1b 1f ff 0a 0a"
+        },
+        {
+          "label": "WPC1252",
+          "commandHex": "1f 1b 1f ff 10 0a"
+        },
+        {
+          "label": "OEM866(Cyrillic#)",
+          "commandHex": "1f 1b 1f ff 11 0a"
+        },
+        {
+          "label": "OEM852(Latin2)",
+          "commandHex": "1f 1b 1f ff 12 0a"
+        },
+        {
+          "label": "OEM858",
+          "commandHex": "1f 1b 1f ff 13 0a"
+        },
+        {
+          "label": "(IranII)",
+          "commandHex": "1f 1b 1f ff 14 0a"
+        },
+        {
+          "label": "(Latvian)",
+          "commandHex": "1f 1b 1f ff 15 0a"
+        },
+        {
+          "label": "ISO-8859-6(Arabic)",
+          "commandHex": "1f 1b 1f ff 16 0a"
+        },
+        {
+          "label": "(PT151,1251)",
+          "commandHex": "1f 1b 1f ff 17 0a"
+        },
+        {
+          "label": "OEM747",
+          "commandHex": "1f 1b 1f ff 18 0a"
+        },
+        {
+          "label": "WPC1257",
+          "commandHex": "1f 1b 1f ff 19 0a"
+        },
+        {
+          "label": "(Vietnam)",
+          "commandHex": "1f 1b 1f ff 1b 0a"
+        },
+        {
+          "label": "OEM864",
+          "commandHex": "1f 1b 1f ff 1c 0a"
+        },
+        {
+          "label": "PC1001",
+          "commandHex": "1f 1b 1f ff 1d 0a"
+        },
+        {
+          "label": "(Uigur)",
+          "commandHex": "1f 1b 1f ff 1e 0a"
+        },
+        {
+          "label": "(Hebrew)(2)",
+          "commandHex": "1f 1b 1f ff 1f 0a"
+        },
+        {
+          "label": "WPC1255(Israel)",
+          "commandHex": "1f 1b 1f ff 20 0a"
+        },
+        {
+          "label": "OEM437(Std.Europe)",
+          "commandHex": "1f 1b 1f ff 32 0a"
+        },
+        {
+          "label": "(Katakana)(2)",
+          "commandHex": "1f 1b 1f ff 33 0a"
+        },
+        {
+          "label": "OEM437(Std.Europe)",
+          "commandHex": "1f 1b 1f ff 34 0a"
+        },
+        {
+          "label": "OEM858(Multiling)",
+          "commandHex": "1f 1b 1f ff 35 0a"
+        },
+        {
+          "label": "OEM852(Latin-2)",
+          "commandHex": "1f 1b 1f ff 36 0a"
+        },
+        {
+          "label": "OEM860(Portuguese)",
+          "commandHex": "1f 1b 1f ff 37 0a"
+        },
+        {
+          "label": "OEM861(Icelandic)",
+          "commandHex": "1f 1b 1f ff 38 0a"
+        },
+        {
+          "label": "OEM863(Canadian)",
+          "commandHex": "1f 1b 1f ff 39 0a"
+        },
+        {
+          "label": "OEM865(Nordic)",
+          "commandHex": "1f 1b 1f ff 3a 0a"
+        },
+        {
+          "label": "OEM866(Russian)",
+          "commandHex": "1f 1b 1f ff 3b 0a"
+        },
+        {
+          "label": "OEM855(Bulgarian)",
+          "commandHex": "1f 1b 1f ff 3c 0a"
+        },
+        {
+          "label": "OEM857(Turkey)",
+          "commandHex": "1f 1b 1f ff 3d 0a"
+        },
+        {
+          "label": "OEM862(Hebrew)",
+          "commandHex": "1f 1b 1f ff 3e 0a"
+        },
+        {
+          "label": "OEM864(Arabic)",
+          "commandHex": "1f 1b 1f ff 3f 0a"
+        },
+        {
+          "label": "OEM737(Greek)",
+          "commandHex": "1f 1b 1f ff 40 0a"
+        },
+        {
+          "label": "OEM851(Greek)",
+          "commandHex": "1f 1b 1f ff 41 0a"
+        },
+        {
+          "label": "OEM869(Greek)",
+          "commandHex": "1f 1b 1f ff 42 0a"
+        },
+        {
+          "label": "OEM928(Greek)",
+          "commandHex": "1f 1b 1f ff 43 0a"
+        },
+        {
+          "label": "OEM772(Lithuanian)",
+          "commandHex": "1f 1b 1f ff 44 0a"
+        },
+        {
+          "label": "OEM774(Lithuanian)",
+          "commandHex": "1f 1b 1f ff 45 0a"
+        },
+        {
+          "label": "OEM874(Thai)",
+          "commandHex": "1f 1b 1f ff 46 0a"
+        },
+        {
+          "label": "WPC1252(Latin-1)",
+          "commandHex": "1f 1b 1f ff 47 0a"
+        },
+        {
+          "label": "WPC1250(Latin-2)",
+          "commandHex": "1f 1b 1f ff 48 0a"
+        },
+        {
+          "label": "WPC1251(Cyrillic)",
+          "commandHex": "1f 1b 1f ff 49 0a"
+        },
+        {
+          "label": "PC3840(Russian)",
+          "commandHex": "1f 1b 1f ff 4a 0a"
+        },
+        {
+          "label": "PC3841(Gost)",
+          "commandHex": "1f 1b 1f ff 4b 0a"
+        },
+        {
+          "label": "PC3843(Polish)",
+          "commandHex": "1f 1b 1f ff 4c 0a"
+        },
+        {
+          "label": "PC3844(CS2)",
+          "commandHex": "1f 1b 1f ff 4d 0a"
+        },
+        {
+          "label": "PC3845(Hungarian)",
+          "commandHex": "1f 1b 1f ff 4e 0a"
+        },
+        {
+          "label": "PC3846(Turkish)",
+          "commandHex": "1f 1b 1f ff 4f 0a"
+        },
+        {
+          "label": "PC3847(Brazil-ABNT)",
+          "commandHex": "1f 1b 1f ff 50 0a"
+        },
+        {
+          "label": "PC3848(Brazil-ABICOMP)",
+          "commandHex": "1f 1b 1f ff 51 0a"
+        },
+        {
+          "label": "PC1001(Arabic)",
+          "commandHex": "1f 1b 1f ff 52 0a"
+        },
+        {
+          "label": "PC2001(Lithuanian)",
+          "commandHex": "1f 1b 1f ff 53 0a"
+        },
+        {
+          "label": "PC3001(Estonian)",
+          "commandHex": "1f 1b 1f ff 54 0a"
+        },
+        {
+          "label": "PC3002(Estonian)",
+          "commandHex": "1f 1b 1f ff 55 0a"
+        },
+        {
+          "label": "PC3011(Latvian)",
+          "commandHex": "1f 1b 1f ff 56 0a"
+        },
+        {
+          "label": "PC3012(Latvian)",
+          "commandHex": "1f 1b 1f ff 57 0a"
+        },
+        {
+          "label": "PC3021(Bulgarian)",
+          "commandHex": "1f 1b 1f ff 58 0a"
+        },
+        {
+          "label": "PC3041(Maltese)",
+          "commandHex": "1f 1b 1f ff 59 0a"
+        },
+        {
+          "label": "(Thai)",
+          "commandHex": "1f 1b 1f ff ff 0a"
+        },
+        {
+          "label": "WPC1253(Greek)",
+          "commandHex": "1f 1b 1f ff 5a 0a"
+        },
+        {
+          "label": "WPC1254(Turkish)",
+          "commandHex": "1f 1b 1f ff 5b 0a"
+        },
+        {
+          "label": "WPC1256(Arabic)",
+          "commandHex": "1f 1b 1f ff 5c 0a"
+        },
+        {
+          "label": "OEM720(Arabic)",
+          "commandHex": "1f 1b 1f ff 5d 0a"
+        },
+        {
+          "label": "WPC1258(Vietnam)",
+          "commandHex": "1f 1b 1f ff 5e 0a"
+        },
+        {
+          "label": "OEM775(Latvian)",
+          "commandHex": "1f 1b 1f ff 5f 0a"
+        },
+        {
+          "label": "(Thai2)",
+          "commandHex": "1f 1b 1f ff ff 0a"
+        }
+      ]
+    },
+    {
+      "title": "Setting DHCP",
+      "description": "Konfiguracja DHCP.",
+      "options": [
+        {
+          "label": "ENABLE",
+          "commandHex": "1f 1b 17 01 01"
+        },
+        {
+          "label": "DISABLE",
+          "commandHex": "1f 1b 17 01 00"
+        }
+      ]
+    },
+    {
+      "title": "USB Type",
+      "description": "Wybor trybu urzadzenia USB.",
+      "options": [
+        {
+          "label": "PRINTER",
+          "commandHex": "1f 1b 16 0a 00"
+        },
+        {
+          "label": "VCOM",
+          "commandHex": "1f 1b 16 0a 01"
+        }
+      ]
+    },
+    {
+      "title": "Print width",
+      "description": "Ustawienie szerokosci wydruku.",
+      "options": [
+        {
+          "label": "58mm",
+          "commandHex": "1f 1b 16 0b 00"
+        },
+        {
+          "label": "80mm",
+          "commandHex": "1f 1b 16 0b 05"
+        }
+      ]
+    },
+    {
+      "title": "Set up the buzzer",
+      "description": "Wlaczenie lub wylaczenie buzzera drukarki.",
+      "options": [
+        {
+          "label": "ON",
+          "commandHex": "1f 1b 11 01"
+        },
+        {
+          "label": "OFF",
+          "commandHex": "1f 1b 11 00"
+        }
+      ]
+    },
+    {
+      "title": "Set Printer Baud",
+      "description": "Ustawienie predkosci transmisji drukarki.",
+      "options": [
+        {
+          "label": "1200",
+          "commandHex": "1b 4e 01 07"
+        },
+        {
+          "label": "2400",
+          "commandHex": "1b 4e 01 06"
+        },
+        {
+          "label": "4800",
+          "commandHex": "1b 4e 01 00"
+        },
+        {
+          "label": "9600",
+          "commandHex": "1b 4e 01 01"
+        },
+        {
+          "label": "19200",
+          "commandHex": "1b 4e 01 02"
+        },
+        {
+          "label": "38400",
+          "commandHex": "1b 4e 01 03"
+        },
+        {
+          "label": "57600",
+          "commandHex": "1b 4e 01 04"
+        },
+        {
+          "label": "115200",
+          "commandHex": "1b 4e 01 05"
+        }
+      ]
+    },
+    {
+      "title": "Set Font",
+      "description": "Ustawienie zestawu znakow drukarki.",
+      "options": [
+        {
+          "label": "GB18030",
+          "commandHex": "1f 1b 1f fa 00"
+        },
+        {
+          "label": "BIG5",
+          "commandHex": "1f 1b 1f fa 01"
+        },
+        {
+          "label": "Japanese",
+          "commandHex": "1f 1b 1f fa 02"
+        }
+      ]
+    },
+    {
+      "title": "Set Voice swith",
+      "description": "Obsluga komunikatow glosowych drukarki.",
+      "options": [
+        {
+          "label": "ON",
+          "commandHex": "1b 4e 21 00"
+        },
+        {
+          "label": "OFF",
+          "commandHex": "1b 4e 21 01"
+        }
+      ]
+    },
+    {
+      "title": "USB VID Set",
+      "description": "Ustawienie identyfikatora USB Vendor ID.",
+      "options": [
+        {
+          "label": "0416",
+          "commandHex": "1f 1b 16 02 16 04"
+        },
+        {
+          "label": "58Label",
+          "commandHex": "1f 1b 16 02 83 04"
+        },
+        {
+          "label": "58KRY",
+          "commandHex": "1f 1b 16 02 68 68"
+        },
+        {
+          "label": "OPOS",
+          "commandHex": "1f 1b 16 02 83 04"
+        },
+        {
+          "label": "80KRY",
+          "commandHex": "1f 1b 16 02 e6 0f"
+        },
+        {
+          "label": "POS365",
+          "commandHex": "1f 1b 16 02 e6 0f"
+        }
+      ]
+    },
+    {
+      "title": "Enable Cutter(PIT)",
+      "description": "Obsluga mechanizmu odcinania papieru w trybie PIT.",
+      "options": [
+        {
+          "label": "ON",
+          "commandHex": "1f 1b 05 02 01"
+        },
+        {
+          "label": "OFF",
+          "commandHex": "1f 1b 05 02 00"
+        }
+      ]
+    },
+    {
+      "title": "Setting speed",
+      "description": "Ustawienie poziomu predkosci drukowania.",
+      "options": [
+        {
+          "label": "0",
+          "commandHex": "1f 1b 17 02 00"
+        },
+        {
+          "label": "1",
+          "commandHex": "1f 1b 17 02 01"
+        },
+        {
+          "label": "2",
+          "commandHex": "1f 1b 17 02 02"
+        },
+        {
+          "label": "3",
+          "commandHex": "1f 1b 17 02 03"
+        },
+        {
+          "label": "4",
+          "commandHex": "1f 1b 17 02 04"
+        },
+        {
+          "label": "5",
+          "commandHex": "1f 1b 17 02 05"
+        },
+        {
+          "label": "6",
+          "commandHex": "1f 1b 17 02 06"
+        }
+      ]
+    },
+    {
+      "title": "USB Port",
+      "description": "Konfiguracja sposobu przypisywania portu USB.",
+      "options": [
+        {
+          "label": "Fix USB",
+          "commandHex": "1f 1b 16 09 00"
+        },
+        {
+          "label": "Random USB",
+          "commandHex": "1f 1b 16 09 01"
+        }
+      ]
+    }
+  ],
+  "buttons": [
+    {
+      "title": "NV Logo Down",
+      "description": "Sekwencja zrzutu dla opcji POS58: najpierw clean logo, potem print logo.",
+      "commands": [
+        {
+          "label": "clean logo",
+          "commandHex": "1c 71 01 01 00 01 00 00 00 00 00 00 00 00 00 0a"
+        },
+        {
+          "label": "print logo",
+          "commandHex": "1b 40 1b 61 01 1c 70 01 00 0a 0a 0a 1b 40"
+        }
+      ]
+    },
+    {
+      "title": "Printer Cut",
+      "description": "Odciecie papieru.",
+      "commands": [
+        {
+          "label": "button press",
+          "commandHex": "0a 1b 40 1d 56 42 10 0a"
+        }
+      ]
+    },
+    {
+      "title": "Print Default Page",
+      "description": "Wydruk strony z bajtami 0x80-0xff w zwyklym i powiekszonym trybie, zakonczony cieciem.",
+      "commands": [
+        {
+          "label": "button press",
+          "commandHex": "1b 40 1c 2e 1b 21 00 80 81 82 83 84 85 86 87 88 89 8a 8b 8c 8d 8e 8f 90 91 92 93 94 95 96 97 98 99 9a 9b 9c 9d 9e 9f a0 a1 a2 a3 a4 a5 a6 a7 a8 a9 aa ab ac ad ae af b0 b1 b2 b3 b4 b5 b6 b7 b8 b9 ba bb bc bd be bf c0 c1 c2 c3 c4 c5 c6 c7 c8 c9 ca cb cc cd ce cf d0 d1 d2 d3 d4 d5 d6 d7 d8 d9 da db dc dd de df e0 e1 e2 e3 e4 e5 e6 e7 e8 e9 ea eb ec ed ee ef f0 f1 f2 f3 f4 f5 f6 f7 f8 f9 fa fb fc fd fe ff 0a 0a 1b 21 30 80 81 82 83 84 85 86 87 88 89 8a 8b 8c 8d 8e 8f 90 91 92 93 94 95 96 97 98 99 9a 9b 9c 9d 9e 9f a0 a1 a2 a3 a4 a5 a6 a7 a8 a9 aa ab ac ad ae af b0 b1 b2 b3 b4 b5 b6 b7 b8 b9 ba bb bc bd be bf c0 c1 c2 c3 c4 c5 c6 c7 c8 c9 ca cb cc cd ce cf d0 d1 d2 d3 d4 d5 d6 d7 d8 d9 da db dc dd de df e0 e1 e2 e3 e4 e5 e6 e7 e8 e9 ea eb ec ed ee ef f0 f1 f2 f3 f4 f5 f6 f7 f8 f9 fa fb fc fd fe ff 0a 0a 1b 40 1d 56 42 48 0a 0a"
+        }
+      ]
+    },
+    {
+      "title": "Open Cash Box",
+      "description": "Otwarcie szuflady kasowej przez oba piny sterujace.",
+      "commands": [
+        {
+          "label": "button press",
+          "commandHex": "0a 1b 70 00 40 50 1b 70 01 40 50 0a"
+        }
+      ]
+    },
+    {
+      "title": "Print SelfTest",
+      "description": "Wydruk autotestu.",
+      "commands": [
+        {
+          "label": "button press",
+          "commandHex": "1f 11 04"
+        }
+      ]
+    },
+    {
+      "title": "Check USB Port",
+      "description": "W dump_3 nie znaleziono osobnego payloadu do 192.168.1.100:9100 po tej akcji.",
+      "commands": []
+    },
+    {
+      "title": "Test box",
+      "description": "Payloady wyslane z pola testowego.",
+      "commands": [
+        {
+          "label": "Hello World without hex checkbox",
+          "commandHex": "48 65 6c 6c 6f 20 57 6f 72 6c 64",
+          "ascii": "Hello World"
+        },
+        {
+          "label": "ESC Hello World without hex checkbox",
+          "commandHex": "45 53 43 20 48 65 6c 6c 6f 20 57 6f 72 6c 64",
+          "ascii": "ESC Hello World"
+        }
+      ]
+    },
+    {
+      "title": "Restore factory",
+      "description": "Przywrocenie ustawien fabrycznych.",
+      "commands": [
+        {
+          "label": "button press",
+          "commandHex": "1f 1b 19"
+        }
+      ]
+    }
+  ]
+}
