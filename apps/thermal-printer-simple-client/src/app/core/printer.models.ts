@@ -1,6 +1,7 @@
 export type ConnectionState = 'checking' | 'online' | 'offline';
 export type Alignment = 'left' | 'center' | 'right';
 export type RawEncoding = 'hex' | 'base64' | 'bytes';
+export type TextEncoding = 'windows1250' | 'cp852' | 'cp3843' | 'utf8';
 export type RasterScale = 'normal' | 'doubleWidth' | 'doubleHeight' | 'quadruple';
 export interface RasterPrintRequest {
   data: string;

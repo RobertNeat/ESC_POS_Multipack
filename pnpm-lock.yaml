@@ -398,6 +398,9 @@ importers:
       '@esc-pos-multipack/printer-adapter':
         specifier: workspace:*
         version: link:../printer-adapter
+      iconv-lite:
+        specifier: ^0.7.3
+        version: 0.7.3
     devDependencies:
       typescript:
         specifier: ^5.9.0

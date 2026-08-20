@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { createPos8370Adapter, InMemoryPrinterSettingsRepository } from "../dist/index.js";
+import { createPos8370Adapter, encodePos8370Text, InMemoryPrinterSettingsRepository } from "../dist/index.js";
 import { encodePos8370Instruction } from "../dist/low-level.js";
 
 const mappingUrl = new URL("../assets/POS-8370_command_mappings.json", import.meta.url);
@@ -91,6 +91,12 @@ test("POS-8370 rejects serial and non-USB/LAN transports at runtime", () => {
     );
   }
   assert.doesNotThrow(() => createPos8370Adapter({ transport: { descriptor: { kind: "lan" }, async write() {} } }));
+});
+
+test("encodes Polish text using the code page selected for the printer", () => {
+  assert.deepEqual([...encodePos8370Text("ąćęłńóśźż", "windows1250")], [0xb9, 0xe6, 0xea, 0xb3, 0xf1, 0xf3, 0x9c, 0x9f, 0xbf]);
+  assert.deepEqual([...encodePos8370Text("ąćęłńóśźż", "cp852")], [0xa5, 0x86, 0xa9, 0x88, 0xe4, 0xa2, 0x98, 0xab, 0xbe]);
+  assert.deepEqual([...encodePos8370Text("ąćęłńóśźż", "cp3843")], [0x86, 0x8d, 0x91, 0x92, 0xa4, 0xa2, 0x98, 0xa0, 0xa1]);
 });
 
 test("reopens the transport after a failed write", async () => {

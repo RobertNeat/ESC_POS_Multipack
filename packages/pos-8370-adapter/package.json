@@ -29,7 +29,8 @@
     "clean": "node -e \"fs.rmSync('dist', { recursive: true, force: true })\""
   },
   "dependencies": {
-    "@esc-pos-multipack/printer-adapter": "workspace:*"
+    "@esc-pos-multipack/printer-adapter": "workspace:*",
+    "iconv-lite": "^0.7.3"
   },
   "devDependencies": {
     "typescript": "^5.9.0"

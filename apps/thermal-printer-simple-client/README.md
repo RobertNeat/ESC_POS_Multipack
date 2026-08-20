@@ -15,6 +15,11 @@ The API address can be changed on the `Settings` page and is stored in the brows
 
 Start the API in a separate terminal with `pnpm dev:thermal-printer-service`.
 
+The gear button in the top bar selects the byte encoding used for text jobs.
+Choose the matching pair on both sides, for example Windows-1250 with
+`WPC1250 (Latin-2)`, CP852 with `OEM852 (Latin-2)`, or CP3843/Mazovia with
+`PC3843 (Polish)`. The browser remembers the selection locally.
+
 ## Other commands
 
 ```powershell

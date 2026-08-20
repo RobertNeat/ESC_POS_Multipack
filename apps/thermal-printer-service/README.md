@@ -39,3 +39,9 @@ first USB printer-class device found by `@node-escpos/usb-adapter` is used.
 
 `POST /api/printer/markdown/text` accepts a Markdown body with
 `Content-Type: text/markdown` or `text/plain`. Embedded HTML is rejected.
+
+Text jobs sent to `/lines` and `/markdown` accept an `encoding` field:
+`windows1250`, `cp852`, `cp3843` (Mazovia) or `utf8`. The selected encoding
+must match the code page configured in the printer firmware. The JSON API
+defaults to `windows1250`; the plain-text Markdown endpoint uses the same
+default.

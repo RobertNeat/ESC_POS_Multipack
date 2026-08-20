@@ -23,6 +23,7 @@ import {
   PrintRawDto,
   PrintRasterDto,
   RawEncodingDto,
+  TextEncodingDto,
   TextStyleDto,
 } from './printer.dto';
 import { PRINTER_ADAPTER, PRINTER_SETTINGS } from './printer.tokens';
@@ -123,6 +124,7 @@ export class PrinterService implements OnApplicationShutdown {
         await this.adapter.printText(line.text, {
           alignment: line.alignment ?? AlignmentDto.Left,
           style: completeStyle(line.style),
+          encoding: dto.encoding ?? TextEncodingDto.Windows1250,
           appendLineFeed: true,
         });
       }
@@ -143,6 +145,7 @@ export class PrinterService implements OnApplicationShutdown {
           this.adapter.printText(value, {
             alignment,
             style,
+            encoding: dto.encoding ?? TextEncodingDto.Windows1250,
             appendLineFeed: false,
           }),
         lineFeed: () => this.adapter.execute([{ type: 'lineFeed' }]),
@@ -162,7 +165,12 @@ export class PrinterService implements OnApplicationShutdown {
     if (markdown.length > 100_000) {
       throw new BadRequestException('Markdown body exceeds 100000 characters.');
     }
-    return this.printMarkdown({ markdown, initialize: true, cut: false });
+    return this.printMarkdown({
+      markdown,
+      encoding: TextEncodingDto.Windows1250,
+      initialize: true,
+      cut: false,
+    });
   }
 
   async onApplicationShutdown(): Promise<void> {

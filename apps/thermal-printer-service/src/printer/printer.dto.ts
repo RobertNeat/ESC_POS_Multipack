@@ -27,6 +27,13 @@ export enum AlignmentDto {
   Right = 'right',
 }
 
+export enum TextEncodingDto {
+  Windows1250 = 'windows1250',
+  Cp852 = 'cp852',
+  Cp3843 = 'cp3843',
+  Utf8 = 'utf8',
+}
+
 export class TextStyleDto {
   @ApiPropertyOptional({ enum: ['A', 'B'], default: 'A' })
   @IsOptional()
@@ -92,6 +99,15 @@ export class PrintLinesDto {
   @Type(() => PrintLineDto)
   lines!: PrintLineDto[];
 
+  @ApiPropertyOptional({
+    enum: TextEncodingDto,
+    default: TextEncodingDto.Windows1250,
+    description: 'Kodowanie bajtów tekstu; musi odpowiadać stronie kodowej ustawionej w drukarce.',
+  })
+  @IsOptional()
+  @IsEnum(TextEncodingDto)
+  encoding: TextEncodingDto = TextEncodingDto.Windows1250;
+
   @ApiPropertyOptional({ default: true })
   @IsOptional()
   @IsBoolean()
@@ -115,6 +131,15 @@ export class PrintMarkdownDto {
   @IsNotEmpty()
   @MaxLength(100_000)
   markdown!: string;
+
+  @ApiPropertyOptional({
+    enum: TextEncodingDto,
+    default: TextEncodingDto.Windows1250,
+    description: 'Kodowanie bajtów tekstu; musi odpowiadać stronie kodowej ustawionej w drukarce.',
+  })
+  @IsOptional()
+  @IsEnum(TextEncodingDto)
+  encoding: TextEncodingDto = TextEncodingDto.Windows1250;
 
   @ApiPropertyOptional({ default: true })
   @IsOptional()

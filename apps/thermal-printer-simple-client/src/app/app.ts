@@ -2,11 +2,13 @@ import { Component, inject, OnInit } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
+import { PopoverModule } from 'primeng/popover';
 import { PrinterApiService } from './core/printer-api.service';
+import { TextEncoding } from './core/printer.models';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, ToastModule, TooltipModule],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, ToastModule, TooltipModule, PopoverModule],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
@@ -21,6 +23,15 @@ export class App implements OnInit {
     { label: 'ESC/POS', icon: 'pi pi-code', route: '/esc-pos' },
     { label: 'Ustawienia', icon: 'pi pi-cog', route: '/ustawienia' }
   ];
+  protected readonly textEncodings: ReadonlyArray<{ value: TextEncoding; label: string; printerPage: string }> = [
+    { value: 'windows1250', label: 'Windows-1250', printerPage: 'WPC1250 (Latin-2)' },
+    { value: 'cp852', label: 'CP852', printerPage: 'OEM852 (Latin-2)' },
+    { value: 'cp3843', label: 'CP3843 / Mazovia', printerPage: 'PC3843 (Polish)' },
+    { value: 'utf8', label: 'UTF-8', printerPage: 'tylko urządzenia z obsługą UTF-8' }
+  ];
+
+  protected selectTextEncoding(value: TextEncoding): void { this.api.setTextEncoding(value); }
+  protected selectedEncodingLabel(): string { return this.textEncodings.find(item => item.value === this.api.textEncoding())?.label ?? this.api.textEncoding(); }
 
   ngOnInit(): void { void this.api.refreshStatus(false); }
 }

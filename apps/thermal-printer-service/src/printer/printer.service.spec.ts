@@ -2,7 +2,12 @@ import type { LowLevelPrinterAdapter } from '@esc-pos-multipack/printer-adapter'
 import type { PrinterSettingsRepository } from '@esc-pos-multipack/pos-8370-adapter';
 import { BadRequestException } from '@nestjs/common';
 import { MarkdownPrinter } from './markdown-printer';
-import { AlignmentDto, PrintRasterDto, RasterScaleDto } from './printer.dto';
+import {
+  AlignmentDto,
+  PrintRasterDto,
+  RasterScaleDto,
+  TextEncodingDto,
+} from './printer.dto';
 import { PrinterService } from './printer.service';
 
 describe('PrinterService raster printing', () => {
@@ -64,5 +69,33 @@ describe('PrinterService raster printing', () => {
       }),
     ).rejects.toBeInstanceOf(BadRequestException);
     expect(printRasterImage).not.toHaveBeenCalled();
+  });
+});
+
+describe('PrinterService text encoding', () => {
+  it('passes the requested code page encoding to every printed line', async () => {
+    const adapter = {
+      initialize: jest.fn().mockResolvedValue(undefined),
+      printText: jest.fn().mockResolvedValue(undefined),
+      setAlignment: jest.fn().mockResolvedValue(undefined),
+      setTextStyle: jest.fn().mockResolvedValue(undefined),
+    } as unknown as jest.Mocked<LowLevelPrinterAdapter>;
+    const service = new PrinterService(
+      adapter,
+      {} as PrinterSettingsRepository,
+      new MarkdownPrinter(),
+    );
+
+    await service.printLines({
+      lines: [{ text: 'Mężny żółć' }],
+      encoding: TextEncodingDto.Cp852,
+      initialize: true,
+      cut: false,
+    });
+
+    expect(adapter.printText).toHaveBeenCalledWith(
+      'Mężny żółć',
+      expect.objectContaining({ encoding: 'cp852' }),
+    );
   });
 });

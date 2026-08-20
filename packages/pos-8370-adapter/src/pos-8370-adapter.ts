@@ -23,6 +23,7 @@ import {
 import { encodePos8370Instruction, ESC_POS } from "./esc-pos-commands.js";
 import { parsePos8370Status } from "./status.js";
 import { PrinterSettingsRepository } from "./settings.js";
+import { encodePos8370Text } from "./text-encoding.js";
 
 export interface Pos8370AdapterOptions {
   readonly transport: Pos8370Transport;
@@ -54,7 +55,7 @@ export class Pos8370Adapter implements LowLevelPrinterAdapter {
     if (options.alignment) await this.setAlignment(options.alignment);
     if (options.style) await this.setTextStyle(options.style);
     const content = options.appendLineFeed === false ? text : `${text}\n`;
-    await this.raw(this.textEncoder.encode(content));
+    await this.raw(this.encodeText(content, options.encoding));
   }
 
   async printBarcode(request: PrintBarcodeRequest): Promise<void> {
@@ -141,7 +142,7 @@ export class Pos8370Adapter implements LowLevelPrinterAdapter {
     }
 
     const text = payload.appendLineFeed === false ? payload.text : `${payload.text}\n`;
-    await this.raw(this.textEncoder.encode(text));
+    await this.raw(this.encodeText(text, payload.encoding));
   }
 
   async getStatus(): Promise<PrinterStatus> {
@@ -256,6 +257,13 @@ export class Pos8370Adapter implements LowLevelPrinterAdapter {
   private async requestStatusByte(n: 1 | 2 | 3 | 4): Promise<number> {
     const response = await this.options.transport.request?.(ESC_POS.realTimeStatus(n), 1);
     return response?.[0] ?? 0;
+  }
+
+  private encodeText(text: string, encoding?: string): Uint8Array {
+    if (!encoding || encoding.toLowerCase().replace(/[-_]/g, "") === "utf8") {
+      return this.textEncoder.encode(text);
+    }
+    return encodePos8370Text(text, encoding);
   }
 
   private async ensureOpen(): Promise<void> {

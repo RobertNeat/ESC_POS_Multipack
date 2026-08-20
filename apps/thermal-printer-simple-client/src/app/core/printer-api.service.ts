@@ -2,23 +2,29 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { firstValueFrom } from 'rxjs';
-import { Alignment, ConfigurationOptions, ConnectionState, OperationResult, PrinterCapabilities, PrinterStatus, RasterPrintRequest, RawEncoding, TextStyle } from './printer.models';
+import { Alignment, ConfigurationOptions, ConnectionState, OperationResult, PrinterCapabilities, PrinterStatus, RasterPrintRequest, RawEncoding, TextEncoding, TextStyle } from './printer.models';
 
 @Injectable({ providedIn: 'root' })
 export class PrinterApiService {
   private readonly http = inject(HttpClient);
   private readonly messages = inject(MessageService);
   private readonly endpointSignal = signal(localStorage.getItem('printer-api-url') ?? 'http://localhost:3000/api');
+  private readonly textEncodingSignal = signal<TextEncoding>(readTextEncoding());
   readonly connectionState = signal<ConnectionState>('checking');
   readonly status = signal<PrinterStatus | null>(null);
   readonly capabilities = signal<PrinterCapabilities | null>(null);
   readonly endpoint = this.endpointSignal.asReadonly();
+  readonly textEncoding = this.textEncodingSignal.asReadonly();
   readonly model = computed(() => this.capabilities()?.model ?? 'POS-8370');
 
   setEndpoint(value: string): void {
     const normalized = value.trim().replace(/\/+$/, '');
     this.endpointSignal.set(normalized);
     localStorage.setItem('printer-api-url', normalized);
+  }
+  setTextEncoding(value: TextEncoding): void {
+    this.textEncodingSignal.set(value);
+    localStorage.setItem('printer-text-encoding', value);
   }
   async refreshStatus(showMessage = true): Promise<void> {
     this.connectionState.set('checking');
@@ -36,10 +42,10 @@ export class PrinterApiService {
     }
   }
   printLine(text: string, alignment: Alignment, style: TextStyle, cut: boolean): Promise<OperationResult> {
-    return this.post('/printer/lines', { lines: [{ text, alignment, style }], initialize: true, cut }, 'Linia została wysłana');
+    return this.post('/printer/lines', { lines: [{ text, alignment, style }], encoding: this.textEncodingSignal(), initialize: true, cut }, 'Linia została wysłana');
   }
   printMarkdown(markdown: string, cut: boolean, success = 'Dokument został wysłany'): Promise<OperationResult> {
-    return this.post('/printer/markdown', { markdown, initialize: true, cut }, success);
+    return this.post('/printer/markdown', { markdown, encoding: this.textEncodingSignal(), initialize: true, cut }, success);
   }
   printRaw(encoding: RawEncoding, data: string | number[]): Promise<OperationResult> {
     return this.post('/printer/raw', { encoding, data }, 'Komendy ESC/POS zostały wysłane');
@@ -70,4 +76,11 @@ export class PrinterApiService {
     const detail = error instanceof HttpErrorResponse ? (error.error?.message ?? error.message) : error instanceof Error ? error.message : String(error);
     this.messages.add({ severity: 'error', summary, detail, life: 6500 });
   }
+}
+
+function readTextEncoding(): TextEncoding {
+  const stored = localStorage.getItem('printer-text-encoding');
+  return stored === 'cp852' || stored === 'cp3843' || stored === 'utf8' || stored === 'windows1250'
+    ? stored
+    : 'windows1250';
 }

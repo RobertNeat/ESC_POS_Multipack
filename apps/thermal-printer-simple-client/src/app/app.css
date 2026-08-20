@@ -11,8 +11,21 @@ nav a i { margin-right: 7px; font-size: 12px; }
 nav a:hover { background: var(--surface-2); color: var(--ink); }
 nav a.active { background: var(--ink); color: #fff; }
 .connection-pill { display: flex; align-items: center; gap: 8px; padding: 8px 11px; border: 1px solid var(--line); border-radius: 999px; background: white; color: var(--ink); font: 600 12px/1 var(--font); cursor: pointer; }
+.topbar-actions { display: flex; align-items: center; gap: 8px; }
+.encoding-button { display: flex; align-items: center; gap: 7px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 9px; background: white; color: var(--ink); font: 650 11px/1 var(--font); cursor: pointer; }
+.encoding-button i { color: var(--accent); }
+.encoding-panel { width: 310px; display: grid; gap: 5px; }
+.encoding-panel > strong { font-size: 14px; }
+.encoding-panel > small { margin-bottom: 8px; color: var(--muted); font-size: 11px; line-height: 1.45; }
+.encoding-panel button { width: 100%; display: grid; grid-template-columns: 18px 1fr; gap: 9px; align-items: center; padding: 10px; border: 0; border-radius: 8px; background: transparent; color: var(--ink); text-align: left; cursor: pointer; }
+.encoding-panel button:hover, .encoding-panel button.selected { background: var(--surface-2); }
+.encoding-panel button > i { color: var(--muted); }
+.encoding-panel button.selected > i { color: var(--accent); }
+.encoding-panel button b, .encoding-panel button small { display: block; }
+.encoding-panel button b { font-size: 12px; }
+.encoding-panel button small { margin-top: 3px; color: var(--muted); font-size: 10px; }
 .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #d35946; box-shadow: 0 0 0 3px rgba(211,89,70,.12); }
 .status-dot.online { background: #2f8b65; box-shadow: 0 0 0 3px rgba(47,139,101,.12); }
 .app-content { max-width: 1320px; margin: 0 auto; padding: 42px 32px 64px; }
-@media (max-width: 1100px) { .topbar { grid-template-columns: auto 1fr; padding: 12px 18px; } nav { grid-column: 1 / -1; order: 3; justify-content: flex-start; overflow-x: auto; padding-bottom: 2px; } .connection-pill { justify-self: end; } }
-@media (max-width: 680px) { .app-content { padding: 28px 16px 48px; } nav a { padding: 9px; } nav a span { display: none; } nav a i { margin: 0; font-size: 15px; } }
+@media (max-width: 1100px) { .topbar { grid-template-columns: auto 1fr; padding: 12px 18px; } nav { grid-column: 1 / -1; order: 3; justify-content: flex-start; overflow-x: auto; padding-bottom: 2px; } .topbar-actions { justify-self: end; } }
+@media (max-width: 680px) { .app-content { padding: 28px 16px 48px; } nav a { padding: 9px; } nav a span, .encoding-button span, .connection-pill { display: none; } nav a i { margin: 0; font-size: 15px; } }

@@ -11,9 +11,26 @@
       </a>
     }
   </nav>
-  <button class="connection-pill" type="button" routerLink="/" pTooltip="Sprawdź połączenie">
-    <span class="status-dot" [class.online]="api.connectionState() === 'online'"></span>
-    {{ api.connectionState() === 'online' ? 'Drukarka online' : api.connectionState() === 'checking' ? 'Sprawdzanie…' : 'Brak połączenia' }}
-  </button>
+  <div class="topbar-actions">
+    <button class="encoding-button" type="button" (click)="encodingPanel.toggle($event)" pTooltip="Kodowanie tekstu">
+      <i class="pi pi-cog"></i><span>{{ selectedEncodingLabel() }}</span>
+    </button>
+    <p-popover #encodingPanel>
+      <div class="encoding-panel">
+        <strong>Kodowanie tekstu</strong>
+        <small>Musi odpowiadać stronie kodowej zapisanej w drukarce.</small>
+        @for (encoding of textEncodings; track encoding.value) {
+          <button type="button" [class.selected]="api.textEncoding() === encoding.value" (click)="selectTextEncoding(encoding.value); encodingPanel.hide()">
+            <i [class]="api.textEncoding() === encoding.value ? 'pi pi-check-circle' : 'pi pi-circle'"></i>
+            <span><b>{{ encoding.label }}</b><small>{{ encoding.printerPage }}</small></span>
+          </button>
+        }
+      </div>
+    </p-popover>
+    <button class="connection-pill" type="button" routerLink="/" pTooltip="Sprawdź połączenie">
+      <span class="status-dot" [class.online]="api.connectionState() === 'online'"></span>
+      {{ api.connectionState() === 'online' ? 'Drukarka online' : api.connectionState() === 'checking' ? 'Sprawdzanie…' : 'Brak połączenia' }}
+    </button>
+  </div>
 </header>
 <main class="app-content"><router-outlet /></main>
