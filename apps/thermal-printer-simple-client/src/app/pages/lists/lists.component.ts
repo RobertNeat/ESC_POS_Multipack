@@ -7,6 +7,7 @@ import { SelectModule } from 'primeng/select';
 import { TextareaModule } from 'primeng/textarea';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { PrinterApiService } from '../../core/printer-api.service';
+import { CharacterFontSize } from '../../core/printer.models';
 
 interface ListItem { id: number; type: 'bullet'|'number'; depth: number; text: string; checked: boolean; task: boolean; }
 
@@ -35,7 +36,7 @@ interface ListItem { id: number; type: 'bullet'|'number'; depth: number; text: s
         <div class="syntax-bar"><button type="button" (click)="insertMarkdown('- element', listEditor)" title="Punkt listy"><i class="pi pi-list"></i>Punkt</button><button type="button" (click)="insertMarkdown('1. element', listEditor)" title="Punkt numerowany"><i class="pi pi-sort-numeric-down"></i>Numer</button><button type="button" (click)="insertMarkdown('- [ ] zadanie', listEditor)" title="Zadanie"><i class="pi pi-check-square"></i>Zadanie</button><button type="button" (click)="insertMarkdown('   - podpunkt', listEditor)" title="Podpunkt"><i class="pi pi-level-down"></i>Podpunkt</button></div>
         <textarea #listEditor pTextarea class="full-width mono editor" [(ngModel)]="markdown" rows="14" aria-label="Lista w Markdown"></textarea>
         }
-        <div class="button-row footer"><p-button label="Drukuj listę" icon="pi pi-print" [loading]="sending" [disabled]="!hasContent()" (onClick)="print()" /><label><p-checkbox [(ngModel)]="cut" [binary]="true" /> Odetnij papier</label></div>
+        <div class="button-row footer"><p-button label="Drukuj listę" icon="pi pi-print" [loading]="sending" [disabled]="!hasContent()" (onClick)="print()" /><label>Matryca znaków <p-select [options]="fontSizeOptions" [(ngModel)]="fontSize" optionLabel="label" optionValue="value" /></label><label><p-checkbox [(ngModel)]="cut" [binary]="true" /> Odetnij papier</label></div>
       </section>
       <aside>
         <div class="paper"><div class="paper-meta">MARKDOWN DO DRUKU</div><pre>{{ listMarkdown() || 'Dodaj treść listy…' }}</pre></div>
@@ -51,6 +52,8 @@ export class ListsComponent {
   private readonly api=inject(PrinterApiService); private nextId=4;
   protected items:ListItem[]=[{id:1,type:'number',depth:0,text:'Kawa',task:false,checked:false},{id:2,type:'bullet',depth:1,text:'duża, bez cukru',task:false,checked:false},{id:3,type:'number',depth:0,text:'Herbata',task:false,checked:false}];
   protected cut=true; protected sending=false;
+  protected fontSize:CharacterFontSize='12x24';
+  protected readonly fontSizeOptions=[{label:'9 × 17',value:'9x17'},{label:'12 × 24',value:'12x24'},{label:'9 × 24',value:'9x24'}];
   protected markdownMode=false; protected markdown='';
   protected readonly types=[{label:'1. Numerowana',value:'number'},{label:'• Punktowana',value:'bullet'}];
   protected readonly depths=[0,1,2,3].map(value=>({label:value===0?'Główny':`Poziom ${value}`,value}));
@@ -63,5 +66,5 @@ export class ListsComponent {
   protected changeMode(markdownMode:boolean):void{if(markdownMode){this.markdown=this.generatedMarkdown();return;}const parsed=this.parseMarkdown(this.markdown);if(parsed.length){this.items=parsed;this.nextId=Math.max(...parsed.map(item=>item.id))+1;}}
   protected insertMarkdown(value:string,input:HTMLTextAreaElement):void{const start=input.selectionStart??this.markdown.length;const end=input.selectionEnd??start;const prefix=start>0&&!this.markdown.slice(0,start).endsWith('\n')?'\n':'';this.markdown=`${this.markdown.slice(0,start)}${prefix}${value}\n${this.markdown.slice(end)}`;queueMicrotask(()=>{input.focus();const cursor=start+prefix.length+value.length;input.setSelectionRange(cursor,cursor);});}
   private parseMarkdown(markdown:string):ListItem[]{let id=1;return markdown.split('\n').flatMap(line=>{const match=line.match(/^(\s*)([-*+]|\d+\.)\s+(?:\[([ xX])\]\s+)?(.*)$/);if(!match)return[];return[{id:id++,type:/\d+\./.test(match[2])?'number':'bullet',depth:Math.min(Math.floor(match[1].length/3),3),text:match[4],task:match[3]!==undefined,checked:/x/i.test(match[3]??'')}];});}
-  protected async print():Promise<void>{const markdown=this.listMarkdown();if(!markdown||this.sending)return;this.sending=true;try{await this.api.printMarkdown(markdown,this.cut,'Lista została wysłana');}finally{this.sending=false;}}
+  protected async print():Promise<void>{const markdown=this.listMarkdown();if(!markdown||this.sending)return;this.sending=true;try{await this.api.printMarkdown(markdown,this.fontSize,this.cut,'Lista została wysłana');}finally{this.sending=false;}}
 }

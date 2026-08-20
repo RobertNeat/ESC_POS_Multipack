@@ -18,7 +18,7 @@
     <p-popover #encodingPanel>
       <div class="encoding-panel">
         <strong>Kodowanie tekstu</strong>
-        <small>Musi odpowiadać stronie kodowej zapisanej w drukarce.</small>
+        <small>Dla matryc 9 × 17 i 9 × 24 polskie znaki są drukowane przez zgodną tablicę CP852.</small>
         @for (encoding of textEncodings; track encoding.value) {
           <button type="button" [class.selected]="api.textEncoding() === encoding.value" (click)="selectTextEncoding(encoding.value); encodingPanel.hide()">
             <i [class]="api.textEncoding() === encoding.value ? 'pi pi-check-circle' : 'pi pi-circle'"></i>

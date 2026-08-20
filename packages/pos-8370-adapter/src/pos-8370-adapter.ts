@@ -54,8 +54,10 @@ export class Pos8370Adapter implements LowLevelPrinterAdapter {
   async printText(text: string, options: PrintTextOptions = {}): Promise<void> {
     if (options.alignment) await this.setAlignment(options.alignment);
     if (options.style) await this.setTextStyle(options.style);
+    const encoding = effectiveTextEncoding(options.encoding, options.style?.font);
+    await this.selectCodeTableForEncoding(encoding);
     const content = options.appendLineFeed === false ? text : `${text}\n`;
-    await this.raw(this.encodeText(content, options.encoding));
+    await this.raw(this.encodeText(content, encoding));
   }
 
   async printBarcode(request: PrintBarcodeRequest): Promise<void> {
@@ -142,6 +144,7 @@ export class Pos8370Adapter implements LowLevelPrinterAdapter {
     }
 
     const text = payload.appendLineFeed === false ? payload.text : `${payload.text}\n`;
+    await this.selectCodeTableForEncoding(payload.encoding);
     await this.raw(this.encodeText(text, payload.encoding));
   }
 
@@ -266,6 +269,13 @@ export class Pos8370Adapter implements LowLevelPrinterAdapter {
     return encodePos8370Text(text, encoding);
   }
 
+  private async selectCodeTableForEncoding(encoding?: string): Promise<void> {
+    const table = codeTableForEncoding(encoding);
+    if (table !== undefined) {
+      await this.execute([{ type: "codeTable", table }]);
+    }
+  }
+
   private async ensureOpen(): Promise<void> {
     if (this.opened || this.options.autoOpen === false) {
       return;
@@ -344,4 +354,22 @@ function booleanOption(value: boolean | undefined): string | undefined {
 
 function isRawConfigEntry(entry: DeviceConfig["entries"][number]): entry is DeviceRawConfigEntry {
   return "bytes" in entry;
+}
+
+function codeTableForEncoding(encoding?: string): number | undefined {
+  const normalized = encoding?.toLowerCase().replace(/[-_]/g, "");
+  if (normalized === "cp852" || normalized === "ibm852" || normalized === "oem852") return 0x12;
+  if (normalized === "windows1250" || normalized === "win1250" || normalized === "cp1250") return 0x48;
+  if (normalized === "cp3843" || normalized === "pc3843" || normalized === "mazovia") return 0x4c;
+  return undefined;
+}
+
+function effectiveTextEncoding(
+  requested: string | undefined,
+  font: PrinterTextStyle["font"],
+): string | undefined {
+  // POS-8370 exposes its extended Windows-1250 and PC3843 pages only through
+  // persistent configuration. Compact fonts reliably support the runtime-
+  // selectable OEM852 table, so encode and select it as one atomic choice.
+  return font === "B" || font === "specialB" ? "cp852" : requested;
 }

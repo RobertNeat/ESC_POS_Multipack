@@ -34,11 +34,17 @@ export enum TextEncodingDto {
   Utf8 = 'utf8',
 }
 
+export enum CharacterFontSizeDto {
+  Size9x17 = '9x17',
+  Size12x24 = '12x24',
+  Size9x24 = '9x24',
+}
+
 export class TextStyleDto {
-  @ApiPropertyOptional({ enum: ['A', 'B'], default: 'A' })
+  @ApiPropertyOptional({ enum: ['A', 'B', 'specialB'], default: 'A' })
   @IsOptional()
-  @IsIn(['A', 'B'])
-  font?: 'A' | 'B';
+  @IsIn(['A', 'B', 'specialB'])
+  font?: 'A' | 'B' | 'specialB';
 
   @ApiPropertyOptional({ default: false })
   @IsOptional()
@@ -133,6 +139,15 @@ export class PrintMarkdownDto {
   markdown!: string;
 
   @ApiPropertyOptional({
+    enum: CharacterFontSizeDto,
+    default: CharacterFontSizeDto.Size12x24,
+    description: 'Matryca fontu ASCII używana tylko w bieżącym zadaniu druku.',
+  })
+  @IsOptional()
+  @IsEnum(CharacterFontSizeDto)
+  fontSize: CharacterFontSizeDto = CharacterFontSizeDto.Size12x24;
+
+  @ApiPropertyOptional({
     enum: TextEncodingDto,
     default: TextEncodingDto.Windows1250,
     description: 'Kodowanie bajtów tekstu; musi odpowiadać stronie kodowej ustawionej w drukarce.',
@@ -161,6 +176,15 @@ export class PrintTextDto {
   @IsNotEmpty()
   @MaxLength(100_000)
   text!: string;
+
+  @ApiPropertyOptional({
+    enum: CharacterFontSizeDto,
+    default: CharacterFontSizeDto.Size12x24,
+    description: 'Matryca fontu ASCII używana tylko w bieżącym zadaniu druku.',
+  })
+  @IsOptional()
+  @IsEnum(CharacterFontSizeDto)
+  fontSize: CharacterFontSizeDto = CharacterFontSizeDto.Size12x24;
 
   @ApiPropertyOptional({ enum: TextEncodingDto, default: TextEncodingDto.Windows1250 })
   @IsOptional()

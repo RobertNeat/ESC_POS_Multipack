@@ -4,11 +4,13 @@ import { MenuItem } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
 import { SplitButtonModule } from 'primeng/splitbutton';
+import { SelectModule } from 'primeng/select';
 import { TextareaModule } from 'primeng/textarea';
 import { PrinterApiService } from '../../core/printer-api.service';
+import { CharacterFontSize } from '../../core/printer.models';
 
 @Component({
-  imports: [FormsModule, ButtonModule, CheckboxModule, SplitButtonModule, TextareaModule],
+  imports: [FormsModule, ButtonModule, CheckboxModule, SelectModule, SplitButtonModule, TextareaModule],
   template: `
     <div class="page-head"><div><p class="eyebrow">Dokumenty</p><h1>Drukuj Markdown</h1><p class="lead">Wczytaj plik <span class="mono">.md</span> albo napisz dokument. HTML jest odrzucany; zagnieżdżenia i style są mapowane bezpośrednio na ESC/POS.</p></div><span class="badge"><i class="pi pi-shield"></i>Bez HTML · maks. 100 KB</span></div>
     <div class="workspace">
@@ -21,7 +23,7 @@ import { PrinterApiService } from '../../core/printer-api.service';
           @for (tool of tools; track tool.label) { <button type="button" (click)="applyTool(tool, markdownInput)" [title]="tool.hint"><i [class]="tool.icon"></i>{{ tool.label }}</button> }
         </div>
         <textarea #markdownInput pTextarea class="full-width mono editor" [(ngModel)]="markdown" rows="20" maxlength="100000" aria-label="Dokument Markdown" spellcheck="false"></textarea>
-        <div class="editor-foot"><span [class.error-text]="hasHtml()">{{ hasHtml() ? 'Usuń znaczniki HTML przed drukiem' : 'Znaki: ' + markdown.length.toLocaleString('pl-PL') + ' / 100 000' }}</span><label><p-checkbox [(ngModel)]="cut" [binary]="true" /> Odetnij dokument</label></div>
+        <div class="editor-foot"><span [class.error-text]="hasHtml()">{{ hasHtml() ? 'Usuń znaczniki HTML przed drukiem' : 'Znaki: ' + markdown.length.toLocaleString('pl-PL') + ' / 100 000' }}</span><label>Matryca znaków <p-select [options]="fontSizeOptions" [(ngModel)]="fontSize" optionLabel="label" optionValue="value" /></label><label><p-checkbox [(ngModel)]="cut" [binary]="true" /> Odetnij dokument</label></div>
         <div class="button-row"><p-splitbutton label="Drukuj dokument" icon="pi pi-print" [model]="printOptions" [buttonProps]="{ loading: sending }" [disabled]="!markdown.trim() || sending" [buttonDisabled]="hasHtml()" (onClick)="print()" appendTo="body" /><p-button label="Wyczyść" icon="pi pi-trash" severity="secondary" [text]="true" (onClick)="markdown = ''" /></div>
       </section>
       <aside>
@@ -38,13 +40,15 @@ export class MarkdownComponent {
   private readonly api = inject(PrinterApiService);
   protected markdown = '# Zamówienie\n\n1. **Kawa**\n   - duża\n   - bez cukru\n2. _Herbata_\n\n> Dziękujemy i zapraszamy ponownie!';
   protected cut = true; protected sending = false;
+  protected fontSize: CharacterFontSize = '12x24';
+  protected readonly fontSizeOptions = [{label:'9 × 17',value:'9x17'},{label:'12 × 24',value:'12x24'},{label:'9 × 24',value:'9x24'}];
   protected readonly printOptions: MenuItem[] = [{ label: 'Drukuj jako .txt', icon: 'pi pi-file', command: () => void this.printAsText() }];
   protected readonly tools = [
     {label:'H1',icon:'pi pi-hashtag',value:'\n# Nagłówek\n',hint:'Nagłówek poziomu 1'}, {label:'H2',icon:'pi pi-hashtag',value:'\n## Nagłówek\n',hint:'Nagłówek poziomu 2'}, {label:'H3',icon:'pi pi-hashtag',value:'\n### Nagłówek\n',hint:'Nagłówek poziomu 3'}, {label:'H4',icon:'pi pi-hashtag',value:'\n#### Nagłówek\n',hint:'Nagłówek poziomu 4'}, {label:'H5',icon:'pi pi-hashtag',value:'\n##### Nagłówek\n',hint:'Nagłówek poziomu 5'}, {label:'H6',icon:'pi pi-hashtag',value:'\n###### Nagłówek\n',hint:'Nagłówek poziomu 6'}, {label:'Bold',icon:'pi pi-bold',marker:'**',hint:'Pogrubienie'}, {label:'Podkr.',icon:'pi pi-italic',marker:'_',hint:'Podkreślenie'}, {label:'Negatyw',icon:'pi pi-stop',marker:'~~',hint:'Negatyw'}, {label:'Kod',icon:'pi pi-code',marker:'`',hint:'Kod inline'}, {label:'Blok kodu',icon:'pi pi-code',value:'\n```\nkod\n```\n',hint:'Blok kodu'}, {label:'Cytat',icon:'pi pi-comment',value:'\n> cytat\n',hint:'Cytat'}, {label:'---',icon:'pi pi-minus',value:'\n---\n',hint:'Linia oddzielająca'}, {label:'Lista',icon:'pi pi-list',value:'\n- element\n  - podpunkt\n',hint:'Lista punktowana'}, {label:'1. Lista',icon:'pi pi-sort-numeric-down',value:'\n1. element\n   1. podpunkt\n',hint:'Lista numerowana'}, {label:'Zadanie',icon:'pi pi-check-square',value:'\n- [ ] zadanie\n',hint:'Lista zadań'}, {label:'Tabela',icon:'pi pi-table',value:'\n| Kolumna 1 | Kolumna 2 |\n| --- | --- |\n| wartość | wartość |\n',hint:'Tabela'}, {label:'Link',icon:'pi pi-link',value:'[opis](https://)',hint:'Odnośnik'}, {label:'Obraz',icon:'pi pi-image',value:'![opis](https://)',hint:'Obraz jako odnośnik'}
   ];
   protected applyTool(tool: { marker?: string; value?: string }, input: HTMLTextAreaElement): void {
     const start = input.selectionStart ?? this.markdown.length;
-    const end = input.selectionEnd ?? start;
+    const end = tool.marker ? this.excludeTrailingSpace(start, input.selectionEnd ?? start) : input.selectionEnd ?? start;
     const prefix = tool.marker ?? '';
     const suffix = tool.marker ?? '';
     const value = tool.value ?? this.markdown.slice(start, end);
@@ -57,11 +61,12 @@ export class MarkdownComponent {
       input.setSelectionRange(selectionStart, selectionStart + value.length);
     });
   }
+  private excludeTrailingSpace(start: number, end: number): number { return end > start && this.markdown[end - 1] === ' ' && end < this.markdown.length ? end - 1 : end; }
   protected hasHtml(): boolean { return /<\/?[a-z][^>]*>/i.test(this.markdown); }
   protected previewLines(): Array<{text:string;className:string;indent:number}> {
     return this.markdown.split('\n').slice(0,38).map(raw => { const spaces=raw.match(/^\s*/)?.[0].length??0; let text=raw.trim(); let className=''; if(/^# /.test(text)){className='h1';text=text.slice(2)}else if(/^#{2,6} /.test(text)){className='h2';text=text.replace(/^#{2,6} /,'')}else if(/^> /.test(text)){className='quote';text=text.slice(2)}else if(/^([-*+] |\d+\. )/.test(text)){className='list'}else if(/^```/.test(text)){className='code'} text=text.replace(/\*\*(.*?)\*\*/g,'$1').replace(/_(.*?)_/g,'$1').replace(/~~(.*?)~~/g,'$1').replace(/`(.*?)`/g,'$1'); return {text,className,indent:Math.min(spaces,10)}; });
   }
   protected async loadFile(event: Event): Promise<void> { const input=event.target as HTMLInputElement; const file=input.files?.[0]; if(!file)return; if(file.size>100000){this.markdown='';return;} this.markdown=await file.text(); input.value=''; }
-  protected async print(): Promise<void> { if(!this.markdown.trim()||this.hasHtml()||this.sending)return; this.sending=true; try{await this.api.printMarkdown(this.markdown,this.cut);}finally{this.sending=false;} }
-  protected async printAsText(): Promise<void> { if(!this.markdown.trim()||this.sending)return; this.sending=true; try{await this.api.printText(this.markdown,this.cut);}finally{this.sending=false;} }
+  protected async print(): Promise<void> { if(!this.markdown.trim()||this.hasHtml()||this.sending)return; this.sending=true; try{await this.api.printMarkdown(this.markdown,this.fontSize,this.cut);}finally{this.sending=false;} }
+  protected async printAsText(): Promise<void> { if(!this.markdown.trim()||this.sending)return; this.sending=true; try{await this.api.printText(this.markdown,this.fontSize,this.cut);}finally{this.sending=false;} }
 }

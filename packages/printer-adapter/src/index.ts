@@ -87,7 +87,7 @@ export type PrinterInstruction =
   | { readonly type: "emphasized"; readonly enabled: boolean }
   | { readonly type: "doubleStrike"; readonly enabled: boolean }
   | { readonly type: "feedDots"; readonly units: number }
-  | { readonly type: "font"; readonly font: "A" | "B" }
+  | { readonly type: "font"; readonly font: "A" | "B" | "specialB" }
   | { readonly type: "rotate90"; readonly enabled: boolean }
   | { readonly type: "relativePosition"; readonly units: number }
   | {
@@ -186,7 +186,7 @@ export type BarcodeSystem =
 export type PrinterAlignment = "left" | "center" | "right";
 
 export interface PrinterTextStyle {
-  readonly font?: "A" | "B";
+  readonly font?: "A" | "B" | "specialB";
   readonly emphasized?: boolean;
   readonly underline?: 0 | 1 | 2;
   readonly width?: Scale1To8;

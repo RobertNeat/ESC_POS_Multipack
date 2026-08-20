@@ -38,7 +38,7 @@ test("encodes an example of every model-independent vendor instruction", () => {
     { type: "cancelUserDefinedCharacter", code: 65 }, { type: "initialize" },
     { type: "buzzer", count: 1, interval100ms: 1 }, { type: "horizontalTabs", columns: [8, 16] },
     { type: "emphasized", enabled: true }, { type: "doubleStrike", enabled: true },
-    { type: "feedDots", units: 1 }, { type: "font", font: "A" }, { type: "rotate90", enabled: true },
+    { type: "feedDots", units: 1 }, { type: "font", font: "A" }, { type: "font", font: "specialB" }, { type: "rotate90", enabled: true },
     { type: "relativePosition", units: -1 }, { type: "justification", value: "center" },
     { type: "panelButtons", enabled: false }, { type: "feedLines", lines: 1 },
     { type: "drawerPulse", pin: 5, onTime2ms: 1, offTime2ms: 1 }, { type: "codeTable", table: 0 },
@@ -63,6 +63,7 @@ test("encodes an example of every model-independent vendor instruction", () => {
   assert.deepEqual([...encodePos8370Instruction({ type: "relativePosition", units: -1 })], [0x1b, 0x5c, 0xff, 0xff]);
   assert.deepEqual([...encodePos8370Instruction({ type: "cut" })], [0x1d, 0x56, 0x42, 0x10]);
   assert.deepEqual([...encodePos8370Instruction({ type: "cut", feedUnits: 24 })], [0x1d, 0x56, 0x42, 0x18]);
+  assert.deepEqual([...encodePos8370Instruction({ type: "font", font: "specialB" })], [0x1b, 0x4d, 0x62]);
 });
 
 test("cut uses the vendor-safe feed by default and accepts an explicit feed", async () => {
@@ -114,6 +115,45 @@ test("encodes Polish text using the code page selected for the printer", () => {
   assert.deepEqual([...encodePos8370Text("ąćęłńóśźż", "windows1250")], [0xb9, 0xe6, 0xea, 0xb3, 0xf1, 0xf3, 0x9c, 0x9f, 0xbf]);
   assert.deepEqual([...encodePos8370Text("ąćęłńóśźż", "cp852")], [0xa5, 0x86, 0xa9, 0x88, 0xe4, 0xa2, 0x98, 0xab, 0xbe]);
   assert.deepEqual([...encodePos8370Text("ąćęłńóśźż", "cp3843")], [0x86, 0x8d, 0x91, 0x92, 0xa4, 0xa2, 0x98, 0xa0, 0xa1]);
+});
+
+test("selects the matching printer code table after changing the text font", async () => {
+  const writes = [];
+  const adapter = createPos8370Adapter({
+    transport: { descriptor: { kind: "usb" }, async write(bytes) { writes.push([...bytes]); } }
+  });
+
+  await adapter.printText("ąć", {
+    style: { font: "B" },
+    encoding: "windows1250"
+  });
+  await adapter.printText("Łódź", {
+    style: { font: "specialB" },
+    encoding: "cp3843"
+  });
+  await adapter.printText("ąć", {
+    style: { font: "A" },
+    encoding: "windows1250"
+  });
+  await adapter.printText("Łódź", {
+    style: { font: "A" },
+    encoding: "cp3843"
+  });
+
+  assert.deepEqual(writes, [
+    [0x1b, 0x4d, 0x01],
+    [0x1b, 0x74, 0x12],
+    [0xa5, 0x86, 0x0a],
+    [0x1b, 0x4d, 0x62],
+    [0x1b, 0x74, 0x12],
+    [0x9d, 0xa2, 0x64, 0xab, 0x0a],
+    [0x1b, 0x4d, 0x00],
+    [0x1b, 0x74, 0x48],
+    [0xb9, 0xe6, 0x0a],
+    [0x1b, 0x4d, 0x00],
+    [0x1b, 0x74, 0x4c],
+    [0x9c, 0xa2, 0x64, 0xa0, 0x0a]
+  ]);
 });
 
 test("reopens the transport after a failed write", async () => {

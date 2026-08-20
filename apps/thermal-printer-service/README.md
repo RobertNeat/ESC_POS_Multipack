@@ -41,7 +41,9 @@ first USB printer-class device found by `@node-escpos/usb-adapter` is used.
 `Content-Type: text/markdown` or `text/plain`. Embedded HTML is rejected.
 
 Text jobs sent to `/lines` and `/markdown` accept an `encoding` field:
-`windows1250`, `cp852`, `cp3843` (Mazovia) or `utf8`. The selected encoding
-must match the code page configured in the printer firmware. The JSON API
-defaults to `windows1250`; the plain-text Markdown endpoint uses the same
-default.
+`windows1250`, `cp852`, `cp3843` (Mazovia) or `utf8`. Font A selects the code
+table matching the requested encoding before sending its bytes. The compact
+9x17 and 9x24 fonts atomically select the OEM852 table and use CP852 bytes.
+This makes transitions between compact fonts and font A independent of the
+previous job. No firmware setting is persisted. The JSON API defaults to
+`windows1250`; the plain-text Markdown endpoint uses the same default.

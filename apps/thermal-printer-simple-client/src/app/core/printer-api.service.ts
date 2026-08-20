@@ -2,7 +2,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { firstValueFrom } from 'rxjs';
-import { Alignment, ConfigurationOptions, ConnectionState, OperationResult, PrinterCapabilities, PrinterStatus, RasterPrintRequest, RawEncoding, TextEncoding, TextStyle } from './printer.models';
+import { Alignment, CharacterFontSize, ConfigurationOptions, ConnectionState, OperationResult, PrinterCapabilities, PrinterStatus, RasterPrintRequest, RawEncoding, TextEncoding, TextStyle } from './printer.models';
 
 @Injectable({ providedIn: 'root' })
 export class PrinterApiService {
@@ -44,11 +44,11 @@ export class PrinterApiService {
   printLine(text: string, alignment: Alignment, style: TextStyle, cut: boolean): Promise<OperationResult> {
     return this.post('/printer/lines', { lines: [{ text, alignment, style }], encoding: this.textEncodingSignal(), initialize: true, cut }, 'Linia została wysłana');
   }
-  printMarkdown(markdown: string, cut: boolean, success = 'Dokument został wysłany'): Promise<OperationResult> {
-    return this.post('/printer/markdown', { markdown, encoding: this.textEncodingSignal(), initialize: true, cut }, success);
+  printMarkdown(markdown: string, fontSize: CharacterFontSize, cut: boolean, success = 'Dokument został wysłany'): Promise<OperationResult> {
+    return this.post('/printer/markdown', { markdown, fontSize, encoding: this.textEncodingSignal(), initialize: true, cut }, success);
   }
-  printText(text: string, cut: boolean): Promise<OperationResult> {
-    return this.post('/printer/text', { text, encoding: this.textEncodingSignal(), initialize: true, cut }, 'Dokument tekstowy został wysłany');
+  printText(text: string, fontSize: CharacterFontSize, cut: boolean): Promise<OperationResult> {
+    return this.post('/printer/text', { text, fontSize, encoding: this.textEncodingSignal(), initialize: true, cut }, 'Dokument tekstowy został wysłany');
   }
   cutPaper(): Promise<OperationResult> {
     return this.post('/printer/cut', {}, 'Papier został odcięty');

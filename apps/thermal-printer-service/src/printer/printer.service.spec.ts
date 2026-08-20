@@ -4,6 +4,7 @@ import { BadRequestException } from '@nestjs/common';
 import { MarkdownPrinter } from './markdown-printer';
 import {
   AlignmentDto,
+  CharacterFontSizeDto,
   PrintRasterDto,
   RasterScaleDto,
   TextEncodingDto,
@@ -97,5 +98,33 @@ describe('PrinterService text encoding', () => {
       'Mężny żółć',
       expect.objectContaining({ encoding: 'cp852' }),
     );
+  });
+
+  it('applies the selected 9x24 font to every Markdown fragment', async () => {
+    const adapter = {
+      initialize: jest.fn().mockResolvedValue(undefined),
+      printText: jest.fn().mockResolvedValue(undefined),
+      execute: jest.fn().mockResolvedValue(undefined),
+      setAlignment: jest.fn().mockResolvedValue(undefined),
+      setTextStyle: jest.fn().mockResolvedValue(undefined),
+    } as unknown as jest.Mocked<LowLevelPrinterAdapter>;
+    const service = new PrinterService(
+      adapter,
+      {} as PrinterSettingsRepository,
+      new MarkdownPrinter(),
+    );
+
+    await service.printMarkdown({
+      markdown: '**tekst** i `kod`',
+      fontSize: CharacterFontSizeDto.Size9x24,
+      encoding: TextEncodingDto.Windows1250,
+      initialize: true,
+      cut: false,
+    });
+
+    expect(adapter.printText).toHaveBeenCalled();
+    for (const [, options] of adapter.printText.mock.calls) {
+      expect(options?.style?.font).toBe('specialB');
+    }
   });
 });

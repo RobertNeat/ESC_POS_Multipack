@@ -14,6 +14,7 @@ import {
 import { MarkdownPrinter } from './markdown-printer';
 import {
   AlignmentDto,
+  CharacterFontSizeDto,
   ConfigureNamedDto,
   ConfigurePrinterDto,
   DeviceActionDto,
@@ -147,7 +148,7 @@ export class PrinterService implements OnApplicationShutdown {
       if (dto.initialize) await this.adapter.initialize();
       await this.adapter.printText(dto.text, {
         alignment: 'left',
-        style: NORMAL_STYLE,
+        style: { ...NORMAL_STYLE, font: fontForSize(dto.fontSize) },
         encoding: dto.encoding ?? TextEncodingDto.Windows1250,
         appendLineFeed: true,
       });
@@ -167,7 +168,7 @@ export class PrinterService implements OnApplicationShutdown {
         text: (value, style, alignment = 'left') =>
           this.adapter.printText(value, {
             alignment,
-            style,
+            style: { ...style, font: fontForSize(dto.fontSize) },
             encoding: dto.encoding ?? TextEncodingDto.Windows1250,
             appendLineFeed: false,
           }),
@@ -190,6 +191,7 @@ export class PrinterService implements OnApplicationShutdown {
     }
     return this.printMarkdown({
       markdown,
+      fontSize: CharacterFontSizeDto.Size12x24,
       encoding: TextEncodingDto.Windows1250,
       initialize: true,
       cut: false,
@@ -241,6 +243,14 @@ export class PrinterService implements OnApplicationShutdown {
 
 function completeStyle(style?: TextStyleDto): Required<PrinterTextStyle> {
   return { ...NORMAL_STYLE, ...style };
+}
+
+function fontForSize(size: CharacterFontSizeDto | undefined): 'A' | 'B' | 'specialB' {
+  return ({
+    [CharacterFontSizeDto.Size9x17]: 'B',
+    [CharacterFontSizeDto.Size12x24]: 'A',
+    [CharacterFontSizeDto.Size9x24]: 'specialB',
+  } as const)[size ?? CharacterFontSizeDto.Size12x24];
 }
 
 function decodeRaw(dto: PrintRawDto): Uint8Array {
