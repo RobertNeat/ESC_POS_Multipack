@@ -61,6 +61,23 @@ test("encodes an example of every model-independent vendor instruction", () => {
   ];
   for (const instruction of instructions) assert.ok(encodePos8370Instruction(instruction).length > 0, instruction.type);
   assert.deepEqual([...encodePos8370Instruction({ type: "relativePosition", units: -1 })], [0x1b, 0x5c, 0xff, 0xff]);
+  assert.deepEqual([...encodePos8370Instruction({ type: "cut" })], [0x1d, 0x56, 0x42, 0x10]);
+  assert.deepEqual([...encodePos8370Instruction({ type: "cut", feedUnits: 24 })], [0x1d, 0x56, 0x42, 0x18]);
+});
+
+test("cut uses the vendor-safe feed by default and accepts an explicit feed", async () => {
+  const writes = [];
+  const adapter = createPos8370Adapter({
+    transport: { descriptor: { kind: "usb" }, async write(bytes) { writes.push([...bytes]); } }
+  });
+
+  await adapter.cut();
+  await adapter.cut(24);
+
+  assert.deepEqual(writes, [
+    [0x1d, 0x56, 0x42, 0x10],
+    [0x1d, 0x56, 0x42, 0x18]
+  ]);
 });
 
 test("public adapter facade executes task-level operations and semantic configuration", async () => {

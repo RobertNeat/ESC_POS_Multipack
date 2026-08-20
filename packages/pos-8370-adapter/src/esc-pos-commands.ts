@@ -40,7 +40,7 @@ export function encodePos8370Instruction(command: PrinterInstruction): PrinterBy
     case "reverse": return bytes(GS, 0x42, command.enabled ? 1 : 0);
     case "hriPosition": return bytes(GS, 0x48, ({ none: 0, above: 1, below: 2, both: 3 } as const)[command.position]);
     case "leftMargin": return bytes(GS, 0x4c, ...word(command.units, "units"));
-    case "cut": return command.feedUnits === undefined ? bytes(GS, 0x56, 1) : bytes(GS, 0x56, 66, byte(command.feedUnits, "feedUnits"));
+    case "cut": return bytes(GS, 0x56, 66, byte(command.feedUnits ?? 16, "feedUnits"));
     case "hriFont": return bytes(GS, 0x66, command.font === "A" ? 0 : 1);
     case "barcodeHeight": return bytes(GS, 0x68, ranged(command.dots, 1, 255, "dots"));
     case "barcode": return barcode(command.system, command.data, command.format ?? "lengthPrefixed");
