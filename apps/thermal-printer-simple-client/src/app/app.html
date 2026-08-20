@@ -1,0 +1,36 @@
+<p-toast position="bottom-right" />
+<header class="topbar">
+  <a class="brand" routerLink="/" aria-label="Thermal Console — pulpit">
+    <span class="brand-mark"><i class="pi pi-print"></i></span>
+    <span><strong>Thermal Console</strong><small>POS-8370</small></span>
+  </a>
+  <nav aria-label="Główna nawigacja">
+    @for (item of navigation; track item.route) {
+      <a [routerLink]="item.route" routerLinkActive="active" [routerLinkActiveOptions]="{exact: item.route === '/'}">
+        <i [class]="item.icon"></i><span>{{ item.label }}</span>
+      </a>
+    }
+  </nav>
+  <div class="topbar-actions">
+    <button class="encoding-button" type="button" (click)="encodingPanel.toggle($event)" pTooltip="Kodowanie tekstu">
+      <i class="pi pi-cog"></i><span>{{ selectedEncodingLabel() }}</span>
+    </button>
+    <p-popover #encodingPanel>
+      <div class="encoding-panel">
+        <strong>Kodowanie tekstu</strong>
+        <small>Dla matryc 9 × 17 i 9 × 24 polskie znaki są drukowane przez zgodną tablicę CP852.</small>
+        @for (encoding of textEncodings; track encoding.value) {
+          <button type="button" [class.selected]="api.textEncoding() === encoding.value" (click)="selectTextEncoding(encoding.value); encodingPanel.hide()">
+            <i [class]="api.textEncoding() === encoding.value ? 'pi pi-check-circle' : 'pi pi-circle'"></i>
+            <span><b>{{ encoding.label }}</b><small>{{ encoding.printerPage }}</small></span>
+          </button>
+        }
+      </div>
+    </p-popover>
+    <button class="connection-pill" type="button" routerLink="/" pTooltip="Sprawdź połączenie">
+      <span class="status-dot" [class.online]="api.connectionState() === 'online'"></span>
+      {{ api.connectionState() === 'online' ? 'Drukarka online' : api.connectionState() === 'checking' ? 'Sprawdzanie…' : 'Brak połączenia' }}
+    </button>
+  </div>
+</header>
+<main class="app-content"><router-outlet /></main>

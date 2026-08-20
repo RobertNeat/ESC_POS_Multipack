@@ -14,3 +14,8 @@ export {
   type PrinterSettingsRepository
 } from "./settings.js";
 export { parsePos8370Status, type Pos8370StatusBytes } from "./status.js";
+export {
+  encodePos8370Text,
+  POS_8370_TEXT_ENCODINGS,
+  type Pos8370TextEncoding
+} from "./text-encoding.js";

@@ -24,7 +24,7 @@ export function encodePos8370Instruction(command: PrinterInstruction): PrinterBy
     case "emphasized": return bytes(ESC, 0x45, command.enabled ? 1 : 0);
     case "doubleStrike": return bytes(ESC, 0x47, command.enabled ? 1 : 0);
     case "feedDots": return bytes(ESC, 0x4a, byte(command.units, "units"));
-    case "font": return bytes(ESC, 0x4d, command.font === "A" ? 0 : 1);
+    case "font": return bytes(ESC, 0x4d, ({ A: 0, B: 1, specialB: 98 } as const)[command.font]);
     case "rotate90": return bytes(ESC, 0x56, command.enabled ? 1 : 0);
     case "relativePosition": return bytes(ESC, 0x5c, ...signedWord(command.units, "units"));
     case "justification": return bytes(ESC, 0x61, ({ left: 0, center: 1, right: 2 } as const)[command.value]);
@@ -40,7 +40,7 @@ export function encodePos8370Instruction(command: PrinterInstruction): PrinterBy
     case "reverse": return bytes(GS, 0x42, command.enabled ? 1 : 0);
     case "hriPosition": return bytes(GS, 0x48, ({ none: 0, above: 1, below: 2, both: 3 } as const)[command.position]);
     case "leftMargin": return bytes(GS, 0x4c, ...word(command.units, "units"));
-    case "cut": return command.feedUnits === undefined ? bytes(GS, 0x56, 1) : bytes(GS, 0x56, 66, byte(command.feedUnits, "feedUnits"));
+    case "cut": return bytes(GS, 0x56, 66, byte(command.feedUnits ?? 16, "feedUnits"));
     case "hriFont": return bytes(GS, 0x66, command.font === "A" ? 0 : 1);
     case "barcodeHeight": return bytes(GS, 0x68, ranged(command.dots, 1, 255, "dots"));
     case "barcode": return barcode(command.system, command.data, command.format ?? "lengthPrefixed");
@@ -65,6 +65,7 @@ export const ESC_POS = {
   partialCut: encodePos8370Instruction({ type: "cut" }),
   selectFontA: encodePos8370Instruction({ type: "font", font: "A" }),
   selectFontB: encodePos8370Instruction({ type: "font", font: "B" }),
+  selectSpecialFontB: encodePos8370Instruction({ type: "font", font: "specialB" }),
   selectHanziMode: encodePos8370Instruction({ type: "hanziMode", enabled: true }),
   cancelHanziMode: encodePos8370Instruction({ type: "hanziMode", enabled: false }),
   realTimeStatus: (status: 1 | 2 | 3 | 4) => encodePos8370Instruction({ type: "realTimeStatus", status }),
@@ -136,7 +137,12 @@ function qrCode(version: number, ec: "L" | "M" | "Q" | "H", moduleSize: number, 
 }
 
 function imageScale(scale: ImageScale): number { return ({ normal: 0, doubleWidth: 1, doubleHeight: 2, quadruple: 3 } as const)[scale]; }
-function codeTable(value: number): number { if (!((value >= 0 && value <= 5) || (value >= 16 && value <= 19) || value === 255)) throw new RangeError("table must be 0..5, 16..19, or 255."); return value; }
+function codeTable(value: number): number {
+  if (!((value >= 0 && value <= 5) || (value >= 16 && value <= 19) || value === 0x48 || value === 0x4c || value === 255)) {
+    throw new RangeError("table must be 0..5, 16..19, 72, 76, or 255.");
+  }
+  return value;
+}
 function byte(value: number, name: string): number { return ranged(value, 0, 255, name); }
 function ranged(value: number, min: number, max: number, name: string): number { if (!Number.isInteger(value) || value < min || value > max) throw new RangeError(`${name} must be an integer from ${min} to ${max}. Received: ${value}`); return value; }
 function word(value: number, name: string): [number, number] { ranged(value, 0, 65535, name); return [value & 0xff, value >>> 8]; }

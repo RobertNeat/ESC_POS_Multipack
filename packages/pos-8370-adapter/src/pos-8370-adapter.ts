@@ -23,6 +23,7 @@ import {
 import { encodePos8370Instruction, ESC_POS } from "./esc-pos-commands.js";
 import { parsePos8370Status } from "./status.js";
 import { PrinterSettingsRepository } from "./settings.js";
+import { encodePos8370Text } from "./text-encoding.js";
 
 export interface Pos8370AdapterOptions {
   readonly transport: Pos8370Transport;
@@ -53,8 +54,10 @@ export class Pos8370Adapter implements LowLevelPrinterAdapter {
   async printText(text: string, options: PrintTextOptions = {}): Promise<void> {
     if (options.alignment) await this.setAlignment(options.alignment);
     if (options.style) await this.setTextStyle(options.style);
+    const encoding = effectiveTextEncoding(options.encoding, options.style?.font);
+    await this.selectCodeTableForEncoding(encoding);
     const content = options.appendLineFeed === false ? text : `${text}\n`;
-    await this.raw(this.textEncoder.encode(content));
+    await this.raw(this.encodeText(content, encoding));
   }
 
   async printBarcode(request: PrintBarcodeRequest): Promise<void> {
@@ -141,25 +144,27 @@ export class Pos8370Adapter implements LowLevelPrinterAdapter {
     }
 
     const text = payload.appendLineFeed === false ? payload.text : `${payload.text}\n`;
-    await this.raw(this.textEncoder.encode(text));
+    await this.selectCodeTableForEncoding(payload.encoding);
+    await this.raw(this.encodeText(text, payload.encoding));
   }
 
   async getStatus(): Promise<PrinterStatus> {
-    await this.ensureOpen();
-
     if (!this.options.transport.request) {
+      await this.ensureOpen();
       return {
         online: true
       };
     }
 
-    // A transport generally has one response stream; keep request/response pairs ordered.
-    const printer = await this.requestStatusByte(1);
-    const offline = await this.requestStatusByte(2);
-    const error = await this.requestStatusByte(3);
-    const paper = await this.requestStatusByte(4);
+    return this.withConnection(async () => {
+      // A transport generally has one response stream; keep request/response pairs ordered.
+      const printer = await this.requestStatusByte(1);
+      const offline = await this.requestStatusByte(2);
+      const error = await this.requestStatusByte(3);
+      const paper = await this.requestStatusByte(4);
 
-    return parsePos8370Status({ printer, offline, error, paper });
+      return parsePos8370Status({ printer, offline, error, paper });
+    }, true);
   }
 
   getCapabilities(): PrinterCapabilities {
@@ -220,8 +225,8 @@ export class Pos8370Adapter implements LowLevelPrinterAdapter {
   }
 
   async raw(bytes: ByteSource): Promise<void> {
-    await this.ensureOpen();
-    await this.options.transport.write(toPrinterBytes(bytes));
+    const printerBytes = toPrinterBytes(bytes);
+    await this.withConnection(() => this.options.transport.write(printerBytes));
   }
 
   async initialize(): Promise<void> {
@@ -257,6 +262,20 @@ export class Pos8370Adapter implements LowLevelPrinterAdapter {
     return response?.[0] ?? 0;
   }
 
+  private encodeText(text: string, encoding?: string): Uint8Array {
+    if (!encoding || encoding.toLowerCase().replace(/[-_]/g, "") === "utf8") {
+      return this.textEncoder.encode(text);
+    }
+    return encodePos8370Text(text, encoding);
+  }
+
+  private async selectCodeTableForEncoding(encoding?: string): Promise<void> {
+    const table = codeTableForEncoding(encoding);
+    if (table !== undefined) {
+      await this.execute([{ type: "codeTable", table }]);
+    }
+  }
+
   private async ensureOpen(): Promise<void> {
     if (this.opened || this.options.autoOpen === false) {
       return;
@@ -267,6 +286,33 @@ export class Pos8370Adapter implements LowLevelPrinterAdapter {
     }
 
     this.opened = true;
+  }
+
+  private async withConnection<T>(operation: () => Promise<T>, retry = false): Promise<T> {
+    await this.ensureOpen();
+    try {
+      return await operation();
+    } catch (error) {
+      await this.resetConnection();
+      if (!retry) throw error;
+    }
+
+    await this.ensureOpen();
+    try {
+      return await operation();
+    } catch (error) {
+      await this.resetConnection();
+      throw error;
+    }
+  }
+
+  private async resetConnection(): Promise<void> {
+    this.opened = false;
+    try {
+      await this.options.transport.close?.();
+    } catch {
+      // Preserve the original I/O error. A failed close must not keep the adapter open.
+    }
   }
 }
 
@@ -308,4 +354,22 @@ function booleanOption(value: boolean | undefined): string | undefined {
 
 function isRawConfigEntry(entry: DeviceConfig["entries"][number]): entry is DeviceRawConfigEntry {
   return "bytes" in entry;
+}
+
+function codeTableForEncoding(encoding?: string): number | undefined {
+  const normalized = encoding?.toLowerCase().replace(/[-_]/g, "");
+  if (normalized === "cp852" || normalized === "ibm852" || normalized === "oem852") return 0x12;
+  if (normalized === "windows1250" || normalized === "win1250" || normalized === "cp1250") return 0x48;
+  if (normalized === "cp3843" || normalized === "pc3843" || normalized === "mazovia") return 0x4c;
+  return undefined;
+}
+
+function effectiveTextEncoding(
+  requested: string | undefined,
+  font: PrinterTextStyle["font"],
+): string | undefined {
+  // POS-8370 exposes its extended Windows-1250 and PC3843 pages only through
+  // persistent configuration. Compact fonts reliably support the runtime-
+  // selectable OEM852 table, so encode and select it as one atomic choice.
+  return font === "B" || font === "specialB" ? "cp852" : requested;
 }
