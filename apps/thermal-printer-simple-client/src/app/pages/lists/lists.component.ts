@@ -8,6 +8,7 @@ import { TextareaModule } from 'primeng/textarea';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { PrinterApiService } from '../../core/printer-api.service';
 import { CharacterFontSize } from '../../core/printer.models';
+import { editTextField } from '../../shared/text-editor';
 
 interface ListItem { id: number; type: 'bullet'|'number'; depth: number; text: string; checked: boolean; task: boolean; }
 
@@ -64,7 +65,7 @@ export class ListsComponent {
   protected generatedMarkdown():string{let number=1;return this.items.filter(item=>item.text.trim()).map(item=>{if(item.depth===0&&item.type==='number'&&this.items.indexOf(item)===0)number=1;const marker=item.type==='number'?`${number++}. `:'- ';const task=item.task?`[${item.checked?'x':' '}] `:'';return `${'   '.repeat(item.depth)}${marker}${task}${item.text.trim()}`;}).join('\n');}
   protected listMarkdown():string{return this.markdownMode?this.markdown:this.generatedMarkdown();}
   protected changeMode(markdownMode:boolean):void{if(markdownMode){this.markdown=this.generatedMarkdown();return;}const parsed=this.parseMarkdown(this.markdown);if(parsed.length){this.items=parsed;this.nextId=Math.max(...parsed.map(item=>item.id))+1;}}
-  protected insertMarkdown(value:string,input:HTMLTextAreaElement):void{const start=input.selectionStart??this.markdown.length;const end=input.selectionEnd??start;const prefix=start>0&&!this.markdown.slice(0,start).endsWith('\n')?'\n':'';this.markdown=`${this.markdown.slice(0,start)}${prefix}${value}\n${this.markdown.slice(end)}`;queueMicrotask(()=>{input.focus();const cursor=start+prefix.length+value.length;input.setSelectionRange(cursor,cursor);});}
+  protected insertMarkdown(value:string,input:HTMLTextAreaElement):void{const start=input.selectionStart??this.markdown.length;const end=input.selectionEnd??start;const selected=this.markdown.slice(start,end);const prefix=start>0&&!this.markdown.slice(0,start).endsWith('\n')?'\n':'';const marker=value.slice(0,value.indexOf(' ')+1);const replacement=selected?`${prefix}${selected.split('\n').map(line=>marker+line).join('\n')}\n`:`${prefix}${value}\n`;const selectionStart=start+prefix.length+(selected?marker.length:value.length);const selectionEnd=selected?start+replacement.length-1:selectionStart;editTextField(input,replacement,selectionStart,selectionEnd);}
   private parseMarkdown(markdown:string):ListItem[]{let id=1;return markdown.split('\n').flatMap(line=>{const match=line.match(/^(\s*)([-*+]|\d+\.)\s+(?:\[([ xX])\]\s+)?(.*)$/);if(!match)return[];return[{id:id++,type:/\d+\./.test(match[2])?'number':'bullet',depth:Math.min(Math.floor(match[1].length/3),3),text:match[4],task:match[3]!==undefined,checked:/x/i.test(match[3]??'')}];});}
   protected async print():Promise<void>{const markdown=this.listMarkdown();if(!markdown||this.sending)return;this.sending=true;try{await this.api.printMarkdown(markdown,this.fontSize,this.cut,'Lista została wysłana');}finally{this.sending=false;}}
 }

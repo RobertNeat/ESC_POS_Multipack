@@ -7,6 +7,7 @@ import { SelectModule } from 'primeng/select';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { PrinterApiService } from '../../core/printer-api.service';
 import { Alignment, CharacterFontSize, TextStyle } from '../../core/printer.models';
+import { editTextField } from '../../shared/text-editor';
 
 @Component({
   imports: [FormsModule, ButtonModule, CheckboxModule, InputTextModule, SelectModule, ToggleSwitchModule],
@@ -74,13 +75,9 @@ export class TypewriterComponent {
   protected wrap(marker: string, input: HTMLInputElement): void {
     const start = input.selectionStart ?? this.line.length;
     const end = this.excludeTrailingSpace(start, input.selectionEnd ?? start);
-    const formatted = `${this.line.slice(0, start)}${marker}${this.line.slice(start, end)}${marker}${this.line.slice(end)}`;
-    if (formatted.length > this.maxChars()) return;
-    this.line = formatted;
-    queueMicrotask(() => {
-      input.focus();
-      input.setSelectionRange(start + marker.length, end + marker.length);
-    });
+    const replacement = `${marker}${this.line.slice(start, end)}${marker}`;
+    if (this.line.length - (end - start) + replacement.length > this.maxChars()) return;
+    editTextField(input, replacement, start + marker.length, end + marker.length);
   }
   protected wrapCode(input: HTMLInputElement): void { this.wrap(String.fromCharCode(96), input); }
   protected wrapLink(input: HTMLInputElement): void {
@@ -88,11 +85,11 @@ export class TypewriterComponent {
     const selected = this.line.slice(start, end) || 'tekst'; const value = `[${selected}](https://)`;
     this.replaceRange(value, start, end, input, start + 1, start + 1 + selected.length);
   }
-  protected insert(value: string, input: HTMLInputElement): void { const start = input.selectionStart ?? this.line.length; this.replaceRange(value, start, input.selectionEnd ?? start, input, start + value.length, start + value.length); }
+  protected insert(value: string, input: HTMLInputElement): void { const start=input.selectionStart??this.line.length;const end=input.selectionEnd??start;const selected=this.line.slice(start,end);const replacement=selected?`${value}${selected}`:value;this.replaceRange(replacement,start,end,input,start+value.length,start+replacement.length); }
   protected replace(value: string, input: HTMLInputElement): void { this.replaceRange(value, 0, this.line.length, input, value.length, value.length); }
   private replaceRange(value: string, start: number, end: number, input: HTMLInputElement, selectionStart: number, selectionEnd: number): void {
-    const next = `${this.line.slice(0, start)}${value}${this.line.slice(end)}`; if (next.length > this.maxChars()) return; this.line = next;
-    queueMicrotask(() => { input.focus(); input.setSelectionRange(selectionStart, selectionEnd); });
+    const next = `${this.line.slice(0, start)}${value}${this.line.slice(end)}`; if (next.length > this.maxChars()) return;
+    editTextField(input, value, selectionStart, selectionEnd);
   }
   private excludeTrailingSpace(start: number, end: number): number { return end > start && this.line[end - 1] === ' ' && end < this.line.length ? end - 1 : end; }
   protected async cutPaper(): Promise<void> { if (this.cutting || this.sending) return; this.cutting = true; try { await this.api.cutPaper(); this.history = []; } finally { this.cutting = false; } }

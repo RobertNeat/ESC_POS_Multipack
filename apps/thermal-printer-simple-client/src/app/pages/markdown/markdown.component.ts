@@ -8,6 +8,7 @@ import { SelectModule } from 'primeng/select';
 import { TextareaModule } from 'primeng/textarea';
 import { PrinterApiService } from '../../core/printer-api.service';
 import { CharacterFontSize } from '../../core/printer.models';
+import { editTextField } from '../../shared/text-editor';
 
 @Component({
   imports: [FormsModule, ButtonModule, CheckboxModule, SelectModule, SplitButtonModule, TextareaModule],
@@ -49,17 +50,32 @@ export class MarkdownComponent {
   protected applyTool(tool: { marker?: string; value?: string }, input: HTMLTextAreaElement): void {
     const start = input.selectionStart ?? this.markdown.length;
     const end = tool.marker ? this.excludeTrailingSpace(start, input.selectionEnd ?? start) : input.selectionEnd ?? start;
-    const prefix = tool.marker ?? '';
-    const suffix = tool.marker ?? '';
-    const value = tool.value ?? this.markdown.slice(start, end);
-    const next = `${this.markdown.slice(0, start)}${prefix}${value}${suffix}${this.markdown.slice(end)}`;
-    if (next.length > 100000) return;
-    this.markdown = next;
-    queueMicrotask(() => {
-      input.focus();
-      const selectionStart = start + prefix.length;
-      input.setSelectionRange(selectionStart, selectionStart + value.length);
-    });
+    const selected = this.markdown.slice(start, end);
+    const { replacement, selectedOffset, selectedLength } = selected
+      ? this.formatSelection(tool, selected)
+      : { replacement: tool.value ?? `${tool.marker ?? ''}${tool.marker ?? ''}`, selectedOffset: tool.marker?.length ?? 0, selectedLength: 0 };
+    if (this.markdown.length - (end - start) + replacement.length > 100000) return;
+    editTextField(input, replacement, start + selectedOffset, start + selectedOffset + selectedLength);
+  }
+  private formatSelection(tool: { marker?: string; value?: string }, selected: string): { replacement: string; selectedOffset: number; selectedLength: number } {
+    if (tool.marker) return { replacement: `${tool.marker}${selected}${tool.marker}`, selectedOffset: tool.marker.length, selectedLength: selected.length };
+    const value = tool.value ?? '';
+    if (/^\n?#{1,6} /.test(value)) {
+      const marker = value.match(/#{1,6} /)?.[0] ?? '';
+      return { replacement: `${marker}${selected}\n`, selectedOffset: marker.length, selectedLength: selected.length };
+    }
+    if (value.includes('```')) return { replacement: `\n\`\`\`\n${selected}\n\`\`\`\n`, selectedOffset: 5, selectedLength: selected.length };
+    if (/^\n?> /.test(value)) return this.prefixSelectedLines(selected, '> ');
+    if (value.includes('- [ ]')) return this.prefixSelectedLines(selected, '- [ ] ');
+    if (value.includes('1. element')) return this.prefixSelectedLines(selected, '1. ');
+    if (value.includes('- element')) return this.prefixSelectedLines(selected, '- ');
+    if (value.startsWith('![')) return { replacement: `![${selected}](https://)`, selectedOffset: 2, selectedLength: selected.length };
+    if (value.startsWith('[')) return { replacement: `[${selected}](https://)`, selectedOffset: 1, selectedLength: selected.length };
+    return { replacement: `${value}${selected}`, selectedOffset: value.length, selectedLength: selected.length };
+  }
+  private prefixSelectedLines(selected: string, prefix: string): { replacement: string; selectedOffset: number; selectedLength: number } {
+    const replacement = selected.split('\n').map(line => `${prefix}${line}`).join('\n') + '\n';
+    return { replacement, selectedOffset: prefix.length, selectedLength: replacement.length - prefix.length - 1 };
   }
   private excludeTrailingSpace(start: number, end: number): number { return end > start && this.markdown[end - 1] === ' ' && end < this.markdown.length ? end - 1 : end; }
   protected hasHtml(): boolean { return /<\/?[a-z][^>]*>/i.test(this.markdown); }

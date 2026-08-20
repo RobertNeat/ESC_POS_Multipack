@@ -41,7 +41,7 @@ describe('MarkdownPrinter', () => {
 
     expect(lines).toBe(4);
     expect(fragments.map((fragment) => fragment.text)).toEqual(
-      expect.arrayContaining(['1. ', '  • ', '    • ', '2. ']),
+      expect.arrayContaining(['1. ', '  - ', '    - ', '2. ']),
     );
   });
 

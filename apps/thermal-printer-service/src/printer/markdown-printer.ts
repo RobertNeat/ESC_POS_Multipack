@@ -140,7 +140,9 @@ export class MarkdownPrinter {
   ): Promise<void> {
     let number = typeof token.start === 'number' ? token.start : 1;
     for (const item of token.items) {
-      const marker = token.ordered ? `${number++}. ` : '• ';
+      // Keep list punctuation in ASCII so it is available in every printer font
+      // and code page, including the compact CP852 font modes.
+      const marker = token.ordered ? `${number++}. ` : '- ';
       const checkbox = item.task ? (item.checked ? '[x] ' : '[ ] ') : '';
       await sink.text(`${'  '.repeat(depth)}${marker}${checkbox}`, style);
 
