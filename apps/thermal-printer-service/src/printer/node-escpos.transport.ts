@@ -34,7 +34,7 @@ abstract class NodeEscposTransport implements PrinterTransport {
       try {
         await this.discardDevice(device);
       } catch {
-        // Keep the connection error as the reason for the failed open.
+        // Preserve the original connection error.
       }
       throw error;
     }
@@ -50,7 +50,7 @@ abstract class NodeEscposTransport implements PrinterTransport {
       try {
         await this.discardDevice(device);
       } catch {
-        // Keep the write error as the reason for the failed operation.
+        // Preserve the original write error.
       }
       throw error;
     }
@@ -137,7 +137,7 @@ export class NodeEscposLanTransport extends NodeEscposTransport {
       try {
         await this.discardDevice();
       } catch {
-        // Keep the request/timeout error as the reason for this failed operation.
+        // Preserve the original request error.
       }
       throw error;
     }
@@ -214,7 +214,7 @@ export class NodeEscposUsbTransport extends NodeEscposTransport {
       try {
         await this.discardDevice();
       } catch {
-        // Keep the request/timeout error as the reason for this failed operation.
+        // Preserve the original request error.
       }
       throw error;
     }

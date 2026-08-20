@@ -348,14 +348,13 @@ export class OperationResultDto {
   processed!: number;
 }
 
-// class-validator does not inspect a union, so raw data is normalized and
-// checked explicitly by PrinterService. This transform only limits odd objects.
+// PrinterService validates this union because class-validator cannot inspect it.
 export function normalizeRawData(value: unknown): unknown {
   if (typeof value === 'string' || Array.isArray(value)) return value;
   return value;
 }
 
-// Retained as exported validation helpers for clients generating DTO metadata.
+// Exported for clients that generate DTO validation metadata.
 export class HexIdentifierDto {
   @Transform(({ value }: { value: unknown }) =>
     typeof value === 'string' ? value.replace(/^0x/i, '') : value,
