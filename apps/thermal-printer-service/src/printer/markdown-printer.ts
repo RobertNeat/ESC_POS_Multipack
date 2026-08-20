@@ -205,28 +205,49 @@ export class MarkdownPrinter {
     sink: MarkdownSink,
     counter: { lines: number },
   ): Promise<void> {
-    await this.renderTableRow(token.header, sink, true, counter);
-    await sink.text('-'.repeat(48), NORMAL_STYLE);
+    const widths = token.header.map((cell, index) => Math.max(
+      this.tableCellText(cell).length,
+      ...token.rows.map((row) => this.tableCellText(row[index]).length),
+    ));
+    await this.renderTableRow(token.header, widths, sink, true, counter);
+    await sink.text(`|${widths.map((width) => '-'.repeat(width)).join('|')}|`, NORMAL_STYLE);
     await this.endLine(sink, counter);
     for (const row of token.rows) {
-      await this.renderTableRow(row, sink, false, counter);
+      await this.renderTableRow(row, widths, sink, false, counter);
     }
   }
 
   private async renderTableRow(
     cells: readonly Tokens.TableCell[],
+    widths: readonly number[],
     sink: MarkdownSink,
     heading: boolean,
     counter: { lines: number },
   ): Promise<void> {
     for (const [index, cell] of cells.entries()) {
-      if (index > 0) await sink.text(' | ', NORMAL_STYLE);
+      await sink.text('|', NORMAL_STYLE);
       await this.renderInline(cell.tokens, sink, {
         ...NORMAL_STYLE,
         emphasized: heading,
       });
+      await sink.text(' '.repeat(Math.max(0, (widths[index] ?? 0) - this.tableCellText(cell).length)), NORMAL_STYLE);
     }
+    await sink.text('|', NORMAL_STYLE);
     await this.endLine(sink, counter);
+  }
+
+  private tableCellText(cell: Tokens.TableCell | undefined): string {
+    if (!cell) return '';
+    return this.inlineText(cell.tokens);
+  }
+
+  private inlineText(tokens: readonly Token[]): string {
+    return tokens.map((token) => {
+      if ('tokens' in token && token.tokens?.length) return this.inlineText(token.tokens);
+      if (token.type === 'image') return `[obraz: ${(token as Tokens.Image).text}] <${(token as Tokens.Image).href}>`;
+      if (token.type === 'link') return (token as Tokens.Link).text;
+      return 'text' in token ? String(token.text) : '';
+    }).join('');
   }
 
   private async renderInline(

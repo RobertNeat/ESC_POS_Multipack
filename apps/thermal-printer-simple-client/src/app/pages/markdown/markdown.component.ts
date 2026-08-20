@@ -16,15 +16,15 @@ import { PrinterApiService } from '../../core/printer-api.service';
           <label class="upload"><input type="file" accept=".md,.markdown,text/markdown,text/plain" (change)="loadFile($event)"><i class="pi pi-upload"></i> Wczytaj .md</label>
         </div>
         <div class="syntax-bar">
-          @for (tool of tools; track tool.label) { <button type="button" (click)="insert(tool.value)" [title]="tool.hint"><i [class]="tool.icon"></i>{{ tool.label }}</button> }
+          @for (tool of tools; track tool.label) { <button type="button" (click)="applyTool(tool, markdownInput)" [title]="tool.hint"><i [class]="tool.icon"></i>{{ tool.label }}</button> }
         </div>
-        <textarea pTextarea class="full-width mono editor" [(ngModel)]="markdown" rows="20" maxlength="100000" aria-label="Dokument Markdown" spellcheck="false"></textarea>
+        <textarea #markdownInput pTextarea class="full-width mono editor" [(ngModel)]="markdown" rows="20" maxlength="100000" aria-label="Dokument Markdown" spellcheck="false"></textarea>
         <div class="editor-foot"><span [class.error-text]="hasHtml()">{{ hasHtml() ? 'Usuń znaczniki HTML przed drukiem' : 'Znaki: ' + markdown.length.toLocaleString('pl-PL') + ' / 100 000' }}</span><label><p-checkbox [(ngModel)]="cut" [binary]="true" /> Odetnij dokument</label></div>
         <div class="button-row"><p-button label="Drukuj dokument" icon="pi pi-print" [loading]="sending" [disabled]="!markdown.trim() || hasHtml()" (onClick)="print()" /><p-button label="Wyczyść" icon="pi pi-trash" severity="secondary" [text]="true" (onClick)="markdown = ''" /></div>
       </section>
       <aside>
         <div class="paper preview"><div class="paper-meta">PODGLĄD STRUKTURY</div>@for (line of previewLines(); track $index) { <div [class]="line.className" [style.padding-left.ch]="line.indent">{{ line.text || ' ' }}</div> }</div>
-        <div class="support panel panel-pad"><h3>Obsługiwane elementy</h3><div class="tags"><span># nagłówki</span><span>**pogrubienie**</span><span>_podkreślenie_</span><span>~~negatyw~~</span><span>listy zagnieżdżone</span><span>&gt; cytaty</span><span>tabele GFM</span><span>blok kodu</span><span>odnośniki</span></div></div>
+        <div class="support panel panel-pad"><h3>Obsługiwane elementy</h3><div class="tags"><span># nagłówki</span><span>**pogrubienie**</span><span>_podkreślenie_</span><span>~~negatyw~~</span><span>---</span><span>listy zagnieżdżone</span><span>listy zadań</span><span>&gt; cytaty</span><span>tabele GFM</span><span>kod inline i blok</span><span>odnośniki</span><span>obrazy jako odnośniki</span></div></div>
       </aside>
     </div>
   `,
@@ -37,9 +37,23 @@ export class MarkdownComponent {
   protected markdown = '# Zamówienie\n\n1. **Kawa**\n   - duża\n   - bez cukru\n2. _Herbata_\n\n> Dziękujemy i zapraszamy ponownie!';
   protected cut = true; protected sending = false;
   protected readonly tools = [
-    {label:'H1',icon:'pi pi-hashtag',value:'\n# Nagłówek\n',hint:'Nagłówek'}, {label:'Bold',icon:'pi pi-bold',value:'**tekst**',hint:'Pogrubienie'}, {label:'Em',icon:'pi pi-italic',value:'_tekst_',hint:'Podkreślenie'}, {label:'Lista',icon:'pi pi-list',value:'\n- element\n  - podpunkt\n',hint:'Lista punktowana'}, {label:'1. Lista',icon:'pi pi-sort-numeric-down',value:'\n1. element\n   1. podpunkt\n',hint:'Lista numerowana'}, {label:'Kod',icon:'pi pi-code',value:'`kod`',hint:'Kod inline'}, {label:'Cytat',icon:'pi pi-comment',value:'\n> cytat\n',hint:'Cytat'}
+    {label:'H1',icon:'pi pi-hashtag',value:'\n# Nagłówek\n',hint:'Nagłówek poziomu 1'}, {label:'H2',icon:'pi pi-hashtag',value:'\n## Nagłówek\n',hint:'Nagłówek poziomu 2'}, {label:'H3',icon:'pi pi-hashtag',value:'\n### Nagłówek\n',hint:'Nagłówek poziomu 3'}, {label:'H4',icon:'pi pi-hashtag',value:'\n#### Nagłówek\n',hint:'Nagłówek poziomu 4'}, {label:'H5',icon:'pi pi-hashtag',value:'\n##### Nagłówek\n',hint:'Nagłówek poziomu 5'}, {label:'H6',icon:'pi pi-hashtag',value:'\n###### Nagłówek\n',hint:'Nagłówek poziomu 6'}, {label:'Bold',icon:'pi pi-bold',marker:'**',hint:'Pogrubienie'}, {label:'Podkr.',icon:'pi pi-italic',marker:'_',hint:'Podkreślenie'}, {label:'Negatyw',icon:'pi pi-stop',marker:'~~',hint:'Negatyw'}, {label:'Kod',icon:'pi pi-code',marker:'`',hint:'Kod inline'}, {label:'Blok kodu',icon:'pi pi-code',value:'\n```\nkod\n```\n',hint:'Blok kodu'}, {label:'Cytat',icon:'pi pi-comment',value:'\n> cytat\n',hint:'Cytat'}, {label:'---',icon:'pi pi-minus',value:'\n---\n',hint:'Linia oddzielająca'}, {label:'Lista',icon:'pi pi-list',value:'\n- element\n  - podpunkt\n',hint:'Lista punktowana'}, {label:'1. Lista',icon:'pi pi-sort-numeric-down',value:'\n1. element\n   1. podpunkt\n',hint:'Lista numerowana'}, {label:'Zadanie',icon:'pi pi-check-square',value:'\n- [ ] zadanie\n',hint:'Lista zadań'}, {label:'Tabela',icon:'pi pi-table',value:'\n| Kolumna 1 | Kolumna 2 |\n| --- | --- |\n| wartość | wartość |\n',hint:'Tabela'}, {label:'Link',icon:'pi pi-link',value:'[opis](https://)',hint:'Odnośnik'}, {label:'Obraz',icon:'pi pi-image',value:'![opis](https://)',hint:'Obraz jako odnośnik'}
   ];
-  protected insert(value: string): void { this.markdown += value; }
+  protected applyTool(tool: { marker?: string; value?: string }, input: HTMLTextAreaElement): void {
+    const start = input.selectionStart ?? this.markdown.length;
+    const end = input.selectionEnd ?? start;
+    const prefix = tool.marker ?? '';
+    const suffix = tool.marker ?? '';
+    const value = tool.value ?? this.markdown.slice(start, end);
+    const next = `${this.markdown.slice(0, start)}${prefix}${value}${suffix}${this.markdown.slice(end)}`;
+    if (next.length > 100000) return;
+    this.markdown = next;
+    queueMicrotask(() => {
+      input.focus();
+      const selectionStart = start + prefix.length;
+      input.setSelectionRange(selectionStart, selectionStart + value.length);
+    });
+  }
   protected hasHtml(): boolean { return /<\/?[a-z][^>]*>/i.test(this.markdown); }
   protected previewLines(): Array<{text:string;className:string;indent:number}> {
     return this.markdown.split('\n').slice(0,38).map(raw => { const spaces=raw.match(/^\s*/)?.[0].length??0; let text=raw.trim(); let className=''; if(/^# /.test(text)){className='h1';text=text.slice(2)}else if(/^#{2,6} /.test(text)){className='h2';text=text.replace(/^#{2,6} /,'')}else if(/^> /.test(text)){className='quote';text=text.slice(2)}else if(/^([-*+] |\d+\. )/.test(text)){className='list'}else if(/^```/.test(text)){className='code'} text=text.replace(/\*\*(.*?)\*\*/g,'$1').replace(/_(.*?)_/g,'$1').replace(/~~(.*?)~~/g,'$1').replace(/`(.*?)`/g,'$1'); return {text,className,indent:Math.min(spaces,10)}; });

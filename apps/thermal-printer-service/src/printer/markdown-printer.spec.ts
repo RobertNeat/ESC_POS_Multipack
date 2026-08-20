@@ -70,6 +70,15 @@ describe('MarkdownPrinter', () => {
     expect(lineFeeds).toBe(1);
   });
 
+  it('aligns table columns to the widest cell and keeps table borders', async () => {
+    await printer.print('|test|test|\n|-|-|\n|test|test|\n|smalll|test|', sink);
+
+    expect(fragments.map((fragment) => fragment.text).join('')).toBe(
+      '|test  |test||------|----||test  |test||smalll|test|',
+    );
+    expect(lineFeeds).toBe(4);
+  });
+
   it('rejects HTML before writing anything', async () => {
     await expect(
       printer.print('safe\n\n<div>unsafe</div>', sink),

@@ -10,7 +10,7 @@ import { TextEncoding } from './core/printer.models';
   selector: 'app-root',
   imports: [RouterOutlet, RouterLink, RouterLinkActive, ToastModule, TooltipModule, PopoverModule],
   templateUrl: './app.html',
-  styleUrl: './app.css'
+  styleUrl: './app.css',
 })
 export class App implements OnInit {
   protected readonly api = inject(PrinterApiService);
@@ -21,17 +21,30 @@ export class App implements OnInit {
     { label: 'Obraz', icon: 'pi pi-image', route: '/obraz' },
     { label: 'Listy', icon: 'pi pi-list', route: '/listy' },
     { label: 'ESC/POS', icon: 'pi pi-code', route: '/esc-pos' },
-    { label: 'Ustawienia', icon: 'pi pi-cog', route: '/ustawienia' }
+    { label: 'Ustawienia drukarki', icon: 'pi pi-cog', route: '/ustawienia' },
   ];
-  protected readonly textEncodings: ReadonlyArray<{ value: TextEncoding; label: string; printerPage: string }> = [
+  protected readonly textEncodings: ReadonlyArray<{
+    value: TextEncoding;
+    label: string;
+    printerPage: string;
+  }> = [
     { value: 'windows1250', label: 'Windows-1250', printerPage: 'WPC1250 (Latin-2)' },
     { value: 'cp852', label: 'CP852', printerPage: 'OEM852 (Latin-2)' },
     { value: 'cp3843', label: 'CP3843 / Mazovia', printerPage: 'PC3843 (Polish)' },
-    { value: 'utf8', label: 'UTF-8', printerPage: 'tylko urządzenia z obsługą UTF-8' }
+    { value: 'utf8', label: 'UTF-8', printerPage: 'tylko urządzenia z obsługą UTF-8' },
   ];
 
-  protected selectTextEncoding(value: TextEncoding): void { this.api.setTextEncoding(value); }
-  protected selectedEncodingLabel(): string { return this.textEncodings.find(item => item.value === this.api.textEncoding())?.label ?? this.api.textEncoding(); }
+  protected selectTextEncoding(value: TextEncoding): void {
+    this.api.setTextEncoding(value);
+  }
+  protected selectedEncodingLabel(): string {
+    return (
+      this.textEncodings.find((item) => item.value === this.api.textEncoding())?.label ??
+      this.api.textEncoding()
+    );
+  }
 
-  ngOnInit(): void { void this.api.refreshStatus(false); }
+  ngOnInit(): void {
+    void this.api.refreshStatus(false);
+  }
 }

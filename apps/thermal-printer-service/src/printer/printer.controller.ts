@@ -95,6 +95,15 @@ export class PrinterController {
     return this.printer.printRaw(body);
   }
 
+  @Post('cut')
+  @HttpCode(200)
+  @ApiTags('printing')
+  @ApiOperation({ summary: 'Odcina papier bez drukowania kolejnej linii' })
+  @ApiOkResponse({ type: OperationResultDto })
+  cut() {
+    return this.printer.cut();
+  }
+
   @Post('raster')
   @HttpCode(200)
   @ApiTags('printing')

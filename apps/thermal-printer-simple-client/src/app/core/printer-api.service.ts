@@ -47,6 +47,9 @@ export class PrinterApiService {
   printMarkdown(markdown: string, cut: boolean, success = 'Dokument został wysłany'): Promise<OperationResult> {
     return this.post('/printer/markdown', { markdown, encoding: this.textEncodingSignal(), initialize: true, cut }, success);
   }
+  cutPaper(): Promise<OperationResult> {
+    return this.post('/printer/cut', {}, 'Papier został odcięty');
+  }
   printRaw(encoding: RawEncoding, data: string | number[]): Promise<OperationResult> {
     return this.post('/printer/raw', { encoding, data }, 'Komendy ESC/POS zostały wysłane');
   }

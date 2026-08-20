@@ -100,6 +100,13 @@ export class PrinterService implements OnApplicationShutdown {
     });
   }
 
+  async cut(): Promise<OperationResultDto> {
+    return this.transportOperation(async () => {
+      await this.adapter.cut();
+      return ok(1);
+    });
+  }
+
   async printRaster(dto: PrintRasterDto): Promise<OperationResultDto> {
     const data = decodeRaster(dto);
     return this.transportOperation(async () => {
