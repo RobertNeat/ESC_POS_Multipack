@@ -2,7 +2,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { firstValueFrom } from 'rxjs';
-import { Alignment, ConfigurationOptions, ConnectionState, OperationResult, PrinterCapabilities, PrinterStatus, RawEncoding, TextStyle } from './printer.models';
+import { Alignment, ConfigurationOptions, ConnectionState, OperationResult, PrinterCapabilities, PrinterStatus, RasterPrintRequest, RawEncoding, TextStyle } from './printer.models';
 
 @Injectable({ providedIn: 'root' })
 export class PrinterApiService {
@@ -43,6 +43,9 @@ export class PrinterApiService {
   }
   printRaw(encoding: RawEncoding, data: string | number[]): Promise<OperationResult> {
     return this.post('/printer/raw', { encoding, data }, 'Komendy ESC/POS zostały wysłane');
+  }
+  printRaster(request: RasterPrintRequest): Promise<OperationResult> {
+    return this.post('/printer/raster', request, 'Bitmapa została wysłana do drukarki');
   }
   getConfigurationOptions(): Promise<ConfigurationOptions> {
     return firstValueFrom(this.http.get<ConfigurationOptions>(this.url('/printer/configuration/options')));

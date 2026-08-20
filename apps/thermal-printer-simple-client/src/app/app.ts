@@ -16,6 +16,7 @@ export class App implements OnInit {
     { label: 'Pulpit', icon: 'pi pi-home', route: '/' },
     { label: 'Maszyna do pisania', icon: 'pi pi-pencil', route: '/linia' },
     { label: 'Dokument Markdown', icon: 'pi pi-file-edit', route: '/markdown' },
+    { label: 'Obraz', icon: 'pi pi-image', route: '/obraz' },
     { label: 'Listy', icon: 'pi pi-list', route: '/listy' },
     { label: 'ESC/POS', icon: 'pi pi-code', route: '/esc-pos' },
     { label: 'Ustawienia', icon: 'pi pi-cog', route: '/ustawienia' }

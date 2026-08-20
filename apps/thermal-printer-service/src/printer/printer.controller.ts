@@ -16,6 +16,7 @@ import {
   PrintLinesDto,
   PrintMarkdownDto,
   PrintRawDto,
+  PrintRasterDto,
 } from './printer.dto';
 import { PrinterService } from './printer.service';
 
@@ -92,6 +93,22 @@ export class PrinterController {
   @ApiBadRequestResponse({ description: 'Niepoprawny hex, base64 lub bajty.' })
   printRaw(@Body() body: PrintRawDto) {
     return this.printer.printRaw(body);
+  }
+
+  @Post('raster')
+  @HttpCode(200)
+  @ApiTags('printing')
+  @ApiOperation({
+    summary: 'Drukuje bezpośrednio spakowaną bitmapę rastrową ESC/POS',
+    description:
+      'Każdy wiersz ma widthBytes bajtów; najbardziej znaczący bit jest lewym pikselem, a 1 oznacza czarny punkt.',
+  })
+  @ApiOkResponse({ type: OperationResultDto })
+  @ApiBadRequestResponse({
+    description: 'Niepoprawne base64, wymiary lub liczba bajtów bitmapy.',
+  })
+  printRaster(@Body() body: PrintRasterDto) {
+    return this.printer.printRaster(body);
   }
 
   @Post('lines')

@@ -34,7 +34,7 @@ async function bootstrap() {
     .setVersion('1.0.0')
     .addTag('printer', 'Stan i możliwości drukarki')
     .addTag('configuration', 'Konfiguracja POS-8370')
-    .addTag('printing', 'Drukowanie tekstu, Markdown i surowych komend')
+    .addTag('printing', 'Drukowanie tekstu, Markdown, bitmap i surowych komend')
     .build();
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('docs', app, document, {

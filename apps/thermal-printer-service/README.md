@@ -33,7 +33,11 @@ first USB printer-class device found by `@node-escpos/usb-adapter` is used.
 - `GET /api/printer/capabilities`, `GET /api/printer/status`
 - `GET /api/printer/configuration/options`
 - `POST /api/printer/configuration`, `/configuration/named`, `/actions`
-- `POST /api/printer/raw`, `/lines`, `/markdown`
+- `POST /api/printer/raw`, `/lines`, `/markdown`, `/raster`
+
+The raster endpoint accepts a base64-encoded, row-major 1-bit bitmap (MSB first,
+`1` means a black dot), validates its exact byte count, and supports alignment,
+native ESC/POS scaling, initialization, and optional cutting.
 
 `POST /api/printer/markdown/text` additionally accepts the Markdown file body
 directly with `Content-Type: text/markdown` (or `text/plain`).

@@ -65,7 +65,7 @@ export class DashboardComponent {
   protected readonly api = inject(PrinterApiService);
   protected endpoint = this.api.endpoint();
   protected readonly shortcuts = [
-    { title: 'Lista zakupów', description: 'Numerowane i punktowane', icon: 'pi pi-list', route: '/listy' },
+    { title: 'Drukuj obraz', description: 'Raster 1-bit i dithering', icon: 'pi pi-image', route: '/obraz' },
     { title: 'Surowe komendy', description: 'Hex, Base64 lub bajty', icon: 'pi pi-code', route: '/esc-pos' },
     { title: 'Konfiguracja', description: 'Opcje firmware drukarki', icon: 'pi pi-sliders-h', route: '/ustawienia' },
     { title: 'Dokument .md', description: 'Wczytaj i wydrukuj plik', icon: 'pi pi-upload', route: '/markdown' }

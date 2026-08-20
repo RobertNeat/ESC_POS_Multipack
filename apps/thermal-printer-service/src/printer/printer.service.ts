@@ -21,6 +21,7 @@ import {
   PrintLinesDto,
   PrintMarkdownDto,
   PrintRawDto,
+  PrintRasterDto,
   RawEncodingDto,
   TextStyleDto,
 } from './printer.dto';
@@ -95,6 +96,23 @@ export class PrinterService implements OnApplicationShutdown {
     return this.transportOperation(async () => {
       await this.adapter.raw(bytes);
       return ok(bytes.length);
+    });
+  }
+
+  async printRaster(dto: PrintRasterDto): Promise<OperationResultDto> {
+    const data = decodeRaster(dto);
+    return this.transportOperation(async () => {
+      if (dto.initialize) await this.adapter.initialize();
+      await this.adapter.printRasterImage({
+        data,
+        widthBytes: dto.widthBytes,
+        height: dto.height,
+        alignment: dto.alignment,
+        scale: dto.scale,
+      });
+      await this.adapter.setAlignment('left');
+      if (dto.cut) await this.adapter.cut();
+      return ok(data.length);
     });
   }
 
@@ -238,6 +256,23 @@ function decodeRaw(dto: PrintRawDto): Uint8Array {
     throw new BadRequestException('Invalid base64 data.');
   }
   return Uint8Array.from(Buffer.from(compact, 'base64'));
+}
+
+function decodeRaster(dto: PrintRasterDto): Uint8Array {
+  const expectedLength = dto.widthBytes * dto.height;
+  if (expectedLength > MAX_RAW_BYTES) {
+    throw new BadRequestException(
+      `Raster payload exceeds ${MAX_RAW_BYTES} bytes.`,
+    );
+  }
+
+  const data = Uint8Array.from(Buffer.from(dto.data, 'base64'));
+  if (data.length !== expectedLength) {
+    throw new BadRequestException(
+      `Raster data must contain exactly ${expectedLength} bytes; received ${data.length}.`,
+    );
+  }
+  return data;
 }
 
 function ok(processed: number): OperationResultDto {
