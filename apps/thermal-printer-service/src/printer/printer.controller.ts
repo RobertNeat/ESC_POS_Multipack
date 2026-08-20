@@ -17,6 +17,7 @@ import {
   PrintMarkdownDto,
   PrintRawDto,
   PrintRasterDto,
+  PrintTextDto,
 } from './printer.dto';
 import { PrinterService } from './printer.service';
 
@@ -129,6 +130,15 @@ export class PrinterController {
   @ApiOkResponse({ type: OperationResultDto })
   printLines(@Body() body: PrintLinesDto) {
     return this.printer.printLines(body);
+  }
+
+  @Post('text')
+  @HttpCode(200)
+  @ApiTags('printing')
+  @ApiOperation({ summary: 'Drukuje tekst dosłownie, bez interpretowania Markdown' })
+  @ApiOkResponse({ type: OperationResultDto })
+  printText(@Body() body: PrintTextDto) {
+    return this.printer.printText(body);
   }
 
   @Post('markdown')

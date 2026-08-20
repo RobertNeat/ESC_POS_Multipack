@@ -1,12 +1,14 @@
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { MenuItem } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
+import { SplitButtonModule } from 'primeng/splitbutton';
 import { TextareaModule } from 'primeng/textarea';
 import { PrinterApiService } from '../../core/printer-api.service';
 
 @Component({
-  imports: [FormsModule, ButtonModule, CheckboxModule, TextareaModule],
+  imports: [FormsModule, ButtonModule, CheckboxModule, SplitButtonModule, TextareaModule],
   template: `
     <div class="page-head"><div><p class="eyebrow">Dokumenty</p><h1>Drukuj Markdown</h1><p class="lead">Wczytaj plik <span class="mono">.md</span> albo napisz dokument. HTML jest odrzucany; zagnieżdżenia i style są mapowane bezpośrednio na ESC/POS.</p></div><span class="badge"><i class="pi pi-shield"></i>Bez HTML · maks. 100 KB</span></div>
     <div class="workspace">
@@ -20,7 +22,7 @@ import { PrinterApiService } from '../../core/printer-api.service';
         </div>
         <textarea #markdownInput pTextarea class="full-width mono editor" [(ngModel)]="markdown" rows="20" maxlength="100000" aria-label="Dokument Markdown" spellcheck="false"></textarea>
         <div class="editor-foot"><span [class.error-text]="hasHtml()">{{ hasHtml() ? 'Usuń znaczniki HTML przed drukiem' : 'Znaki: ' + markdown.length.toLocaleString('pl-PL') + ' / 100 000' }}</span><label><p-checkbox [(ngModel)]="cut" [binary]="true" /> Odetnij dokument</label></div>
-        <div class="button-row"><p-button label="Drukuj dokument" icon="pi pi-print" [loading]="sending" [disabled]="!markdown.trim() || hasHtml()" (onClick)="print()" /><p-button label="Wyczyść" icon="pi pi-trash" severity="secondary" [text]="true" (onClick)="markdown = ''" /></div>
+        <div class="button-row"><p-splitbutton label="Drukuj dokument" icon="pi pi-print" [model]="printOptions" [buttonProps]="{ loading: sending }" [disabled]="!markdown.trim() || sending" [buttonDisabled]="hasHtml()" (onClick)="print()" appendTo="body" /><p-button label="Wyczyść" icon="pi pi-trash" severity="secondary" [text]="true" (onClick)="markdown = ''" /></div>
       </section>
       <aside>
         <div class="paper preview"><div class="paper-meta">PODGLĄD STRUKTURY</div>@for (line of previewLines(); track $index) { <div [class]="line.className" [style.padding-left.ch]="line.indent">{{ line.text || ' ' }}</div> }</div>
@@ -36,6 +38,7 @@ export class MarkdownComponent {
   private readonly api = inject(PrinterApiService);
   protected markdown = '# Zamówienie\n\n1. **Kawa**\n   - duża\n   - bez cukru\n2. _Herbata_\n\n> Dziękujemy i zapraszamy ponownie!';
   protected cut = true; protected sending = false;
+  protected readonly printOptions: MenuItem[] = [{ label: 'Drukuj jako .txt', icon: 'pi pi-file', command: () => void this.printAsText() }];
   protected readonly tools = [
     {label:'H1',icon:'pi pi-hashtag',value:'\n# Nagłówek\n',hint:'Nagłówek poziomu 1'}, {label:'H2',icon:'pi pi-hashtag',value:'\n## Nagłówek\n',hint:'Nagłówek poziomu 2'}, {label:'H3',icon:'pi pi-hashtag',value:'\n### Nagłówek\n',hint:'Nagłówek poziomu 3'}, {label:'H4',icon:'pi pi-hashtag',value:'\n#### Nagłówek\n',hint:'Nagłówek poziomu 4'}, {label:'H5',icon:'pi pi-hashtag',value:'\n##### Nagłówek\n',hint:'Nagłówek poziomu 5'}, {label:'H6',icon:'pi pi-hashtag',value:'\n###### Nagłówek\n',hint:'Nagłówek poziomu 6'}, {label:'Bold',icon:'pi pi-bold',marker:'**',hint:'Pogrubienie'}, {label:'Podkr.',icon:'pi pi-italic',marker:'_',hint:'Podkreślenie'}, {label:'Negatyw',icon:'pi pi-stop',marker:'~~',hint:'Negatyw'}, {label:'Kod',icon:'pi pi-code',marker:'`',hint:'Kod inline'}, {label:'Blok kodu',icon:'pi pi-code',value:'\n```\nkod\n```\n',hint:'Blok kodu'}, {label:'Cytat',icon:'pi pi-comment',value:'\n> cytat\n',hint:'Cytat'}, {label:'---',icon:'pi pi-minus',value:'\n---\n',hint:'Linia oddzielająca'}, {label:'Lista',icon:'pi pi-list',value:'\n- element\n  - podpunkt\n',hint:'Lista punktowana'}, {label:'1. Lista',icon:'pi pi-sort-numeric-down',value:'\n1. element\n   1. podpunkt\n',hint:'Lista numerowana'}, {label:'Zadanie',icon:'pi pi-check-square',value:'\n- [ ] zadanie\n',hint:'Lista zadań'}, {label:'Tabela',icon:'pi pi-table',value:'\n| Kolumna 1 | Kolumna 2 |\n| --- | --- |\n| wartość | wartość |\n',hint:'Tabela'}, {label:'Link',icon:'pi pi-link',value:'[opis](https://)',hint:'Odnośnik'}, {label:'Obraz',icon:'pi pi-image',value:'![opis](https://)',hint:'Obraz jako odnośnik'}
   ];
@@ -60,4 +63,5 @@ export class MarkdownComponent {
   }
   protected async loadFile(event: Event): Promise<void> { const input=event.target as HTMLInputElement; const file=input.files?.[0]; if(!file)return; if(file.size>100000){this.markdown='';return;} this.markdown=await file.text(); input.value=''; }
   protected async print(): Promise<void> { if(!this.markdown.trim()||this.hasHtml()||this.sending)return; this.sending=true; try{await this.api.printMarkdown(this.markdown,this.cut);}finally{this.sending=false;} }
+  protected async printAsText(): Promise<void> { if(!this.markdown.trim()||this.sending)return; this.sending=true; try{await this.api.printText(this.markdown,this.cut);}finally{this.sending=false;} }
 }

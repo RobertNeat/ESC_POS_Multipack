@@ -152,6 +152,32 @@ export class PrintMarkdownDto {
   cut = false;
 }
 
+export class PrintTextDto {
+  @ApiProperty({
+    description: 'Tekst drukowany dosłownie, bez interpretowania składni Markdown.',
+    maxLength: 100_000,
+  })
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(100_000)
+  text!: string;
+
+  @ApiPropertyOptional({ enum: TextEncodingDto, default: TextEncodingDto.Windows1250 })
+  @IsOptional()
+  @IsEnum(TextEncodingDto)
+  encoding: TextEncodingDto = TextEncodingDto.Windows1250;
+
+  @ApiPropertyOptional({ default: true })
+  @IsOptional()
+  @IsBoolean()
+  initialize = true;
+
+  @ApiPropertyOptional({ default: false })
+  @IsOptional()
+  @IsBoolean()
+  cut = false;
+}
+
 export enum RawEncodingDto {
   Hex = 'hex',
   Base64 = 'base64',

@@ -47,6 +47,9 @@ export class PrinterApiService {
   printMarkdown(markdown: string, cut: boolean, success = 'Dokument został wysłany'): Promise<OperationResult> {
     return this.post('/printer/markdown', { markdown, encoding: this.textEncodingSignal(), initialize: true, cut }, success);
   }
+  printText(text: string, cut: boolean): Promise<OperationResult> {
+    return this.post('/printer/text', { text, encoding: this.textEncodingSignal(), initialize: true, cut }, 'Dokument tekstowy został wysłany');
+  }
   cutPaper(): Promise<OperationResult> {
     return this.post('/printer/cut', {}, 'Papier został odcięty');
   }

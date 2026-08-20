@@ -22,6 +22,7 @@ import {
   PrintMarkdownDto,
   PrintRawDto,
   PrintRasterDto,
+  PrintTextDto,
   RawEncodingDto,
   TextEncodingDto,
   TextStyleDto,
@@ -138,6 +139,21 @@ export class PrinterService implements OnApplicationShutdown {
       await this.resetTextMode();
       if (dto.cut) await this.adapter.cut();
       return ok(dto.lines.length);
+    });
+  }
+
+  async printText(dto: PrintTextDto): Promise<OperationResultDto> {
+    return this.transportOperation(async () => {
+      if (dto.initialize) await this.adapter.initialize();
+      await this.adapter.printText(dto.text, {
+        alignment: 'left',
+        style: NORMAL_STYLE,
+        encoding: dto.encoding ?? TextEncodingDto.Windows1250,
+        appendLineFeed: true,
+      });
+      await this.resetTextMode();
+      if (dto.cut) await this.adapter.cut();
+      return ok(dto.text.length);
     });
   }
 
