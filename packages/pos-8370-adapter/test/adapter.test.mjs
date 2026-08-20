@@ -93,6 +93,55 @@ test("POS-8370 rejects serial and non-USB/LAN transports at runtime", () => {
   assert.doesNotThrow(() => createPos8370Adapter({ transport: { descriptor: { kind: "lan" }, async write() {} } }));
 });
 
+test("reopens the transport after a failed write", async () => {
+  let opens = 0;
+  let closes = 0;
+  let writes = 0;
+  const adapter = createPos8370Adapter({
+    transport: {
+      descriptor: { kind: "lan" },
+      async open() { opens += 1; },
+      async close() { closes += 1; },
+      async write() {
+        writes += 1;
+        if (writes === 1) throw new Error("socket closed");
+      }
+    }
+  });
+
+  await assert.rejects(() => adapter.initialize(), /socket closed/);
+  await adapter.initialize();
+
+  assert.equal(opens, 2);
+  assert.equal(closes, 1);
+  assert.equal(writes, 2);
+});
+
+test("reconnects once and retries a status query after a connection failure", async () => {
+  let opens = 0;
+  let closes = 0;
+  let requests = 0;
+  const adapter = createPos8370Adapter({
+    transport: {
+      descriptor: { kind: "lan" },
+      async open() { opens += 1; },
+      async close() { closes += 1; },
+      async write() {},
+      async request() {
+        requests += 1;
+        if (requests === 1) throw new Error("Printer response timeout.");
+        return Uint8Array.of(0);
+      }
+    }
+  });
+
+  await assert.doesNotReject(() => adapter.getStatus());
+
+  assert.equal(opens, 2);
+  assert.equal(closes, 1);
+  assert.equal(requests, 5);
+});
+
 function hex(value) {
   return value.trim().split(/\s+/).map((part) => Number.parseInt(part, 16));
 }

@@ -145,21 +145,22 @@ export class Pos8370Adapter implements LowLevelPrinterAdapter {
   }
 
   async getStatus(): Promise<PrinterStatus> {
-    await this.ensureOpen();
-
     if (!this.options.transport.request) {
+      await this.ensureOpen();
       return {
         online: true
       };
     }
 
-    // A transport generally has one response stream; keep request/response pairs ordered.
-    const printer = await this.requestStatusByte(1);
-    const offline = await this.requestStatusByte(2);
-    const error = await this.requestStatusByte(3);
-    const paper = await this.requestStatusByte(4);
+    return this.withConnection(async () => {
+      // A transport generally has one response stream; keep request/response pairs ordered.
+      const printer = await this.requestStatusByte(1);
+      const offline = await this.requestStatusByte(2);
+      const error = await this.requestStatusByte(3);
+      const paper = await this.requestStatusByte(4);
 
-    return parsePos8370Status({ printer, offline, error, paper });
+      return parsePos8370Status({ printer, offline, error, paper });
+    }, true);
   }
 
   getCapabilities(): PrinterCapabilities {
@@ -220,8 +221,8 @@ export class Pos8370Adapter implements LowLevelPrinterAdapter {
   }
 
   async raw(bytes: ByteSource): Promise<void> {
-    await this.ensureOpen();
-    await this.options.transport.write(toPrinterBytes(bytes));
+    const printerBytes = toPrinterBytes(bytes);
+    await this.withConnection(() => this.options.transport.write(printerBytes));
   }
 
   async initialize(): Promise<void> {
@@ -267,6 +268,33 @@ export class Pos8370Adapter implements LowLevelPrinterAdapter {
     }
 
     this.opened = true;
+  }
+
+  private async withConnection<T>(operation: () => Promise<T>, retry = false): Promise<T> {
+    await this.ensureOpen();
+    try {
+      return await operation();
+    } catch (error) {
+      await this.resetConnection();
+      if (!retry) throw error;
+    }
+
+    await this.ensureOpen();
+    try {
+      return await operation();
+    } catch (error) {
+      await this.resetConnection();
+      throw error;
+    }
+  }
+
+  private async resetConnection(): Promise<void> {
+    this.opened = false;
+    try {
+      await this.options.transport.close?.();
+    } catch {
+      // Preserve the original I/O error. A failed close must not keep the adapter open.
+    }
   }
 }
 

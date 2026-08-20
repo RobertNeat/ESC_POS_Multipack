@@ -27,22 +27,37 @@ abstract class NodeEscposTransport implements PrinterTransport {
   async open(): Promise<void> {
     if (this.device) return;
     const device = this.createDevice();
-    await callbackOperation((callback) => device.open(callback));
     this.device = device;
+    try {
+      await callbackOperation((callback) => device.open(callback));
+    } catch (error) {
+      try {
+        await this.discardDevice(device);
+      } catch {
+        // Keep the connection error as the reason for the failed open.
+      }
+      throw error;
+    }
   }
 
   async write(bytes: PrinterBytes): Promise<void> {
     const device = this.requireDevice();
-    await callbackOperation((callback) =>
-      device.write(Buffer.from(bytes), callback),
-    );
+    try {
+      await callbackOperation((callback) =>
+        device.write(Buffer.from(bytes), callback),
+      );
+    } catch (error) {
+      try {
+        await this.discardDevice(device);
+      } catch {
+        // Keep the write error as the reason for the failed operation.
+      }
+      throw error;
+    }
   }
 
   async close(): Promise<void> {
-    const device = this.device;
-    this.device = undefined;
-    if (!device) return;
-    await callbackOperation((callback) => device.close(callback));
+    await this.discardDevice();
   }
 
   protected requireDevice(): NodeEscposDevice {
@@ -50,6 +65,13 @@ abstract class NodeEscposTransport implements PrinterTransport {
       throw new Error('Printer transport is not open.');
     }
     return this.device;
+  }
+
+  protected async discardDevice(expected?: NodeEscposDevice): Promise<void> {
+    const device = this.device;
+    if (!device || (expected && device !== expected)) return;
+    this.device = undefined;
+    await callbackOperation((callback) => device.close(callback));
   }
 }
 
@@ -84,6 +106,7 @@ export class NodeEscposLanTransport extends NodeEscposTransport {
 
   override async open(): Promise<void> {
     await super.open();
+    this.received = Buffer.alloc(0);
     this.requireDevice().read((data) => this.acceptData(data));
   }
 
@@ -111,12 +134,18 @@ export class NodeEscposLanTransport extends NodeEscposTransport {
       return await response;
     } catch (error) {
       this.rejectPending(asError(error));
+      try {
+        await this.discardDevice();
+      } catch {
+        // Keep the request/timeout error as the reason for this failed operation.
+      }
       throw error;
     }
   }
 
   override async close(): Promise<void> {
     this.rejectPending(new Error('Printer transport closed.'));
+    this.received = Buffer.alloc(0);
     await super.close();
   }
 
@@ -168,18 +197,27 @@ export class NodeEscposUsbTransport extends NodeEscposTransport {
     bytes: PrinterBytes,
     responseLength = 1,
   ): Promise<PrinterBytes> {
-    await this.write(bytes);
-    const device = this.requireDevice();
-    return new Promise<PrinterBytes>((resolve, reject) => {
-      const timer = setTimeout(
-        () => reject(new Error('Printer response timeout.')),
-        this.timeoutMs,
-      );
-      device.read((data) => {
-        clearTimeout(timer);
-        resolve(Uint8Array.from(data.subarray(0, responseLength)));
+    try {
+      await this.write(bytes);
+      const device = this.requireDevice();
+      return await new Promise<PrinterBytes>((resolve, reject) => {
+        const timer = setTimeout(
+          () => reject(new Error('Printer response timeout.')),
+          this.timeoutMs,
+        );
+        device.read((data) => {
+          clearTimeout(timer);
+          resolve(Uint8Array.from(data.subarray(0, responseLength)));
+        });
       });
-    });
+    } catch (error) {
+      try {
+        await this.discardDevice();
+      } catch {
+        // Keep the request/timeout error as the reason for this failed operation.
+      }
+      throw error;
+    }
   }
 }
 
