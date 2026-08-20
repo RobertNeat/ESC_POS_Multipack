@@ -1,0 +1,18 @@
+:host { display: block; min-height: 100dvh; }
+.topbar { position: sticky; top: 0; z-index: 100; min-height: 74px; padding: 0 28px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 24px; background: rgba(250,250,248,.94); border-bottom: 1px solid var(--line); backdrop-filter: blur(18px); }
+.brand { display: flex; align-items: center; gap: 11px; color: var(--ink); text-decoration: none; }
+.brand-mark { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 10px; background: var(--ink); color: white; }
+.brand strong, .brand small { display: block; }
+.brand strong { font-size: 15px; line-height: 1.1; letter-spacing: -.02em; }
+.brand small { margin-top: 3px; color: var(--muted); font: 600 10px/1 var(--mono); letter-spacing: .12em; }
+nav { display: flex; justify-content: center; gap: 3px; }
+nav a { padding: 10px 12px; border-radius: 9px; color: var(--muted); text-decoration: none; font-size: 13px; font-weight: 600; white-space: nowrap; }
+nav a i { margin-right: 7px; font-size: 12px; }
+nav a:hover { background: var(--surface-2); color: var(--ink); }
+nav a.active { background: var(--ink); color: #fff; }
+.connection-pill { display: flex; align-items: center; gap: 8px; padding: 8px 11px; border: 1px solid var(--line); border-radius: 999px; background: white; color: var(--ink); font: 600 12px/1 var(--font); cursor: pointer; }
+.status-dot { width: 7px; height: 7px; border-radius: 50%; background: #d35946; box-shadow: 0 0 0 3px rgba(211,89,70,.12); }
+.status-dot.online { background: #2f8b65; box-shadow: 0 0 0 3px rgba(47,139,101,.12); }
+.app-content { max-width: 1320px; margin: 0 auto; padding: 42px 32px 64px; }
+@media (max-width: 1100px) { .topbar { grid-template-columns: auto 1fr; padding: 12px 18px; } nav { grid-column: 1 / -1; order: 3; justify-content: flex-start; overflow-x: auto; padding-bottom: 2px; } .connection-pill { justify-self: end; } }
+@media (max-width: 680px) { .app-content { padding: 28px 16px 48px; } nav a { padding: 9px; } nav a span { display: none; } nav a i { margin: 0; font-size: 15px; } }

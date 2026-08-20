@@ -2,6 +2,10 @@ packages:
   - "apps/*"
   - "packages/*"
 allowBuilds:
+  "@parcel/watcher": true
+  esbuild: true
+  lmdb: true
+  msgpackr-extract: true
   unrs-resolver: true
   usb: true
 overrides:

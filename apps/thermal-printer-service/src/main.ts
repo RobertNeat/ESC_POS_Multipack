@@ -6,6 +6,13 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  app.enableCors({
+    origin: process.env.CLIENT_ORIGIN
+      ? process.env.CLIENT_ORIGIN.split(',').map((origin) => origin.trim())
+      : true,
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Content-Type'],
+  });
   app.useBodyParser('text', {
     type: ['text/markdown', 'text/plain'],
     limit: '100kb',
