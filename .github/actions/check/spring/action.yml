@@ -1,0 +1,72 @@
+name: Check Spring Boot project
+description: Run quality, security, tests and build with a mise-managed Temurin JDK.
+inputs:
+  path: { required: true }
+  version: { required: true }
+  build-tool:
+    required: false
+    default: maven
+runs:
+  using: composite
+  steps:
+    - name: Prepare Java runtime
+      shell: bash
+      env:
+        JAVA_VERSION: ${{ inputs.version }}
+      run: |
+        set -euo pipefail
+        command -v mise >/dev/null
+        mise exec "java@temurin-${JAVA_VERSION}" -- java -version
+        mise exec "java@temurin-${JAVA_VERSION}" -- javac -version
+
+    - name: Verify security tools
+      shell: bash
+      run: |
+        set -euo pipefail
+        trivy --version
+        semgrep --version
+
+    - name: Maven checks, tests and package
+      if: inputs.build-tool == 'maven'
+      shell: bash
+      working-directory: ${{ inputs.path }}
+      env:
+        JAVA_VERSION: ${{ inputs.version }}
+      run: |
+        set -euo pipefail
+        test -f mvnw || { echo "mvnw is required" >&2; exit 2; }
+        chmod +x mvnw
+        mise exec "java@temurin-${JAVA_VERSION}" -- ./mvnw -B checkstyle:check spotless:check test
+        mise exec "java@temurin-${JAVA_VERSION}" -- ./mvnw -B -DskipTests package
+
+    - name: Gradle checks, tests and assemble
+      if: inputs.build-tool == 'gradle'
+      shell: bash
+      working-directory: ${{ inputs.path }}
+      env:
+        JAVA_VERSION: ${{ inputs.version }}
+      run: |
+        set -euo pipefail
+        test -f gradlew || { echo "gradlew is required" >&2; exit 2; }
+        chmod +x gradlew
+        mise exec "java@temurin-${JAVA_VERSION}" -- ./gradlew --no-daemon checkstyleMain checkstyleTest spotlessCheck test
+        mise exec "java@temurin-${JAVA_VERSION}" -- ./gradlew --no-daemon assemble
+
+    - name: Validate build tool
+      if: inputs.build-tool != 'maven' && inputs.build-tool != 'gradle'
+      shell: bash
+      env:
+        BUILD_TOOL: ${{ inputs.build-tool }}
+      run: |
+        echo "Unsupported Spring build tool: $BUILD_TOOL" >&2
+        exit 2
+
+    - name: Dependency vulnerabilities
+      shell: bash
+      working-directory: ${{ inputs.path }}
+      run: trivy fs --exit-code 1 --severity HIGH,CRITICAL --scanners vuln .
+
+    - name: SAST
+      shell: bash
+      working-directory: ${{ inputs.path }}
+      run: semgrep scan --config auto --error .

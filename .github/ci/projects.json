@@ -1,17 +1,34 @@
 {
   "projects": [
     {
-      "name": "thermal-printer-service",
+      "name": "esc-pos-multipack",
+      "enabled": true,
+      "check": true,
+      "build": false,
       "type": "node",
-      "version": "22",
+      "framework": "node",
+      "version": "24",
+      "path": ".",
+      "package_manager": "pnpm"
+    },
+    {
+      "name": "thermal-printer-service",
+      "enabled": true,
+      "check": false,
+      "build": true,
+      "type": "node",
+      "version": "24",
       "docker_context": ".",
       "dockerfile": "apps/thermal-printer-service/Dockerfile",
       "image": "esc-pos-multipack/thermal-printer-service"
     },
     {
       "name": "thermal-printer-simple-client",
+      "enabled": true,
+      "check": false,
+      "build": true,
       "type": "node",
-      "version": "22",
+      "version": "24",
       "docker_context": ".",
       "dockerfile": "apps/thermal-printer-simple-client/Dockerfile",
       "image": "esc-pos-multipack/thermal-printer-simple-client"

@@ -1,5 +1,5 @@
 name: Deploy Docker Compose over SSH
-description: Copy the production definition and deploy an exact image SHA.
+description: Copy the deployment definition and deploy an exact immutable image SHA.
 inputs:
   host: { required: true }
   user: { required: true }
@@ -11,7 +11,7 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Prepare remote directory
+    - name: Create remote directory
       shell: bash
       env:
         HOST: ${{ inputs.host }}
@@ -22,7 +22,7 @@ runs:
         remote_dir_q="$(printf '%q' "$REMOTE_DIR")"
         ssh -o BatchMode=yes "$SSH_USER@$HOST" "mkdir -p -- $remote_dir_q"
 
-    - name: Copy deployment files
+    - name: Copy deployment definition
       shell: bash
       env:
         HOST: ${{ inputs.host }}
@@ -49,4 +49,4 @@ runs:
         registry_q="$(printf '%q' "$REGISTRY")"
         sha_q="$(printf '%q' "$SHA")"
         ssh -o BatchMode=yes "$SSH_USER@$HOST" \
-          "cd $remote_dir_q && REGISTRY=$registry_q IMAGE_TAG=$sha_q docker compose --env-file config.env pull && REGISTRY=$registry_q IMAGE_TAG=$sha_q docker compose --env-file config.env up -d --remove-orphans && docker image prune -f"
+          "cd $remote_dir_q && REGISTRY=$registry_q IMAGE_TAG=$sha_q docker compose --env-file config.env config --quiet && REGISTRY=$registry_q IMAGE_TAG=$sha_q docker compose --env-file config.env pull && REGISTRY=$registry_q IMAGE_TAG=$sha_q docker compose --env-file config.env up -d --remove-orphans && docker image prune -f"

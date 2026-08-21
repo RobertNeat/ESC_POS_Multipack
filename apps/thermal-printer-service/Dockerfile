@@ -1,4 +1,4 @@
-ARG NODE_VERSION=22
+ARG NODE_VERSION=24
 FROM node:${NODE_VERSION}-bookworm-slim AS build
 
 RUN apt-get update \
@@ -15,7 +15,8 @@ RUN pnpm install --frozen-lockfile
 
 COPY apps/thermal-printer-service apps/thermal-printer-service
 COPY packages packages
-RUN pnpm exec tsc --build packages/pos-8370-adapter/tsconfig.json --force \
+RUN pnpm --filter @esc-pos-multipack/printer-adapter build \
+    && pnpm --filter @esc-pos-multipack/pos-8370-adapter build \
     && pnpm --filter thermal-printer-service build
 
 FROM node:${NODE_VERSION}-bookworm-slim AS runtime
@@ -31,5 +32,7 @@ COPY --from=build /workspace/node_modules ./node_modules
 COPY --from=build /workspace/apps/thermal-printer-service ./apps/thermal-printer-service
 COPY --from=build /workspace/packages ./packages
 
+USER node
 WORKDIR /workspace/apps/thermal-printer-service
 CMD ["node", "dist/main.js"]
+

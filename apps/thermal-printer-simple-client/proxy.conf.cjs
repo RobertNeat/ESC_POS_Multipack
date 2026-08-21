@@ -1,8 +1,4 @@
-const servicePort = process.env.SERVICE_PORT;
-
-if (!servicePort) {
-  throw new Error('SERVICE_PORT must be set in the root .env file.');
-}
+const servicePort = process.env.SERVICE_PORT ?? '3000';
 
 module.exports = {
   '/api': {

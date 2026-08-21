@@ -10,9 +10,9 @@ an endpoint needs the device.
 pnpm dev:thermal-printer-service
 ```
 
-The API is available at `http://localhost:10120/api`.
-Swagger UI is served at `http://localhost:10120/docs`.
-The OpenAPI document at `http://localhost:10120/openapi.json`.
+The API is available at `http://localhost:3000/api`.
+Swagger UI is served at `http://localhost:3000/docs`.
+The OpenAPI document at `http://localhost:3000/openapi.json`.
 
 ## Transport configuration
 
@@ -24,12 +24,8 @@ The OpenAPI document at `http://localhost:10120/openapi.json`.
 | `PRINTER_TIMEOUT_MS`     | `5000`          | Connection/response timeout            |
 | `PRINTER_USB_VENDOR_ID`  | auto            | USB VID, decimal or `0x`-prefixed hex  |
 | `PRINTER_USB_PRODUCT_ID` | auto            | USB PID, decimal or `0x`-prefixed hex  |
-| `PORT`                   | required        | Set from root `SERVICE_PORT`           |
+| `PORT`                   | `3000`          | HTTP port                              |
 | `CLIENT_ORIGIN`          | all origins     | Comma-separated allowed client origins |
-
-The root README contains the two-container Docker Compose workflow. When
-started that way, the API is also published to the host on port `10120` by
-default, so other locally developed services can call it directly.
 
 VID and PID must either both be set or both omitted. In automatic USB mode the
 first USB printer-class device found by `@node-escpos/usb-adapter` is used.

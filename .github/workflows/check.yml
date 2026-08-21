@@ -1,0 +1,76 @@
+name: Check
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  matrix:
+    name: Read project definition
+    runs-on: [self-hosted, Linux, X64, production]
+    outputs:
+      projects: ${{ steps.config.outputs.projects }}
+    steps:
+      - uses: actions/checkout@latest
+
+      - id: config
+        name: Build check matrix
+        shell: bash
+        run: |
+          set -euo pipefail
+          cfg=.github/ci/projects.json
+          jq -e '.projects | type == "array" and length > 0' "$cfg" >/dev/null
+          jq -e 'all(.projects[] | select(.enabled != false and .check != false); has("name") and has("type") and has("version") and has("path"))' "$cfg" >/dev/null
+          jq -e '[.projects[] | select(.enabled != false and .check != false)] | length > 0' "$cfg" >/dev/null
+          echo "projects=$(jq -c '{include: [.projects[] | select(.enabled != false and .check != false) | {project: .}]}' "$cfg")" >> "$GITHUB_OUTPUT"
+
+  check:
+    name: Check / ${{ matrix.project.name }}
+    needs: matrix
+    runs-on: [self-hosted, Linux, X64, production]
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.matrix.outputs.projects) }}
+    steps:
+      - uses: actions/checkout@latest
+
+      - name: Node / Angular / NestJS
+        if: matrix.project.type == 'node'
+        uses: ./.github/actions/check/node
+        with:
+          path: ${{ matrix.project.path }}
+          version: ${{ matrix.project.version }}
+          framework: ${{ matrix.project.framework || 'node' }}
+          package-manager: ${{ matrix.project.package_manager || 'pnpm' }}
+
+      - name: Spring Boot
+        if: matrix.project.type == 'springboot'
+        uses: ./.github/actions/check/spring
+        with:
+          path: ${{ matrix.project.path }}
+          version: ${{ matrix.project.version }}
+          build-tool: ${{ matrix.project.build_tool || 'maven' }}
+
+      - name: Python
+        if: matrix.project.type == 'python'
+        uses: ./.github/actions/check/python
+        with:
+          path: ${{ matrix.project.path }}
+          version: ${{ matrix.project.version }}
+
+      - name: Reject unsupported project type
+        if: matrix.project.type != 'node' && matrix.project.type != 'springboot' && matrix.project.type != 'python'
+        shell: bash
+        env:
+          PROJECT_TYPE: ${{ matrix.project.type }}
+        run: |
+          echo "Unsupported project type: $PROJECT_TYPE" >&2
+          exit 2
