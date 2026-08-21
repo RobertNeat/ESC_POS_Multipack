@@ -9,7 +9,8 @@
       "framework": "node",
       "version": "24",
       "path": ".",
-      "package_manager": "pnpm"
+      "package_manager": "pnpm",
+      "prepare_script": "ci:prepare"
     },
     {
       "name": "thermal-printer-service",

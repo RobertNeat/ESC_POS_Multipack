@@ -50,6 +50,7 @@ jobs:
           version: ${{ matrix.project.version }}
           framework: ${{ matrix.project.framework || 'node' }}
           package-manager: ${{ matrix.project.package_manager || 'pnpm' }}
+          prepare-script: ${{ matrix.project.prepare_script || '' }}
 
       - name: Spring Boot
         if: matrix.project.type == 'springboot'

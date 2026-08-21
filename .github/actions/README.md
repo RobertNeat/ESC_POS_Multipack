@@ -4,9 +4,10 @@ This repository implements the complete three-stage pipeline from the Proxmox
 Docker blueprint:
 
 1. `Check` runs on pushes to `main` and can be started manually. It installs
-   Node.js 24 through `mise`, installs the frozen pnpm workspace, runs linting,
-   formatting, type checks, Trivy filesystem scanning, Semgrep SAST, tests and
-   a non-publishing build.
+   Node.js 24 through `mise`, installs the frozen pnpm workspace, builds the
+   internal adapter packages required for type-aware analysis, then runs
+   linting, formatting, type checks, Trivy filesystem scanning, Semgrep SAST,
+   tests and a non-publishing build.
 2. `Build` starts only after a successful `Check` on `main` (or manually for an
    explicit SHA). It builds the service and client images independently, scans
    both final images with Trivy and publishes both the immutable commit SHA and
@@ -31,4 +32,3 @@ accept the configured local HTTP registry.
 
 `latest` is never used for deployment. The Build workflow uploads
 `.pipeline/deploy-sha.txt`, and Deploy downloads it from that exact Build run.
-

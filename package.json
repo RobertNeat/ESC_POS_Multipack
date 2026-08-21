@@ -17,6 +17,7 @@
     "dev:thermal-printer": "pnpm --parallel --filter thermal-printer-service --filter thermal-printer-simple-client run dev",
     "dev:thermal-printer-service": "pnpm --filter thermal-printer-service dev",
     "dev:thermal-printer-simple-client": "pnpm --filter thermal-printer-simple-client dev",
+    "ci:prepare": "tsc --build packages/pos-8370-adapter/tsconfig.json --force",
     "build": "pnpm -r build",
     "lint": "eslint . && pnpm --filter thermal-printer-simple-client lint",
     "lint:fix": "eslint . --fix",

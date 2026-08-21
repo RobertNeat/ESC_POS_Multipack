@@ -11,6 +11,10 @@ inputs:
   package-manager:
     required: false
     default: pnpm
+  prepare-script:
+    description: Optional package script that builds generated workspace prerequisites before quality checks
+    required: false
+    default: ''
 runs:
   using: composite
   steps:
@@ -50,6 +54,16 @@ runs:
           yarn) mise exec "node@${NODE_VERSION}" -- yarn install --immutable ;;
           *) echo "Unsupported package manager: $PM" >&2; exit 2 ;;
         esac
+
+    - name: Prepare workspace packages
+      if: inputs.prepare-script != ''
+      shell: bash
+      working-directory: ${{ inputs.path }}
+      env:
+        NODE_VERSION: ${{ inputs.version }}
+        PM: ${{ inputs.package-manager }}
+        PREPARE_SCRIPT: ${{ inputs.prepare-script }}
+      run: mise exec "node@${NODE_VERSION}" -- "$PM" run "$PREPARE_SCRIPT"
 
     - name: Lint
       shell: bash
