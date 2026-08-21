@@ -52,7 +52,7 @@ jobs:
           test -n "$sha"
           echo "sha=$sha" >> "$GITHUB_OUTPUT"
 
-      - uses: actions/checkout@latest
+      - uses: actions/checkout@v7
         with:
           ref: ${{ steps.ctx.outputs.sha }}
 
