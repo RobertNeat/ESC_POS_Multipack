@@ -1,0 +1,162 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - '**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-release
+  cancel-in-progress: false
+
+jobs:
+  context:
+    name: Validate release tag
+    runs-on: [self-hosted, Linux, X64, production]
+    outputs:
+      sha: ${{ steps.release.outputs.sha }}
+      tag: ${{ steps.release.outputs.tag }}
+      projects: ${{ steps.config.outputs.projects }}
+      registry: ${{ steps.config.outputs.registry }}
+      node_version: ${{ steps.config.outputs.node_version }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+
+      - id: release
+        name: Require a tag on a commit merged to main
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin main:refs/remotes/origin/main
+          sha="$(git rev-list -n 1 "refs/tags/$RELEASE_TAG")"
+          test -n "$sha"
+          if ! git merge-base --is-ancestor "$sha" origin/main; then
+            echo "Tag $RELEASE_TAG points to $sha, which is not part of main." >&2
+            exit 1
+          fi
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          echo "tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
+
+      - id: config
+        name: Read project definition
+        shell: bash
+        run: |
+          set -euo pipefail
+          cfg=.github/ci/projects.json
+          jq -e '.projects | type == "array" and length > 0' "$cfg" >/dev/null
+          jq -e 'all(.projects[]; has("name") and has("type") and has("version") and has("docker_context") and has("dockerfile") and has("image"))' "$cfg" >/dev/null
+          jq -e 'all(.projects[]; .type == "node") and ([.projects[].version] | unique | length == 1)' "$cfg" >/dev/null
+          echo "projects=$(jq -c '{include: [.projects[] | {project: .}]}' "$cfg")" >> "$GITHUB_OUTPUT"
+          echo "registry=$(jq -r '.deploy.registry' "$cfg")" >> "$GITHUB_OUTPUT"
+          echo "node_version=$(jq -r '.projects[0].version' "$cfg")" >> "$GITHUB_OUTPUT"
+
+  check:
+    name: Check monorepo
+    needs: context
+    runs-on: [self-hosted, Linux, X64, production]
+    env:
+      NODE_VERSION: ${{ needs.context.outputs.node_version }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ needs.context.outputs.sha }}
+
+      - name: Prepare Node and pnpm
+        shell: bash
+        run: |
+          set -euo pipefail
+          command -v mise >/dev/null
+          mise exec "node@$NODE_VERSION" -- node --version
+          if ! mise exec "node@$NODE_VERSION" -- bash -c 'command -v corepack >/dev/null 2>&1'; then
+            mise exec "node@$NODE_VERSION" -- npm install --global corepack
+          fi
+          mise exec "node@$NODE_VERSION" -- corepack enable
+
+      - name: Verify security tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          trivy --version
+          semgrep --version
+
+      - name: Install dependencies
+        shell: bash
+        run: mise exec "node@$NODE_VERSION" -- pnpm install --frozen-lockfile
+
+      - name: Lint, format, test and build
+        shell: bash
+        run: |
+          set -euo pipefail
+          mise exec "node@$NODE_VERSION" -- pnpm lint
+          mise exec "node@$NODE_VERSION" -- pnpm format:check
+          mise exec "node@$NODE_VERSION" -- pnpm test:ci
+          mise exec "node@$NODE_VERSION" -- pnpm build
+
+      - name: Dependency vulnerabilities
+        shell: bash
+        run: trivy fs --exit-code 1 --severity HIGH,CRITICAL --scanners vuln .
+
+      - name: SAST
+        shell: bash
+        run: semgrep scan --config auto --error .
+
+  build:
+    name: Build / ${{ matrix.project.name }}
+    needs: [context, check]
+    runs-on: [self-hosted, Linux, X64, production]
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.context.outputs.projects) }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ needs.context.outputs.sha }}
+
+      - uses: ./.github/actions/build/docker
+        with:
+          registry: ${{ needs.context.outputs.registry }}
+          image: ${{ matrix.project.image }}
+          context: ${{ matrix.project.docker_context }}
+          dockerfile: ${{ matrix.project.dockerfile }}
+          sha: ${{ needs.context.outputs.sha }}
+          version: ${{ matrix.project.version }}
+
+  deploy:
+    name: Deploy / production
+    needs: [context, build]
+    runs-on: [self-hosted, Linux, X64, production]
+    environment: production
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ needs.context.outputs.sha }}
+
+      - id: config
+        name: Read deployment configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          cfg=.github/ci/projects.json
+          echo "host=$(jq -r '.deploy.host' "$cfg")" >> "$GITHUB_OUTPUT"
+          echo "user=$(jq -r '.deploy.user' "$cfg")" >> "$GITHUB_OUTPUT"
+          echo "registry=$(jq -r '.deploy.registry' "$cfg")" >> "$GITHUB_OUTPUT"
+          echo "compose=$(jq -r '.deploy.compose_file' "$cfg")" >> "$GITHUB_OUTPUT"
+          echo "config=$(jq -r '.deploy.config_file' "$cfg")" >> "$GITHUB_OUTPUT"
+          echo "remote_dir=$(jq -r '.deploy.remote_dir' "$cfg")" >> "$GITHUB_OUTPUT"
+
+      - uses: ./.github/actions/deploy/compose-ssh
+        with:
+          host: ${{ steps.config.outputs.host }}
+          user: ${{ steps.config.outputs.user }}
+          registry: ${{ steps.config.outputs.registry }}
+          compose-file: ${{ steps.config.outputs.compose }}
+          config-file: ${{ steps.config.outputs.config }}
+          remote-dir: ${{ steps.config.outputs.remote_dir }}
+          sha: ${{ needs.context.outputs.sha }}

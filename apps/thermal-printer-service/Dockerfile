@@ -1,4 +1,5 @@
-FROM node:22-bookworm-slim AS build
+ARG NODE_VERSION=22
+FROM node:${NODE_VERSION}-bookworm-slim AS build
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends build-essential python3 libusb-1.0-0-dev libudev-dev \
@@ -17,22 +18,18 @@ COPY packages packages
 RUN pnpm exec tsc --build packages/pos-8370-adapter/tsconfig.json --force \
     && pnpm --filter thermal-printer-service build
 
-FROM node:22-bookworm-slim AS runtime
-
-ARG SERVICE_PORT
+FROM node:${NODE_VERSION}-bookworm-slim AS runtime
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends libusb-1.0-0 libudev1 \
     && rm -rf /var/lib/apt/lists/*
 
-ENV NODE_ENV=production \
-    PORT=${SERVICE_PORT}
+ENV NODE_ENV=production
 WORKDIR /workspace
 
 COPY --from=build /workspace/node_modules ./node_modules
 COPY --from=build /workspace/apps/thermal-printer-service ./apps/thermal-printer-service
 COPY --from=build /workspace/packages ./packages
 
-EXPOSE ${SERVICE_PORT}
 WORKDIR /workspace/apps/thermal-printer-service
 CMD ["node", "dist/main.js"]

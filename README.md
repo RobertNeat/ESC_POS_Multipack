@@ -77,6 +77,41 @@ LAN is the default printer transport. USB passthrough depends on Docker host
 support and may require adding the USB device to the service in a local Compose
 override.
 
+## Production deployment
+
+Production deployment runs on the self-hosted GitHub Actions runner after a
+tag is pushed. The tagged commit must already belong to the history of `main`;
+otherwise the release stops before checks or image publication. A typical
+release after merging a branch is:
+
+```powershell
+git switch main
+git pull --ff-only
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+The release checks the complete monorepo, scans the sources and both Docker
+images, publishes immutable images to `192.168.1.162:5000`, and deploys those
+exact SHA-tagged images over SSH to `docker_deploy@192.168.1.160`.
+
+Production ports and runtime values are defined once in
+`deploy/config.env`. Change `CLIENT_PORT`, `SERVICE_PORT`, or `PUBLIC_HOST`
+there when moving the production endpoints. This file is copied next to the
+production Compose definition during deployment. Local native and local Docker
+runs continue to use only the root `.env` file.
+
+The production endpoints currently are:
+
+- client: `http://192.168.1.160:10100`
+- API: `http://192.168.1.160:10120/api`
+- Swagger UI: `http://192.168.1.160:10120/docs`
+
+The runner is expected to have the `production` label and the tools described
+by the server setup: Docker, Compose, `mise`, `jq`, `trivy`, `semgrep`, `ssh`,
+and `scp`. Its SSH key must be authorized for `docker_deploy` on the production
+host, and both Docker daemons must allow the local HTTP registry.
+
 ## Workspace commands
 
 ```powershell

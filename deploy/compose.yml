@@ -1,17 +1,15 @@
+name: esc-pos-multipack
+
 services:
   thermal-printer-service:
-    build:
-      context: .
-      dockerfile: apps/thermal-printer-service/Dockerfile
+    image: ${REGISTRY}/${COMPOSE_PROJECT_NAME}/thermal-printer-service:${IMAGE_TAG}
     environment:
-      PORT: ${SERVICE_PORT:?SERVICE_PORT must be set in .env}
+      PORT: ${SERVICE_PORT:?SERVICE_PORT must be set in config.env}
+      CLIENT_ORIGIN: http://${PUBLIC_HOST:?PUBLIC_HOST must be set in config.env}:${CLIENT_PORT}
       PRINTER_TRANSPORT: ${PRINTER_TRANSPORT:-lan}
-      PRINTER_HOST: ${PRINTER_HOST:-192.168.1.100}
+      PRINTER_HOST: ${PRINTER_HOST:?PRINTER_HOST must be set in config.env}
       PRINTER_PORT: ${PRINTER_PORT:-9100}
       PRINTER_TIMEOUT_MS: ${PRINTER_TIMEOUT_MS:-5000}
-      PRINTER_USB_VENDOR_ID: ${PRINTER_USB_VENDOR_ID:-}
-      PRINTER_USB_PRODUCT_ID: ${PRINTER_USB_PRODUCT_ID:-}
-      CLIENT_ORIGIN: http://localhost:${CLIENT_PORT:?CLIENT_PORT must be set in .env}
     ports:
       - '${SERVICE_PORT}:${SERVICE_PORT}'
     healthcheck:
@@ -29,15 +27,13 @@ services:
     restart: unless-stopped
 
   thermal-printer-simple-client:
-    build:
-      context: .
-      dockerfile: apps/thermal-printer-simple-client/Dockerfile
+    image: ${REGISTRY}/${COMPOSE_PROJECT_NAME}/thermal-printer-simple-client:${IMAGE_TAG}
     depends_on:
       thermal-printer-service:
         condition: service_healthy
     environment:
-      CLIENT_PORT: ${CLIENT_PORT:?CLIENT_PORT must be set in .env}
-      SERVICE_PORT: ${SERVICE_PORT:?SERVICE_PORT must be set in .env}
+      CLIENT_PORT: ${CLIENT_PORT:?CLIENT_PORT must be set in config.env}
+      SERVICE_PORT: ${SERVICE_PORT:?SERVICE_PORT must be set in config.env}
     ports:
       - '${CLIENT_PORT}:${CLIENT_PORT}'
     healthcheck:
