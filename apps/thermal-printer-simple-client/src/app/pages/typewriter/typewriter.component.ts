@@ -8,7 +8,8 @@ import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { PrinterApiService } from '../../core/printer-api.service';
 import { Alignment, CharacterFontSize, TextStyle } from '../../core/printer.models';
 import { ALIGNMENT_OPTIONS, FONT_OPTIONS, PAPER_OPTIONS } from '../../shared/printer-options';
-import { editTextField } from '../../shared/text-editor';
+import { toggleMarkdownLinePrefix, toggleMarkdownLink } from '../../shared/markdown-editor';
+import { editTextField, toggleTextMarker } from '../../shared/text-editor';
 
 @Component({
   imports: [
@@ -70,19 +71,48 @@ export class TypewriterComponent {
   protected wrap(marker: string, input: HTMLInputElement): void {
     const start = input.selectionStart ?? this.line.length;
     const end = this.excludeTrailingSpace(start, input.selectionEnd ?? start);
-    const replacement = `${marker}${this.line.slice(start, end)}${marker}`;
-    if (this.line.length - (end - start) + replacement.length > this.maxChars()) return;
-    editTextField(input, replacement, start + marker.length, end + marker.length);
+    const edit = toggleTextMarker(this.line, start, end, marker);
+    this.replaceRange(
+      edit.replacement,
+      edit.replacementStart,
+      edit.replacementEnd,
+      input,
+      edit.selectionStart,
+      edit.selectionEnd,
+    );
   }
   protected wrapCode(input: HTMLInputElement): void {
     this.wrap(String.fromCharCode(96), input);
   }
-  protected wrapLink(input: HTMLInputElement): void {
+  protected wrapReference(input: HTMLInputElement, image = false): void {
     const start = input.selectionStart ?? this.line.length;
     const end = this.excludeTrailingSpace(start, input.selectionEnd ?? start);
-    const selected = this.line.slice(start, end) || 'tekst';
-    const value = `[${selected}](https://)`;
-    this.replaceRange(value, start, end, input, start + 1, start + 1 + selected.length);
+    const edit = toggleMarkdownLink(this.line, start, end, image);
+    this.replaceRange(
+      edit.replacement,
+      edit.replacementStart,
+      edit.replacementEnd,
+      input,
+      edit.selectionStart,
+      edit.selectionEnd,
+    );
+  }
+  protected toggleLinePrefix(prefix: string, input: HTMLInputElement): void {
+    const start = input.selectionStart ?? this.line.length;
+    const end = input.selectionEnd ?? start;
+    if (start === end) {
+      this.insert(prefix, input);
+      return;
+    }
+    const edit = toggleMarkdownLinePrefix(this.line, start, end, prefix);
+    this.replaceRange(
+      edit.replacement,
+      edit.replacementStart,
+      edit.replacementEnd,
+      input,
+      edit.selectionStart,
+      edit.selectionEnd,
+    );
   }
   protected insert(value: string, input: HTMLInputElement): void {
     const start = input.selectionStart ?? this.line.length;
@@ -111,6 +141,7 @@ export class TypewriterComponent {
   ): void {
     const next = `${this.line.slice(0, start)}${value}${this.line.slice(end)}`;
     if (next.length > this.maxChars()) return;
+    input.setSelectionRange(start, end);
     editTextField(input, value, selectionStart, selectionEnd);
   }
   private excludeTrailingSpace(start: number, end: number): number {

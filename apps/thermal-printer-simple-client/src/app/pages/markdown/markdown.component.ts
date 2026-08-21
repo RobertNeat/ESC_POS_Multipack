@@ -9,7 +9,13 @@ import { TextareaModule } from 'primeng/textarea';
 import { PrinterApiService } from '../../core/printer-api.service';
 import { CharacterFontSize } from '../../core/printer.models';
 import { CHARACTER_FONT_OPTIONS } from '../../shared/printer-options';
-import { editTextField } from '../../shared/text-editor';
+import { editTextField, toggleTextMarker } from '../../shared/text-editor';
+import {
+  type MarkdownEdit,
+  toggleMarkdownCodeBlock,
+  toggleMarkdownLinePrefix,
+  toggleMarkdownLink,
+} from '../../shared/markdown-editor';
 import { markdownPreviewLines } from './markdown-preview';
 import { formatMarkdownSelection, MARKDOWN_TOOLS, MarkdownTool } from './markdown-tools';
 
@@ -39,17 +45,31 @@ export class MarkdownComponent {
   protected readonly tools = MARKDOWN_TOOLS;
   protected applyTool(tool: MarkdownTool, input: HTMLTextAreaElement): void {
     const start = input.selectionStart ?? this.markdown.length;
-    const end = tool.marker
-      ? this.excludeTrailingSpace(start, input.selectionEnd ?? start)
-      : (input.selectionEnd ?? start);
+    const end = input.selectionEnd ?? start;
     const selected = this.markdown.slice(start, end);
+    if (tool.marker) {
+      this.applyEdit(toggleTextMarker(this.markdown, start, end, tool.marker), input);
+      return;
+    }
+    if (selected && tool.linePrefix) {
+      this.applyEdit(toggleMarkdownLinePrefix(this.markdown, start, end, tool.linePrefix), input);
+      return;
+    }
+    if (selected && tool.codeBlock) {
+      this.applyEdit(toggleMarkdownCodeBlock(this.markdown, start, end), input);
+      return;
+    }
+    if (selected && tool.reference) {
+      this.applyEdit(
+        toggleMarkdownLink(this.markdown, start, end, tool.reference === 'image'),
+        input,
+      );
+      return;
+    }
+
     const { replacement, selectedOffset, selectedLength } = selected
       ? formatMarkdownSelection(tool, selected)
-      : {
-          replacement: tool.value ?? `${tool.marker ?? ''}${tool.marker ?? ''}`,
-          selectedOffset: tool.marker?.length ?? 0,
-          selectedLength: 0,
-        };
+      : { replacement: tool.value ?? '', selectedOffset: 0, selectedLength: 0 };
     if (this.markdown.length - (end - start) + replacement.length > 100000) return;
     editTextField(
       input,
@@ -58,10 +78,14 @@ export class MarkdownComponent {
       start + selectedOffset + selectedLength,
     );
   }
-  private excludeTrailingSpace(start: number, end: number): number {
-    return end > start && this.markdown[end - 1] === ' ' && end < this.markdown.length
-      ? end - 1
-      : end;
+  private applyEdit(edit: MarkdownEdit, input: HTMLTextAreaElement): void {
+    const nextLength =
+      this.markdown.length -
+      (edit.replacementEnd - edit.replacementStart) +
+      edit.replacement.length;
+    if (nextLength > 100000) return;
+    input.setSelectionRange(edit.replacementStart, edit.replacementEnd);
+    editTextField(input, edit.replacement, edit.selectionStart, edit.selectionEnd);
   }
   protected hasHtml(): boolean {
     return /<\/?[a-z][^>]*>/i.test(this.markdown);

@@ -49,6 +49,8 @@ export class MarkdownPrinter {
     for (const token of tokens) {
       switch (token.type) {
         case 'space':
+          await this.renderBlankLines(token.raw, sink, counter);
+          break;
         case 'def':
           break;
         case 'heading':
@@ -103,6 +105,19 @@ export class MarkdownPrinter {
             `Unsupported Markdown block: ${token.type}.`,
           );
       }
+    }
+  }
+
+  private async renderBlankLines(
+    raw: string,
+    sink: MarkdownSink,
+    counter: { lines: number },
+  ): Promise<void> {
+    const lineBreaks = raw.match(/\r\n|\r|\n/gu)?.length ?? 0;
+    // A preceding block already moved the paper to the first empty line.
+    const feeds = Math.max(0, lineBreaks - (counter.lines > 0 ? 1 : 0));
+    for (let index = 0; index < feeds; index += 1) {
+      await this.endLine(sink, counter);
     }
   }
 

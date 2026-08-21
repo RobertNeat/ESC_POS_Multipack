@@ -101,23 +101,27 @@
       </div>
     } @else {
       <div class="syntax-bar">
-        <button type="button" (click)="insertMarkdown('- element', listEditor)" title="Punkt listy">
+        <button
+          type="button"
+          (click)="insertMarkdown('- ', '- element', listEditor)"
+          title="Punkt listy"
+        >
           <i class="pi pi-list"></i>Punkt</button
         ><button
           type="button"
-          (click)="insertMarkdown('1. element', listEditor)"
+          (click)="insertMarkdown('1. ', '1. element', listEditor)"
           title="Punkt numerowany"
         >
           <i class="pi pi-sort-numeric-down"></i>Numer</button
         ><button
           type="button"
-          (click)="insertMarkdown('- [ ] zadanie', listEditor)"
+          (click)="insertMarkdown('- [ ] ', '- [ ] zadanie', listEditor)"
           title="Zadanie"
         >
           <i class="pi pi-check-square"></i>Zadanie</button
         ><button
           type="button"
-          (click)="insertMarkdown('   - podpunkt', listEditor)"
+          (click)="insertMarkdown('   - ', '   - podpunkt', listEditor)"
           title="Podpunkt"
         >
           <i class="pi pi-level-down"></i>Podpunkt

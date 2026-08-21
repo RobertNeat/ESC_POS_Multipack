@@ -77,6 +77,24 @@ describe('MarkdownPrinter', () => {
     expect(lineFeeds).toBe(4);
   });
 
+  it('prints trailing empty lines instead of discarding them', async () => {
+    const lines = await printer.print('tekst\n\n\n', sink);
+
+    expect(lineFeeds).toBe(3);
+    expect(lines).toBe(3);
+  });
+
+  it('preserves an empty line between Markdown blocks', async () => {
+    const lines = await printer.print('pierwszy\n\ndrugi', sink);
+
+    expect(lineFeeds).toBe(3);
+    expect(lines).toBe(3);
+    expect(fragments.map((fragment) => fragment.text)).toEqual([
+      'pierwszy',
+      'drugi',
+    ]);
+  });
+
   it('rejects HTML before writing anything', async () => {
     await expect(
       printer.print('safe\n\n<div>unsafe</div>', sink),

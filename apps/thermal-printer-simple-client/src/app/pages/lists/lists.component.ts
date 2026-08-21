@@ -9,6 +9,7 @@ import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { PrinterApiService } from '../../core/printer-api.service';
 import { CharacterFontSize } from '../../core/printer.models';
 import { CHARACTER_FONT_OPTIONS } from '../../shared/printer-options';
+import { toggleMarkdownLinePrefix } from '../../shared/markdown-editor';
 import { editTextField } from '../../shared/text-editor';
 import { generateListMarkdown, ListItem, parseListMarkdown } from './list-markdown';
 
@@ -91,21 +92,20 @@ export class ListsComponent {
       this.nextId = Math.max(...parsed.map((item) => item.id)) + 1;
     }
   }
-  protected insertMarkdown(value: string, input: HTMLTextAreaElement): void {
+  protected insertMarkdown(marker: string, value: string, input: HTMLTextAreaElement): void {
     const start = input.selectionStart ?? this.markdown.length;
     const end = input.selectionEnd ?? start;
     const selected = this.markdown.slice(start, end);
-    const prefix = start > 0 && !this.markdown.slice(0, start).endsWith('\n') ? '\n' : '';
-    const marker = value.slice(0, value.indexOf(' ') + 1);
-    const replacement = selected
-      ? `${prefix}${selected
-          .split('\n')
-          .map((line) => marker + line)
-          .join('\n')}\n`
-      : `${prefix}${value}\n`;
-    const selectionStart = start + prefix.length + (selected ? marker.length : value.length);
-    const selectionEnd = selected ? start + replacement.length - 1 : selectionStart;
-    editTextField(input, replacement, selectionStart, selectionEnd);
+    if (selected) {
+      const edit = toggleMarkdownLinePrefix(this.markdown, start, end, marker);
+      input.setSelectionRange(edit.replacementStart, edit.replacementEnd);
+      editTextField(input, edit.replacement, edit.selectionStart, edit.selectionEnd);
+      return;
+    }
+    const lineBreak = start > 0 && !this.markdown.slice(0, start).endsWith('\n') ? '\n' : '';
+    const replacement = `${lineBreak}${value}\n`;
+    const caret = start + lineBreak.length + value.length;
+    editTextField(input, replacement, caret, caret);
   }
   protected async print(): Promise<void> {
     const markdown = this.listMarkdown();

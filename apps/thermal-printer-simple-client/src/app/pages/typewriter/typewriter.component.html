@@ -63,7 +63,7 @@
           size="small"
           severity="secondary"
           [outlined]="true"
-          (onClick)="wrapLink(lineInput)"
+          (onClick)="wrapReference(lineInput)"
         />
         <p-button
           label="Obraz"
@@ -71,7 +71,7 @@
           size="small"
           severity="secondary"
           [outlined]="true"
-          (onClick)="insert('![opis](https://)', lineInput)"
+          (onClick)="wrapReference(lineInput, true)"
         />
         <p-button
           label="H1"
@@ -79,7 +79,7 @@
           size="small"
           severity="secondary"
           [outlined]="true"
-          (onClick)="insert('# ', lineInput)"
+          (onClick)="toggleLinePrefix('# ', lineInput)"
         />
         <p-button
           label="H2"
@@ -87,7 +87,39 @@
           size="small"
           severity="secondary"
           [outlined]="true"
-          (onClick)="insert('## ', lineInput)"
+          (onClick)="toggleLinePrefix('## ', lineInput)"
+        />
+        <p-button
+          label="H3"
+          icon="pi pi-hashtag"
+          size="small"
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="toggleLinePrefix('### ', lineInput)"
+        />
+        <p-button
+          label="H4"
+          icon="pi pi-hashtag"
+          size="small"
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="toggleLinePrefix('#### ', lineInput)"
+        />
+        <p-button
+          label="H5"
+          icon="pi pi-hashtag"
+          size="small"
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="toggleLinePrefix('##### ', lineInput)"
+        />
+        <p-button
+          label="H6"
+          icon="pi pi-hashtag"
+          size="small"
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="toggleLinePrefix('###### ', lineInput)"
         />
         <p-button
           label="Cytat"
@@ -95,7 +127,7 @@
           size="small"
           severity="secondary"
           [outlined]="true"
-          (onClick)="insert('> ', lineInput)"
+          (onClick)="toggleLinePrefix('> ', lineInput)"
         />
         <p-button
           label="Lista"
@@ -103,7 +135,7 @@
           size="small"
           severity="secondary"
           [outlined]="true"
-          (onClick)="insert('- ', lineInput)"
+          (onClick)="toggleLinePrefix('- ', lineInput)"
         />
         <p-button
           label="Numer"
@@ -111,7 +143,7 @@
           size="small"
           severity="secondary"
           [outlined]="true"
-          (onClick)="insert('1. ', lineInput)"
+          (onClick)="toggleLinePrefix('1. ', lineInput)"
         />
         <p-button
           label="Zadanie"
@@ -119,7 +151,7 @@
           size="small"
           severity="secondary"
           [outlined]="true"
-          (onClick)="insert('- [ ] ', lineInput)"
+          (onClick)="toggleLinePrefix('- [ ] ', lineInput)"
         />
         <p-button
           label="---"
