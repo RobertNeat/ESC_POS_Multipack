@@ -13,6 +13,7 @@ RUN pnpm --filter thermal-printer-simple-client build
 
 FROM nginx:1.29-alpine AS runtime
 
+RUN apk upgrade --no-cache
+
 COPY apps/thermal-printer-simple-client/default.conf.template /etc/nginx/templates/default.conf.template
 COPY --from=build /workspace/apps/thermal-printer-simple-client/dist/thermal-printer-simple-client/browser /usr/share/nginx/html
-

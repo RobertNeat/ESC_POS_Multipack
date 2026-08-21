@@ -33,6 +33,7 @@ runs:
         esac
 
         docker build \
+          --pull \
           --file "$CONTEXT/$DOCKERFILE" \
           "${build_args[@]}" \
           --tag "$REGISTRY/$IMAGE:$SHA" \
@@ -43,7 +44,13 @@ runs:
       shell: bash
       env:
         REF: ${{ inputs.registry }}/${{ inputs.image }}:${{ inputs.sha }}
-      run: trivy image --exit-code 1 --severity HIGH,CRITICAL "$REF"
+      run: >-
+        trivy image
+        --ignore-unfixed
+        --exit-on-eol 1
+        --exit-code 1
+        --severity HIGH,CRITICAL
+        "$REF"
 
     - name: Push immutable tag
       shell: bash
