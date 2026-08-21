@@ -19,7 +19,7 @@ jobs:
     outputs:
       projects: ${{ steps.config.outputs.projects }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
       - id: config
         name: Build check matrix
@@ -40,7 +40,7 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJSON(needs.matrix.outputs.projects) }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
       - name: Node / Angular / NestJS
         if: matrix.project.type == 'node'

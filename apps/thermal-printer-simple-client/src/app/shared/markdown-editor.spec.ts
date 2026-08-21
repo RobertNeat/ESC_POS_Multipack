@@ -44,6 +44,16 @@ describe('Markdown editor toggles', () => {
     expect(toggleMarkdownLinePrefix('- [x] gotowe', 6, 12, '- [ ] ').replacement).toBe('gotowe');
   });
 
+  it('toggles the supported nested list prefix', () => {
+    expect(toggleMarkdownLinePrefix('podpunkt', 0, 8, '   - ').replacement).toBe('   - podpunkt');
+  });
+
+  it('rejects unsupported line prefixes', () => {
+    expect(() => toggleMarkdownLinePrefix('tekst', 0, 5, '(.*)+ ')).toThrow(
+      'Unsupported Markdown line prefix',
+    );
+  });
+
   it('toggles a fenced code block', () => {
     const added = toggleMarkdownCodeBlock('const value = 1;', 0, 16);
     expect(added.replacement).toBe('```\nconst value = 1;\n```');

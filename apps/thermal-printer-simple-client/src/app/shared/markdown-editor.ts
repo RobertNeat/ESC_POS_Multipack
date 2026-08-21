@@ -137,12 +137,22 @@ function trimSelection(
 }
 
 function targetPrefixPattern(prefix: string): RegExp {
-  if (/^#{1,6} $/u.test(prefix)) return new RegExp(`^${escapePattern(prefix)}`, 'u');
-  if (prefix === '- [ ] ') return /^- \[[ xX]\] /u;
-  if (prefix === '- ') return /^[-*+] /u;
-  if (prefix === '1. ') return /^\d+[.)] /u;
-  if (prefix === '   - ') return /^ {3}[-*+] /u;
-  return new RegExp(`^${escapePattern(prefix)}`, 'u');
+  const patterns: Readonly<Record<string, RegExp>> = {
+    '# ': /^# /u,
+    '## ': /^## /u,
+    '### ': /^### /u,
+    '#### ': /^#### /u,
+    '##### ': /^##### /u,
+    '###### ': /^###### /u,
+    '> ': /^> /u,
+    '- ': /^[-*+] /u,
+    '1. ': /^\d+[.)] /u,
+    '- [ ] ': /^- \[[ xX]\] /u,
+    '   - ': /^ {3}[-*+] /u,
+  };
+  const pattern = patterns[prefix];
+  if (!pattern) throw new Error(`Unsupported Markdown line prefix: ${JSON.stringify(prefix)}`);
+  return pattern;
 }
 
 function competingPrefixPattern(prefix: string): RegExp {
@@ -152,8 +162,4 @@ function competingPrefixPattern(prefix: string): RegExp {
     return /^(?: {3})?(?:[-*+] \[[ xX]\] |[-*+] |\d+[.)] )/u;
   }
   return /^/u;
-}
-
-function escapePattern(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
 }
