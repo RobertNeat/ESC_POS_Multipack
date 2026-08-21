@@ -3,7 +3,21 @@ packages:
   - 'packages/*'
 blockExoticSubdeps: true
 minimumReleaseAge: 10080
+minimumReleaseAgeExclude:
+  - '@csstools/color-helpers@6.1.1'
+  - '@csstools/css-color-parser@4.2.0'
+  - '@csstools/css-syntax-patches-for-csstree@1.1.8'
+  - '@nestjs/swagger@11.4.7'
+  - '@tsconfig/node10@1.0.13'
+  - 'baseline-browser-mapping@2.11.15'
+  - 'electron-to-chromium@1.5.409'
+  - 'es-module-lexer@2.3.2'
+  - 'hono@4.13.3'
+  - 'jose@6.2.9'
 trustPolicy: no-downgrade
+trustPolicyExclude:
+  - 'chokidar@4.0.3'
+  - 'semver@6.3.1'
 allowBuilds:
   '@parcel/watcher': true
   '@scarf/scarf': true
