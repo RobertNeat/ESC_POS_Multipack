@@ -1,0 +1,81 @@
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: [Build]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: Image/commit SHA to deploy
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main')
+    runs-on: [self-hosted, Linux, X64, production]
+    environment: production
+    steps:
+      - name: Download SHA produced by Build
+        if: github.event_name == 'workflow_run'
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: deploy-metadata
+          path: .pipeline
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+
+      - id: ctx
+        name: Resolve deployment SHA
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_SHA: ${{ inputs.sha }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" = "workflow_run" ]; then
+            sha="$(tr -d '[:space:]' < .pipeline/deploy-sha.txt)"
+          else
+            sha="$INPUT_SHA"
+          fi
+          test -n "$sha"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@latest
+        with:
+          ref: ${{ steps.ctx.outputs.sha }}
+
+      - id: config
+        name: Read deployment configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          cfg=.github/ci/projects.json
+          jq -e '.deploy | all(.host, .user, .registry, .compose_file, .config_file, .remote_dir; type == "string" and length > 0)' "$cfg" >/dev/null
+          echo "host=$(jq -r '.deploy.host' "$cfg")" >> "$GITHUB_OUTPUT"
+          echo "user=$(jq -r '.deploy.user' "$cfg")" >> "$GITHUB_OUTPUT"
+          echo "registry=$(jq -r '.deploy.registry' "$cfg")" >> "$GITHUB_OUTPUT"
+          echo "compose=$(jq -r '.deploy.compose_file' "$cfg")" >> "$GITHUB_OUTPUT"
+          echo "config=$(jq -r '.deploy.config_file' "$cfg")" >> "$GITHUB_OUTPUT"
+          echo "remote_dir=$(jq -r '.deploy.remote_dir' "$cfg")" >> "$GITHUB_OUTPUT"
+
+      - uses: ./.github/actions/deploy/compose-ssh
+        with:
+          host: ${{ steps.config.outputs.host }}
+          user: ${{ steps.config.outputs.user }}
+          registry: ${{ steps.config.outputs.registry }}
+          compose-file: ${{ steps.config.outputs.compose }}
+          config-file: ${{ steps.config.outputs.config }}
+          remote-dir: ${{ steps.config.outputs.remote_dir }}
+          sha: ${{ steps.ctx.outputs.sha }}

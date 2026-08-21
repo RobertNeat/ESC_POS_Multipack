@@ -1,0 +1,15 @@
+.git
+.agents
+.codex
+.pnpm-store
+node_modules
+**/node_modules
+**/dist
+**/coverage
+**/.angular
+**/*.tsbuildinfo
+*.log
+.env
+.env.*
+!.env.example
+

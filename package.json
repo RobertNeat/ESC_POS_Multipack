@@ -20,9 +20,11 @@
     "build": "pnpm -r build",
     "lint": "eslint . && pnpm --filter thermal-printer-simple-client lint",
     "lint:fix": "eslint . --fix",
-    "format": "prettier --write \"*.{json,mjs}\" \"apps/**/*.{ts,html,css,json,mjs}\" \"packages/**/*.{ts,json,mjs}\"",
-    "format:check": "prettier --check \"*.{json,mjs}\" \"apps/**/*.{ts,html,css,json,mjs}\" \"packages/**/*.{ts,json,mjs}\"",
+    "format": "prettier --write \"*.{json,mjs,yml}\" \".github/**/*.{json,yml}\" \"deploy/**/*.yml\" \"apps/**/*.{ts,html,css,json,mjs,cjs}\" \"packages/**/*.{ts,json,mjs}\"",
+    "format:check": "prettier --check \"*.{json,mjs,yml}\" \".github/**/*.{json,yml}\" \"deploy/**/*.yml\" \"apps/**/*.{ts,html,css,json,mjs,cjs}\" \"packages/**/*.{ts,json,mjs}\"",
+    "typecheck": "pnpm --filter @esc-pos-multipack/printer-adapter exec tsc --noEmit -p tsconfig.json && pnpm --filter @esc-pos-multipack/pos-8370-adapter exec tsc --noEmit -p tsconfig.json && pnpm --filter thermal-printer-service exec tsc --noEmit -p tsconfig.build.json && pnpm --filter thermal-printer-simple-client exec ng build --configuration development",
     "test": "pnpm -r test",
+    "test:ci": "pnpm --filter @esc-pos-multipack/printer-adapter test && pnpm --filter @esc-pos-multipack/pos-8370-adapter test && pnpm --filter thermal-printer-service test --runInBand && pnpm --filter thermal-printer-simple-client test --watch=false",
     "clean": "pnpm -r clean"
   },
   "devDependencies": {

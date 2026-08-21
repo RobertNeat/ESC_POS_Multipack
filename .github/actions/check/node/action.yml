@@ -1,0 +1,102 @@
+name: Check Node project
+description: Run quality, security, test and build gates with the Node runtime managed by mise.
+inputs:
+  path:
+    required: true
+  version:
+    required: true
+  framework:
+    required: false
+    default: node
+  package-manager:
+    required: false
+    default: pnpm
+runs:
+  using: composite
+  steps:
+    - name: Prepare Node runtime
+      shell: bash
+      env:
+        NODE_VERSION: ${{ inputs.version }}
+      run: |
+        set -euo pipefail
+        command -v mise >/dev/null
+        mise exec "node@${NODE_VERSION}" -- node --version
+        mise exec "node@${NODE_VERSION}" -- npm --version
+
+        if ! mise exec "node@${NODE_VERSION}" -- bash -c 'command -v corepack >/dev/null 2>&1'; then
+          mise exec "node@${NODE_VERSION}" -- npm install --global corepack
+        fi
+        mise exec "node@${NODE_VERSION}" -- corepack enable
+
+    - name: Verify security tools
+      shell: bash
+      run: |
+        set -euo pipefail
+        trivy --version
+        semgrep --version
+
+    - name: Install dependencies
+      shell: bash
+      working-directory: ${{ inputs.path }}
+      env:
+        NODE_VERSION: ${{ inputs.version }}
+        PM: ${{ inputs.package-manager }}
+      run: |
+        set -euo pipefail
+        case "$PM" in
+          pnpm) mise exec "node@${NODE_VERSION}" -- pnpm install --frozen-lockfile ;;
+          npm)  mise exec "node@${NODE_VERSION}" -- npm ci ;;
+          yarn) mise exec "node@${NODE_VERSION}" -- yarn install --immutable ;;
+          *) echo "Unsupported package manager: $PM" >&2; exit 2 ;;
+        esac
+
+    - name: Lint
+      shell: bash
+      working-directory: ${{ inputs.path }}
+      env:
+        NODE_VERSION: ${{ inputs.version }}
+        PM: ${{ inputs.package-manager }}
+      run: mise exec "node@${NODE_VERSION}" -- "$PM" run lint
+
+    - name: Format check
+      shell: bash
+      working-directory: ${{ inputs.path }}
+      env:
+        NODE_VERSION: ${{ inputs.version }}
+        PM: ${{ inputs.package-manager }}
+      run: mise exec "node@${NODE_VERSION}" -- "$PM" run format:check
+
+    - name: Type check
+      shell: bash
+      working-directory: ${{ inputs.path }}
+      env:
+        NODE_VERSION: ${{ inputs.version }}
+        PM: ${{ inputs.package-manager }}
+      run: mise exec "node@${NODE_VERSION}" -- "$PM" run typecheck
+
+    - name: Dependency vulnerabilities
+      shell: bash
+      working-directory: ${{ inputs.path }}
+      run: trivy fs --exit-code 1 --severity HIGH,CRITICAL --scanners vuln .
+
+    - name: SAST
+      shell: bash
+      working-directory: ${{ inputs.path }}
+      run: semgrep scan --config auto --error .
+
+    - name: Unit tests
+      shell: bash
+      working-directory: ${{ inputs.path }}
+      env:
+        NODE_VERSION: ${{ inputs.version }}
+        PM: ${{ inputs.package-manager }}
+      run: mise exec "node@${NODE_VERSION}" -- "$PM" run test:ci
+
+    - name: Build without publishing
+      shell: bash
+      working-directory: ${{ inputs.path }}
+      env:
+        NODE_VERSION: ${{ inputs.version }}
+        PM: ${{ inputs.package-manager }}
+      run: mise exec "node@${NODE_VERSION}" -- "$PM" run build

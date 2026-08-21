@@ -1,0 +1,109 @@
+name: Build
+
+on:
+  workflow_run:
+    workflows: [Check]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: Commit SHA to build; empty means current main HEAD
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-main
+  cancel-in-progress: false
+
+jobs:
+  context:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main')
+    runs-on: [self-hosted, Linux, X64, production]
+    outputs:
+      sha: ${{ steps.ctx.outputs.sha }}
+      projects: ${{ steps.config.outputs.projects }}
+      registry: ${{ steps.config.outputs.registry }}
+    steps:
+      - id: ctx
+        name: Resolve source commit
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_SHA: ${{ inputs.sha }}
+          CHECK_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" = "workflow_run" ]; then
+            sha="$CHECK_SHA"
+          elif [ -n "${INPUT_SHA:-}" ]; then
+            sha="$INPUT_SHA"
+          else
+            sha="$GITHUB_SHA"
+          fi
+          test -n "$sha"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@latest
+        with:
+          ref: ${{ steps.ctx.outputs.sha }}
+
+      - id: config
+        name: Read build configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          cfg=.github/ci/projects.json
+          jq -e 'all(.projects[] | select(.enabled != false and .build != false); has("name") and has("type") and has("version") and has("image"))' "$cfg" >/dev/null
+          jq -e '[.projects[] | select(.enabled != false and .build != false)] | length > 0' "$cfg" >/dev/null
+          jq -e '.deploy.registry | type == "string" and length > 0' "$cfg" >/dev/null
+          echo "projects=$(jq -c '{include: [.projects[] | select(.enabled != false and .build != false) | {project: .}]}' "$cfg")" >> "$GITHUB_OUTPUT"
+          echo "registry=$(jq -r '.deploy.registry' "$cfg")" >> "$GITHUB_OUTPUT"
+
+  build:
+    name: Docker / ${{ matrix.project.name }}
+    needs: context
+    runs-on: [self-hosted, Linux, X64, production]
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.context.outputs.projects) }}
+    steps:
+      - uses: actions/checkout@latest
+        with:
+          ref: ${{ needs.context.outputs.sha }}
+
+      - uses: ./.github/actions/build/docker
+        with:
+          registry: ${{ needs.context.outputs.registry }}
+          image: ${{ matrix.project.image }}
+          context: ${{ matrix.project.docker_context || matrix.project.path }}
+          dockerfile: ${{ matrix.project.dockerfile || 'Dockerfile' }}
+          sha: ${{ needs.context.outputs.sha }}
+          type: ${{ matrix.project.type }}
+          version: ${{ matrix.project.version }}
+
+  metadata:
+    name: Publish deployment metadata
+    needs: [context, build]
+    runs-on: [self-hosted, Linux, X64, production]
+    steps:
+      - name: Write deployed SHA
+        shell: bash
+        env:
+          SHA: ${{ needs.context.outputs.sha }}
+        run: |
+          set -euo pipefail
+          mkdir -p .pipeline
+          printf '%s\n' "$SHA" > .pipeline/deploy-sha.txt
+
+      - name: Upload deployment metadata
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: deploy-metadata
+          path: .pipeline/deploy-sha.txt
+          retention-days: 7
+          if-no-files-found: error

@@ -1,0 +1,58 @@
+name: Build and push Docker image
+description: Native Docker CLI build, security scan and publication to the homelab registry.
+inputs:
+  registry: { required: true }
+  image: { required: true }
+  context: { required: true }
+  dockerfile: { required: true }
+  sha: { required: true }
+  type: { required: true }
+  version: { required: true }
+runs:
+  using: composite
+  steps:
+    - name: Build image
+      shell: bash
+      env:
+        REGISTRY: ${{ inputs.registry }}
+        IMAGE: ${{ inputs.image }}
+        CONTEXT: ${{ inputs.context }}
+        DOCKERFILE: ${{ inputs.dockerfile }}
+        SHA: ${{ inputs.sha }}
+        PROJECT_TYPE: ${{ inputs.type }}
+        PROJECT_VERSION: ${{ inputs.version }}
+      run: |
+        set -euo pipefail
+
+        build_args=()
+        case "$PROJECT_TYPE" in
+          node)       build_args+=(--build-arg "NODE_VERSION=$PROJECT_VERSION") ;;
+          springboot) build_args+=(--build-arg "JAVA_VERSION=$PROJECT_VERSION") ;;
+          python)     build_args+=(--build-arg "PYTHON_VERSION=$PROJECT_VERSION") ;;
+          *) echo "Unsupported project type: $PROJECT_TYPE" >&2; exit 2 ;;
+        esac
+
+        docker build \
+          --file "$CONTEXT/$DOCKERFILE" \
+          "${build_args[@]}" \
+          --tag "$REGISTRY/$IMAGE:$SHA" \
+          --tag "$REGISTRY/$IMAGE:latest" \
+          "$CONTEXT"
+
+    - name: Scan final image
+      shell: bash
+      env:
+        REF: ${{ inputs.registry }}/${{ inputs.image }}:${{ inputs.sha }}
+      run: trivy image --exit-code 1 --severity HIGH,CRITICAL "$REF"
+
+    - name: Push immutable tag
+      shell: bash
+      env:
+        REF: ${{ inputs.registry }}/${{ inputs.image }}:${{ inputs.sha }}
+      run: docker push "$REF"
+
+    - name: Push convenience tag
+      shell: bash
+      env:
+        REF: ${{ inputs.registry }}/${{ inputs.image }}:latest
+      run: docker push "$REF"

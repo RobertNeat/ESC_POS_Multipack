@@ -1,0 +1,76 @@
+name: Check Python project
+description: Run quality, security, tests and build with mise and uv.
+inputs:
+  path: { required: true }
+  version: { required: true }
+runs:
+  using: composite
+  steps:
+    - name: Prepare Python runtime
+      shell: bash
+      env:
+        PYTHON_VERSION: ${{ inputs.version }}
+      run: |
+        set -euo pipefail
+        command -v mise >/dev/null
+        command -v uv >/dev/null
+        mise exec "python@${PYTHON_VERSION}" -- python --version
+        uv --version
+
+    - name: Verify security tools
+      shell: bash
+      run: |
+        set -euo pipefail
+        trivy --version
+        semgrep --version
+
+    - name: Sync dependencies
+      shell: bash
+      working-directory: ${{ inputs.path }}
+      env:
+        PYTHON_VERSION: ${{ inputs.version }}
+      run: |
+        set -euo pipefail
+        PYTHON_BIN="$(mise exec "python@${PYTHON_VERSION}" -- which python)"
+        UV_PYTHON="$PYTHON_BIN" uv sync --frozen
+
+    - name: Lint and format check
+      shell: bash
+      working-directory: ${{ inputs.path }}
+      env:
+        PYTHON_VERSION: ${{ inputs.version }}
+      run: |
+        set -euo pipefail
+        PYTHON_BIN="$(mise exec "python@${PYTHON_VERSION}" -- which python)"
+        UV_PYTHON="$PYTHON_BIN" uv run ruff check .
+        UV_PYTHON="$PYTHON_BIN" uv run ruff format --check .
+
+    - name: Type check
+      shell: bash
+      working-directory: ${{ inputs.path }}
+      env:
+        PYTHON_VERSION: ${{ inputs.version }}
+      run: |
+        PYTHON_BIN="$(mise exec "python@${PYTHON_VERSION}" -- which python)"
+        UV_PYTHON="$PYTHON_BIN" uv run mypy .
+
+    - name: Dependency vulnerabilities
+      shell: bash
+      working-directory: ${{ inputs.path }}
+      run: trivy fs --exit-code 1 --severity HIGH,CRITICAL --scanners vuln .
+
+    - name: SAST
+      shell: bash
+      working-directory: ${{ inputs.path }}
+      run: semgrep scan --config auto --error .
+
+    - name: Unit tests and build
+      shell: bash
+      working-directory: ${{ inputs.path }}
+      env:
+        PYTHON_VERSION: ${{ inputs.version }}
+      run: |
+        set -euo pipefail
+        PYTHON_BIN="$(mise exec "python@${PYTHON_VERSION}" -- which python)"
+        UV_PYTHON="$PYTHON_BIN" uv run pytest
+        UV_PYTHON="$PYTHON_BIN" uv build

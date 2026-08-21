@@ -1,0 +1,45 @@
+{
+  "projects": [
+    {
+      "name": "esc-pos-multipack",
+      "enabled": true,
+      "check": true,
+      "build": false,
+      "type": "node",
+      "framework": "node",
+      "version": "24",
+      "path": ".",
+      "package_manager": "pnpm"
+    },
+    {
+      "name": "thermal-printer-service",
+      "enabled": true,
+      "check": false,
+      "build": true,
+      "type": "node",
+      "version": "24",
+      "docker_context": ".",
+      "dockerfile": "apps/thermal-printer-service/Dockerfile",
+      "image": "esc-pos-multipack/thermal-printer-service"
+    },
+    {
+      "name": "thermal-printer-simple-client",
+      "enabled": true,
+      "check": false,
+      "build": true,
+      "type": "node",
+      "version": "24",
+      "docker_context": ".",
+      "dockerfile": "apps/thermal-printer-simple-client/Dockerfile",
+      "image": "esc-pos-multipack/thermal-printer-simple-client"
+    }
+  ],
+  "deploy": {
+    "host": "192.168.1.160",
+    "user": "docker_deploy",
+    "registry": "192.168.1.162:5000",
+    "compose_file": "deploy/compose.yml",
+    "config_file": "deploy/config.env",
+    "remote_dir": "/home/docker_deploy/esc-pos-multipack"
+  }
+}
