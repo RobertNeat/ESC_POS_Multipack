@@ -1,0 +1,226 @@
+<div class="page-head">
+  <div>
+    <p class="eyebrow">Raster ESC/POS</p>
+    <h1>Drukowanie obrazu</h1>
+    <p class="lead">
+      Dostosuj kolor, wybierz dithering i wyślij gotową bitmapę 1-bit bezpośrednio do drukarki.
+    </p>
+  </div>
+  @if (sourceName) {
+    <span class="badge"><i class="pi pi-image"></i>{{ sourceName }}</span>
+  }
+</div>
+
+<div class="image-workspace">
+  <section class="controls">
+    <div
+      class="panel panel-pad upload"
+      [class.dragging]="dragging"
+      (dragover)="onDragOver($event)"
+      (dragleave)="dragging = false"
+      (drop)="onDrop($event)"
+    >
+      <input
+        #fileInput
+        type="file"
+        accept="image/png,image/jpeg,image/webp,image/gif,image/bmp"
+        (change)="onFileSelected($event)"
+        hidden
+      />
+      <div class="upload-icon"><i class="pi pi-upload"></i></div>
+      <div>
+        <h2 class="section-title">Obraz źródłowy</h2>
+        <p class="section-subtitle">PNG, JPEG, WebP, GIF lub BMP · maks. 20 MB</p>
+      </div>
+      <p-button
+        [label]="sourceImage ? 'Zmień obraz' : 'Wybierz obraz'"
+        icon="pi pi-folder-open"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="fileInput.click()"
+      />
+    </div>
+
+    @if (sourceImage) {
+      <div class="panel panel-pad settings">
+        <div class="section-row">
+          <div>
+            <h2 class="section-title">Korekcja obrazu</h2>
+            <p class="section-subtitle">Zmiany są od razu widoczne na symulowanym papierze</p>
+          </div>
+          <button class="text-button" type="button" (click)="resetAdjustments()">Resetuj</button>
+        </div>
+        <div class="sliders">
+          @for (control of adjustmentControls; track control.key) {
+            <div class="slider-control">
+              <span
+                ><label [for]="'adjustment-' + control.key">{{ control.label }}</label
+                ><button
+                  type="button"
+                  class="value-reset"
+                  title="Kliknij, aby przywrócić wartość domyślną"
+                  [attr.aria-label]="'Resetuj: ' + control.label"
+                  (click)="resetAdjustment(control.key)"
+                >
+                  <output [for]="'adjustment-' + control.key">{{
+                    adjustmentLabel(control.key)
+                  }}</output>
+                </button></span
+              ><input
+                [id]="'adjustment-' + control.key"
+                type="range"
+                [min]="control.min"
+                [max]="control.max"
+                [step]="control.step"
+                [(ngModel)]="adjustments[control.key]"
+                (input)="scheduleRender()"
+              />
+            </div>
+          }
+        </div>
+        <div class="inline-options">
+          <div class="check">
+            <p-checkbox
+              [(ngModel)]="adjustments.invert"
+              [binary]="true"
+              inputId="invert"
+              (onChange)="scheduleRender()"
+            />
+            <label for="invert">Odwróć czerń i biel</label>
+          </div>
+          <div class="field">
+            <label for="dither">Dithering</label
+            ><p-select
+              inputId="dither"
+              [options]="ditherOptions"
+              [(ngModel)]="dither"
+              optionLabel="label"
+              optionValue="value"
+              (onChange)="scheduleRender()"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="panel panel-pad settings">
+        <h2 class="section-title">Dopasowanie do papieru</h2>
+        <p class="section-subtitle">Rozmiar wyjściowy jest liczony w punktach drukarki (203 dpi)</p>
+        <div class="choice-grid fit-grid">
+          @for (option of fitOptions; track option.value) {
+            <button
+              type="button"
+              [class.active]="fitMode === option.value"
+              (click)="setFit(option.value)"
+            >
+              <i [class]="option.icon"></i><strong>{{ option.label }}</strong
+              ><small>{{ option.description }}</small>
+            </button>
+          }
+        </div>
+        <div class="print-options">
+          <div class="field">
+            <label for="paper">Papier</label
+            ><p-select
+              inputId="paper"
+              [options]="paperOptions"
+              [(ngModel)]="paperWidth"
+              optionLabel="label"
+              optionValue="dots"
+              (onChange)="scheduleRender()"
+            />
+          </div>
+          <div class="field">
+            <label for="alignment">Wyrównanie</label
+            ><p-select
+              inputId="alignment"
+              [options]="alignmentOptions"
+              [(ngModel)]="alignment"
+              optionLabel="label"
+              optionValue="value"
+            />
+          </div>
+          <div class="field">
+            <label for="scale">Skala ESC/POS</label
+            ><p-select
+              inputId="scale"
+              [options]="scaleOptions"
+              [(ngModel)]="scale"
+              optionLabel="label"
+              optionValue="value"
+            />
+          </div>
+        </div>
+      </div>
+    }
+  </section>
+
+  <aside class="preview-column">
+    <div class="panel preview-panel">
+      <div class="preview-head">
+        <div>
+          <h2 class="section-title">Podgląd wydruku</h2>
+          <p class="section-subtitle">Dokładny raster 1-bit wysyłany do urządzenia</p>
+        </div>
+        @if (processing) {
+          <i class="pi pi-spin pi-spinner"></i>
+        }
+      </div>
+      <div class="preview-stage">
+        <div
+          class="preview-paper"
+          [class.align-left]="alignment === 'left'"
+          [class.align-right]="alignment === 'right'"
+        >
+          @if (!sourceImage) {
+            <div class="empty">
+              <i class="pi pi-image"></i><strong>Wczytaj obraz</strong
+              ><span>Tutaj pojawi się podgląd ditheringu</span>
+            </div>
+          }
+          <canvas
+            #previewCanvas
+            [hidden]="!sourceImage"
+            [style.width.%]="previewWidthPercent()"
+          ></canvas>
+        </div>
+      </div>
+      @if (raster) {
+        <div class="raster-meta">
+          <span
+            ><strong>{{ raster.width }} × {{ raster.height }}</strong> punktów</span
+          ><span
+            ><strong>{{ raster.bytes.length }}</strong> B</span
+          ><span
+            ><strong>{{ blackPercent() }}%</strong> czerni</span
+          >
+        </div>
+        @if (effectiveWidth() > paperWidth) {
+          <div class="notice warning">
+            <i class="pi pi-exclamation-triangle"></i> Szerokość po skali ({{
+              effectiveWidth()
+            }}
+            pkt) przekracza papier {{ paperWidth }} pkt i zostanie przycięta przez drukarkę.
+          </div>
+        }
+        <div class="print-actions">
+          <p-button
+            label="Drukuj"
+            icon="pi pi-print"
+            [loading]="printing && !cutting"
+            [disabled]="processing || printing"
+            (onClick)="print(false)"
+          />
+          <p-button
+            label="Drukuj i utnij"
+            icon="pi pi-minus"
+            severity="secondary"
+            [outlined]="true"
+            [loading]="cutting"
+            [disabled]="processing || printing"
+            (onClick)="print(true)"
+          />
+        </div>
+      }
+    </div>
+  </aside>
+</div>

@@ -1,0 +1,80 @@
+<div class="page-head">
+  <div>
+    <p class="eyebrow">Tryb ekspercki</p>
+    <h1>Surowe komendy ESC/POS</h1>
+    <p class="lead">
+      Wysyłaj bajty bez interpretacji. Usługa weryfikuje format i ogranicza rozmiar danych do 1 MB.
+    </p>
+  </div>
+  <span class="badge danger"
+    ><i class="pi pi-exclamation-triangle"></i>Bezpośrednie sterowanie</span
+  >
+</div>
+<div class="workspace">
+  <section class="panel panel-pad">
+    <h2 class="section-title">Dane polecenia</h2>
+    <p class="section-subtitle">Wybierz kodowanie zgodne z przygotowanym payloadem</p>
+    <div class="field encoding">
+      <label for="encoding">Kodowanie</label
+      ><p-select
+        inputId="encoding"
+        [options]="encodings"
+        [(ngModel)]="encoding"
+        optionLabel="label"
+        optionValue="value"
+        (onChange)="payload = ''"
+      />
+    </div>
+    <div class="quick">
+      <span>Gotowe sekwencje:</span>
+      @for (command of presets; track command.label) {
+        <button type="button" (click)="usePreset(command.hex)">{{ command.label }}</button>
+      }
+    </div>
+    <div class="field">
+      <label for="payload">Payload</label
+      ><textarea
+        id="payload"
+        pTextarea
+        class="full-width mono payload"
+        [(ngModel)]="payload"
+        rows="15"
+        [placeholder]="placeholder()"
+        spellcheck="false"
+      ></textarea>
+      <div class="payload-meta">
+        <span [class.error-text]="validationError()">{{
+          validationError() || 'Format jest poprawny'
+        }}</span
+        ><span>{{ byteCount() }} B / 1 MB</span>
+      </div>
+    </div>
+    <div class="notice warning">
+      <i class="pi pi-exclamation-triangle"></i><strong>Uwaga:</strong> błędna sekwencja może
+      zmienić trwałe ustawienia drukarki. Dane są wysyłane dokładnie w podanej postaci.
+    </div>
+    <div class="button-row send">
+      <p-button
+        label="Wyślij komendy"
+        icon="pi pi-send"
+        severity="danger"
+        [loading]="sending"
+        [disabled]="!!validationError() || !payload.trim()"
+        (onClick)="send()"
+      /><p-button label="Wyczyść" severity="secondary" [text]="true" (onClick)="payload = ''" />
+    </div>
+  </section>
+  <aside class="panel panel-pad reference">
+    <h2 class="section-title">Ściąga ESC/POS</h2>
+    <p class="section-subtitle">Najczęstsze instrukcje POS-8370</p>
+    @for (row of reference; track row.hex) {
+      <button type="button" (click)="usePreset(row.hex)">
+        <code>{{ row.hex }}</code
+        ><span
+          ><strong>{{ row.name }}</strong
+          ><small>{{ row.description }}</small></span
+        ><i class="pi pi-arrow-left"></i>
+      </button>
+    }
+  </aside>
+</div>

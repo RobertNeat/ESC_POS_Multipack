@@ -12,6 +12,12 @@ import {
   NodeEscposUsbTransport,
 } from './node-escpos.transport';
 import { PrinterController } from './printer.controller';
+import { PrinterConfigurationCatalog } from './printer-configuration.catalog';
+import { PrinterErrorMapper } from './printer.errors';
+import { PrinterOperationExecutor } from './printer-operation.executor';
+import { PrinterOperationQueue } from './printer-operation.queue';
+import { PrinterPayloadDecoder } from './printer-payload.decoder';
+import { PrinterPrintJobRunner } from './printer-print-job.runner';
 import { PrinterService } from './printer.service';
 import { PRINTER_ADAPTER, PRINTER_SETTINGS } from './printer.tokens';
 
@@ -19,6 +25,12 @@ import { PRINTER_ADAPTER, PRINTER_SETTINGS } from './printer.tokens';
   controllers: [PrinterController],
   providers: [
     MarkdownPrinter,
+    PrinterConfigurationCatalog,
+    PrinterErrorMapper,
+    PrinterOperationExecutor,
+    PrinterOperationQueue,
+    PrinterPayloadDecoder,
+    PrinterPrintJobRunner,
     {
       provide: PRINTER_SETTINGS,
       useFactory: loadSettings,

@@ -1,0 +1,104 @@
+<section class="hero">
+  <div>
+    <p class="eyebrow">Centrum drukowania</p>
+    <h1>Od tekstu do papieru,<br /><span>w jednej chwili.</span></h1>
+    <p class="lead">
+      Pisz pojedyncze linie, składaj dokumenty Markdown i steruj drukarką POS-8370 z jednego,
+      bezpiecznego miejsca.
+    </p>
+    <div class="button-row hero-actions">
+      <p-button label="Napisz pierwszą linię" icon="pi pi-pencil" routerLink="/linia" />
+      <p-button
+        label="Otwórz dokument"
+        icon="pi pi-file-edit"
+        severity="secondary"
+        [outlined]="true"
+        routerLink="/markdown"
+      />
+    </div>
+  </div>
+  <div class="printer-visual" aria-label="Schemat drukarki termicznej">
+    <div class="receipt">
+      <span>THERMAL CONSOLE</span><b>GOTOWA DO PRACY</b><i></i><small>{{ api.model() }}</small>
+    </div>
+    <div class="printer">
+      <div class="slot"></div>
+      <i class="pi pi-power-off"></i>
+    </div>
+  </div>
+</section>
+
+<section class="status-grid">
+  <article class="panel connection panel-pad">
+    <div class="card-icon"><i class="pi pi-link"></i></div>
+    <div>
+      <p class="eyebrow">Usługa</p>
+      <h2 class="section-title">Połączenie z API</h2>
+      <p class="section-subtitle">Adres serwera thermal-printer-service</p>
+    </div>
+    <div class="endpoint-row">
+      <input
+        pInputText
+        class="full-width mono"
+        [(ngModel)]="endpoint"
+        aria-label="Adres API"
+        (keyup.enter)="connect()"
+      />
+      <p-button
+        label="Połącz"
+        icon="pi pi-refresh"
+        [loading]="api.connectionState() === 'checking'"
+        (onClick)="connect()"
+      />
+    </div>
+    <div class="connection-result" [class.ok]="api.connectionState() === 'online'">
+      <span></span
+      ><strong>{{ api.connectionState() === 'online' ? 'Połączono' : 'Niepołączono' }}</strong>
+      <small>{{
+        api.status()?.paperOut
+          ? 'Brak papieru'
+          : api.status()?.coverOpen
+            ? 'Pokrywa otwarta'
+            : api.connectionState() === 'online'
+              ? 'Urządzenie odpowiada poprawnie'
+              : 'Sprawdź usługę i adres'
+      }}</small>
+    </div>
+  </article>
+
+  <article class="panel panel-pad capabilities">
+    <div class="card-icon"><i class="pi pi-print"></i></div>
+    <div>
+      <p class="eyebrow">Urządzenie</p>
+      <h2 class="section-title">{{ api.model() }}</h2>
+      <p class="section-subtitle">Możliwości zgłoszone przez firmware</p>
+    </div>
+    <dl>
+      <div>
+        <dt>Szerokość papieru</dt>
+        <dd>{{ api.capabilities()?.paperWidthsMm?.join(' / ') || '58 / 80' }} mm</dd>
+      </div>
+      <div>
+        <dt>Rozdzielczość</dt>
+        <dd>{{ api.capabilities()?.dpi || 203 }} dpi</dd>
+      </div>
+      <div>
+        <dt>Operacje</dt>
+        <dd>{{ api.capabilities()?.operations?.length || '—' }}</dd>
+      </div>
+    </dl>
+  </article>
+</section>
+
+<section class="quick-grid" aria-label="Skróty funkcji">
+  @for (item of shortcuts; track item.route) {
+    <a class="quick-card" [routerLink]="item.route"
+      ><i [class]="item.icon"></i>
+      <div>
+        <strong>{{ item.title }}</strong
+        ><span>{{ item.description }}</span>
+      </div>
+      <i class="pi pi-arrow-up-right"></i
+    ></a>
+  }
+</section>

@@ -14,7 +14,9 @@ export function editTextField(
   const inserted = input.ownerDocument.execCommand?.('insertText', false, replacement) ?? false;
   if (!inserted) {
     input.setRangeText(replacement, start, end, 'end');
-    input.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: replacement }));
+    input.dispatchEvent(
+      new InputEvent('input', { bubbles: true, inputType: 'insertText', data: replacement }),
+    );
   }
 
   input.setSelectionRange(selectionStart, selectionEnd);

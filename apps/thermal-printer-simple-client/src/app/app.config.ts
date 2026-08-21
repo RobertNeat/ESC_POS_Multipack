@@ -8,5 +8,12 @@ import { providePrimeNG } from 'primeng/config';
 import { routes } from './app.routes';
 
 export const appConfig: ApplicationConfig = {
-  providers: [provideBrowserGlobalErrorListeners(), provideHttpClient(), provideAnimationsAsync(), provideRouter(routes), providePrimeNG({ theme: { preset: Aura, options: { darkModeSelector: false } }, ripple: true }), MessageService]
+  providers: [
+    provideBrowserGlobalErrorListeners(),
+    provideHttpClient(),
+    provideAnimationsAsync(),
+    provideRouter(routes),
+    providePrimeNG({ theme: { preset: Aura, options: { darkModeSelector: false } }, ripple: true }),
+    MessageService,
+  ],
 };
