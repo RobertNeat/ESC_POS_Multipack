@@ -7,12 +7,6 @@ describe('PrinterPreferencesService', () => {
     TestBed.resetTestingModule();
   });
 
-  it('uses the same-origin API proxy by default', () => {
-    const service = TestBed.inject(PrinterPreferencesService);
-
-    expect(service.endpoint()).toBe('/api');
-  });
-
   it('normalizes and persists the API endpoint', () => {
     const service = TestBed.inject(PrinterPreferencesService);
 

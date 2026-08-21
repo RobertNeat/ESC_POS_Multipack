@@ -54,9 +54,6 @@
         },
         "serve": {
           "builder": "@angular/build:dev-server",
-          "options": {
-            "proxyConfig": "proxy.conf.cjs"
-          },
           "configurations": {
             "production": {
               "buildTarget": "thermal-printer-simple-client:build:production"
