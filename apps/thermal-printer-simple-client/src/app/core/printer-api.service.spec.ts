@@ -10,7 +10,7 @@ describe('PrinterApiService', () => {
   const http = { get: vi.fn(), post: vi.fn() };
   const notifications = { success: vi.fn(), failure: vi.fn() };
   const preferences = {
-    endpoint: () => 'http://localhost:3000/api',
+    endpoint: () => '/api',
     textEncoding: () => 'windows1250' as const,
     setEndpoint: vi.fn(),
     setTextEncoding: vi.fn(),
