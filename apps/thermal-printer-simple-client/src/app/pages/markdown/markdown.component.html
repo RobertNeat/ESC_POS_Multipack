@@ -1,0 +1,103 @@
+<div class="page-head">
+  <div>
+    <p class="eyebrow">Dokumenty</p>
+    <h1>Drukuj Markdown</h1>
+    <p class="lead">
+      Wczytaj plik <span class="mono">.md</span> albo napisz dokument. HTML jest odrzucany;
+      zagnieżdżenia i style są mapowane bezpośrednio na ESC/POS.
+    </p>
+  </div>
+  <span class="badge"><i class="pi pi-shield"></i>Bez HTML · maks. 100 KB</span>
+</div>
+<div class="workspace">
+  <section class="panel panel-pad">
+    <div class="document-bar">
+      <div>
+        <h2 class="section-title">Treść dokumentu</h2>
+        <p class="section-subtitle">Markdown zgodny z możliwościami firmware</p>
+      </div>
+      <label class="upload"
+        ><input
+          type="file"
+          accept=".md,.markdown,text/markdown,text/plain"
+          (change)="loadFile($event)"
+        /><i class="pi pi-upload"></i> Wczytaj .md</label
+      >
+    </div>
+    <div class="syntax-bar">
+      @for (tool of tools; track tool.label) {
+        <button type="button" (click)="applyTool(tool, markdownInput)" [title]="tool.hint">
+          <i [class]="tool.icon"></i>{{ tool.label }}
+        </button>
+      }
+    </div>
+    <textarea
+      #markdownInput
+      pTextarea
+      class="full-width mono editor"
+      [(ngModel)]="markdown"
+      rows="20"
+      maxlength="100000"
+      aria-label="Dokument Markdown"
+      spellcheck="false"
+    ></textarea>
+    <div class="editor-foot">
+      <span [class.error-text]="hasHtml()">{{
+        hasHtml()
+          ? 'Usuń znaczniki HTML przed drukiem'
+          : 'Znaki: ' + markdown.length.toLocaleString('pl-PL') + ' / 100 000'
+      }}</span>
+      <div class="field-option">
+        <label for="markdown-font-size">Matryca znaków</label>
+        <p-select
+          inputId="markdown-font-size"
+          [options]="fontSizeOptions"
+          [(ngModel)]="fontSize"
+          optionLabel="label"
+          optionValue="value"
+        />
+      </div>
+      <div class="field-option">
+        <p-checkbox inputId="markdown-cut" [(ngModel)]="cut" [binary]="true" />
+        <label for="markdown-cut">Odetnij dokument</label>
+      </div>
+    </div>
+    <div class="button-row">
+      <p-splitbutton
+        label="Drukuj dokument"
+        icon="pi pi-print"
+        [model]="printOptions"
+        [buttonProps]="{ loading: sending }"
+        [disabled]="!markdown.trim() || sending"
+        [buttonDisabled]="hasHtml()"
+        (onClick)="print()"
+        appendTo="body"
+      /><p-button
+        label="Wyczyść"
+        icon="pi pi-trash"
+        severity="secondary"
+        [text]="true"
+        (onClick)="markdown = ''"
+      />
+    </div>
+  </section>
+  <aside>
+    <div class="paper preview">
+      <div class="paper-meta">PODGLĄD STRUKTURY</div>
+      @for (line of previewLines(); track $index) {
+        <div [class]="line.className" [style.padding-left.ch]="line.indent">
+          {{ line.text || ' ' }}
+        </div>
+      }
+    </div>
+    <div class="support panel panel-pad">
+      <h3>Obsługiwane elementy</h3>
+      <div class="tags">
+        <span># nagłówki</span><span>**pogrubienie**</span><span>_podkreślenie_</span
+        ><span>~~negatyw~~</span><span>---</span><span>listy zagnieżdżone</span
+        ><span>listy zadań</span><span>&gt; cytaty</span><span>tabele GFM</span
+        ><span>kod inline i blok</span><span>odnośniki</span><span>obrazy jako odnośniki</span>
+      </div>
+    </div>
+  </aside>
+</div>

@@ -1,13 +1,11 @@
 import { BadRequestException } from '@nestjs/common';
-import type {
-  PrinterAlignment,
-  PrinterTextStyle,
-} from '@esc-pos-multipack/printer-adapter';
+import type { PrinterAlignment } from '@esc-pos-multipack/printer-adapter';
+import type { Pos8370TextStyle } from '@esc-pos-multipack/pos-8370-adapter';
 import { MarkdownPrinter, type MarkdownSink } from './markdown-printer';
 
 interface Fragment {
   text: string;
-  style: PrinterTextStyle;
+  style: Pos8370TextStyle;
   alignment?: PrinterAlignment;
 }
 
@@ -77,6 +75,24 @@ describe('MarkdownPrinter', () => {
       '|test  |test||------|----||test  |test||smalll|test|',
     );
     expect(lineFeeds).toBe(4);
+  });
+
+  it('prints trailing empty lines instead of discarding them', async () => {
+    const lines = await printer.print('tekst\n\n\n', sink);
+
+    expect(lineFeeds).toBe(3);
+    expect(lines).toBe(3);
+  });
+
+  it('preserves an empty line between Markdown blocks', async () => {
+    const lines = await printer.print('pierwszy\n\ndrugi', sink);
+
+    expect(lineFeeds).toBe(3);
+    expect(lines).toBe(3);
+    expect(fragments.map((fragment) => fragment.text)).toEqual([
+      'pierwszy',
+      'drugi',
+    ]);
   });
 
   it('rejects HTML before writing anything', async () => {

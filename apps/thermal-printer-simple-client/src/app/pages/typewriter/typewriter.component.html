@@ -1,0 +1,293 @@
+<div class="page-head">
+  <div>
+    <p class="eyebrow">Tryb natychmiastowy</p>
+    <h1>Maszyna do pisania</h1>
+    <p class="lead">
+      Każde zatwierdzenie drukuje dokładnie jedną linię. Pole zatrzymuje wpisywanie po osiągnięciu
+      fizycznej szerokości papieru.
+    </p>
+  </div>
+  <span class="badge"
+    ><i class="pi pi-arrows-h"></i>{{ paperWidth }} mm · {{ maxChars() }} zn.</span
+  >
+</div>
+<div class="workspace">
+  <section class="panel panel-pad editor">
+    <div class="editor-head">
+      <div>
+        <h2 class="section-title">Nowa linia</h2>
+        <p class="section-subtitle">Enter wysyła linię do drukarki</p>
+      </div>
+      <div class="mode">
+        <label for="typewriter-markdown-mode">Markdown inline</label>
+        <p-toggleSwitch inputId="typewriter-markdown-mode" [(ngModel)]="markdownMode" />
+      </div>
+    </div>
+    @if (markdownMode) {
+      <div class="toolbar" aria-label="Formatowanie Markdown">
+        <p-button
+          label="Pogrubienie"
+          icon="pi pi-bold"
+          size="small"
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="wrap('**', lineInput)"
+        />
+        <p-button
+          label="Podkreślenie"
+          icon="pi pi-italic"
+          size="small"
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="wrap('_', lineInput)"
+        />
+        <p-button
+          label="Negatyw"
+          icon="pi pi-stop"
+          size="small"
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="wrap('~~', lineInput)"
+        />
+        <p-button
+          label="Kod"
+          icon="pi pi-code"
+          size="small"
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="wrapCode(lineInput)"
+        />
+        <p-button
+          label="Odnośnik"
+          icon="pi pi-link"
+          size="small"
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="wrapReference(lineInput)"
+        />
+        <p-button
+          label="Obraz"
+          icon="pi pi-image"
+          size="small"
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="wrapReference(lineInput, true)"
+        />
+        <p-button
+          label="H1"
+          icon="pi pi-hashtag"
+          size="small"
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="toggleLinePrefix('# ', lineInput)"
+        />
+        <p-button
+          label="H2"
+          icon="pi pi-hashtag"
+          size="small"
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="toggleLinePrefix('## ', lineInput)"
+        />
+        <p-button
+          label="H3"
+          icon="pi pi-hashtag"
+          size="small"
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="toggleLinePrefix('### ', lineInput)"
+        />
+        <p-button
+          label="H4"
+          icon="pi pi-hashtag"
+          size="small"
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="toggleLinePrefix('#### ', lineInput)"
+        />
+        <p-button
+          label="H5"
+          icon="pi pi-hashtag"
+          size="small"
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="toggleLinePrefix('##### ', lineInput)"
+        />
+        <p-button
+          label="H6"
+          icon="pi pi-hashtag"
+          size="small"
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="toggleLinePrefix('###### ', lineInput)"
+        />
+        <p-button
+          label="Cytat"
+          icon="pi pi-comment"
+          size="small"
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="toggleLinePrefix('> ', lineInput)"
+        />
+        <p-button
+          label="Lista"
+          icon="pi pi-list"
+          size="small"
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="toggleLinePrefix('- ', lineInput)"
+        />
+        <p-button
+          label="Numer"
+          icon="pi pi-sort-numeric-down"
+          size="small"
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="toggleLinePrefix('1. ', lineInput)"
+        />
+        <p-button
+          label="Zadanie"
+          icon="pi pi-check-square"
+          size="small"
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="toggleLinePrefix('- [ ] ', lineInput)"
+        />
+        <p-button
+          label="---"
+          icon="pi pi-minus"
+          size="small"
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="replace('---', lineInput)"
+        />
+      </div>
+    }
+    <div class="type-line" [class.limit]="line.length >= maxChars()">
+      <span>&gt;</span
+      ><input
+        #lineInput
+        pInputText
+        class="mono"
+        [(ngModel)]="line"
+        [maxlength]="maxChars()"
+        placeholder="Wpisz tekst do wydrukowania…"
+        aria-label="Treść linii"
+        (keyup.enter)="send()"
+      /><b>{{ line.length }}/{{ maxChars() }}</b>
+    </div>
+    <div class="progress"><span [style.width.%]="(line.length / maxChars()) * 100"></span></div>
+    <div class="notice">
+      <i class="pi pi-info-circle"></i> Limit uwzględnia papier, font i podwójną szerokość. W trybie
+      Markdown znaczniki również zajmują miejsce w polu, więc limit jest celowo bezpieczny. Elementy
+      wieloliniowe (tabele i bloki kodu) są dostępne w Dokumencie Markdown.
+    </div>
+    <div class="options">
+      <div class="field">
+        <label for="paper">Papier</label
+        ><p-select
+          inputId="paper"
+          [options]="paperOptions"
+          [(ngModel)]="paperWidth"
+          optionLabel="label"
+          optionValue="value"
+        />
+      </div>
+      <div class="field">
+        <label for="font">Matryca znaków</label
+        ><p-select
+          inputId="font"
+          [options]="fontOptions"
+          [(ngModel)]="fontSize"
+          optionLabel="label"
+          optionValue="size"
+          (ngModelChange)="selectFont($event)"
+        />
+      </div>
+      @if (!markdownMode) {
+        <div class="field">
+          <label for="width">Szerokość znaku</label
+          ><p-select
+            inputId="width"
+            [options]="scaleOptions"
+            [(ngModel)]="style.width"
+            optionLabel="label"
+            optionValue="value"
+          />
+        </div>
+        <div class="field">
+          <label for="alignment">Wyrównanie</label
+          ><p-select
+            inputId="alignment"
+            [options]="alignmentOptions"
+            [(ngModel)]="alignment"
+            optionLabel="label"
+            optionValue="value"
+          />
+        </div>
+      }
+    </div>
+    @if (!markdownMode) {
+      <div class="checks">
+        <span>
+          <p-checkbox
+            inputId="typewriter-emphasized"
+            [(ngModel)]="style.emphasized"
+            [binary]="true"
+          />
+          <label for="typewriter-emphasized">Pogrubienie</label>
+        </span>
+        <span>
+          <p-checkbox
+            inputId="typewriter-underline"
+            [(ngModel)]="style.underline"
+            [binary]="true"
+            [trueValue]="1"
+            [falseValue]="0"
+          />
+          <label for="typewriter-underline">Podkreślenie</label>
+        </span>
+        <span>
+          <p-checkbox inputId="typewriter-reverse" [(ngModel)]="style.reverse" [binary]="true" />
+          <label for="typewriter-reverse">Negatyw</label>
+        </span>
+      </div>
+    }
+    <div class="button-row send-row">
+      <p-button
+        label="Drukuj linię"
+        icon="pi pi-send"
+        [loading]="sending"
+        [disabled]="!line.trim()"
+        (onClick)="send()"
+      /><p-button
+        label="Odetnij papier"
+        icon="pi pi-scissors"
+        severity="secondary"
+        [outlined]="true"
+        [loading]="cutting"
+        (onClick)="cutPaper()"
+      /><span class="field-help">Skrót: Enter</span>
+    </div>
+  </section>
+  <aside>
+    <div class="paper">
+      <div class="paper-meta">PODGLĄD · {{ paperWidth }} MM</div>
+      <div class="printed-lines">
+        @for (item of history; track $index) {
+          <div class="history-line">{{ item }}</div>
+        }
+        <div
+          class="preview-line"
+          [style.text-align]="markdownMode ? 'left' : alignment"
+          [class.bold]="!markdownMode && style.emphasized"
+          [class.underline]="!markdownMode && style.underline"
+          [class.reverse]="!markdownMode && style.reverse"
+          [style.font-size.em]="!markdownMode ? style.width : 1"
+        >
+          {{ previewText() || 'Twoja kolejna linia pojawi się tutaj' }}
+        </div>
+      </div>
+    </div>
+  </aside>
+</div>

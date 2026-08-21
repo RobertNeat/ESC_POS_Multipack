@@ -1,0 +1,147 @@
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 370px;
+  gap: 28px;
+  align-items: start;
+}
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  margin: 0 2px 14px;
+}
+.section-head h2 {
+  margin: 0;
+  font-size: 18px;
+}
+.section-head p {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.setting {
+  padding: 18px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  transition: 0.15s;
+}
+.setting.selected {
+  border-color: #d28a73;
+  box-shadow: 0 0 0 2px rgba(220, 91, 56, 0.08);
+}
+.setting-icon {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  background: var(--surface-2);
+  color: var(--muted);
+}
+.setting.selected .setting-icon {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.setting h3 {
+  margin: 1px 0 5px;
+  font-size: 13px;
+}
+.setting p {
+  min-height: 34px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.45;
+}
+.setting p-select {
+  grid-column: 1/-1;
+}
+.savebar {
+  position: sticky;
+  bottom: 14px;
+  z-index: 5;
+  margin-top: 15px;
+  padding: 15px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  box-shadow: 0 15px 35px rgba(30, 30, 28, 0.14);
+}
+.savebar strong,
+.savebar small {
+  display: block;
+}
+.savebar strong {
+  font-size: 12px;
+}
+.savebar small {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 10px;
+}
+.action {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 13px 0;
+  border-top: 1px solid var(--line);
+}
+.action strong,
+.action small {
+  display: block;
+}
+.action strong {
+  font-size: 12px;
+}
+.action small {
+  max-width: 230px;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.4;
+}
+.notice {
+  margin-top: 16px;
+}
+.notice i {
+  margin-right: 6px;
+}
+.error {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+}
+.error > i {
+  font-size: 24px;
+  color: #b94b3c;
+}
+.error h2 {
+  margin: 0;
+  font-size: 18px;
+}
+.error p {
+  color: var(--muted);
+  font-size: 12px;
+}
+@media (max-width: 1020px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 680px) {
+  .settings-grid {
+    grid-template-columns: 1fr;
+  }
+  .savebar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

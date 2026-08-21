@@ -1,0 +1,144 @@
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.65fr);
+  gap: 28px;
+  align-items: start;
+}
+.builder-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+.mode {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.list-table {
+  margin: 10px -10px 22px;
+}
+.table-head,
+.item-row {
+  display: grid;
+  grid-template-columns: 135px 105px minmax(180px, 1fr) 90px 42px;
+  gap: 9px;
+  align-items: center;
+  padding: 8px 10px;
+}
+.table-head {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-bottom: 1px solid var(--line);
+}
+.item-row {
+  border-bottom: 1px solid #eeeeea;
+}
+.item-row input {
+  width: 100%;
+}
+.task {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+}
+.syntax-bar {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  padding: 10px;
+  background: var(--surface-2);
+  border-radius: 10px 10px 0 0;
+}
+.syntax-bar button {
+  border: 0;
+  background: transparent;
+  padding: 7px 9px;
+  border-radius: 6px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.syntax-bar button:hover {
+  background: white;
+  color: var(--ink);
+}
+.syntax-bar i {
+  margin-right: 5px;
+}
+.editor {
+  border-radius: 0 0 10px 10px !important;
+  resize: vertical;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.footer {
+  justify-content: flex-start;
+  margin-top: 22px;
+}
+.footer > .field-option {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-left: auto;
+  font-size: 12px;
+}
+.paper {
+  min-height: 440px;
+}
+.paper-meta {
+  text-align: center;
+  color: #aaa;
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  border-bottom: 1px dashed #ccc;
+  padding-bottom: 18px;
+  margin-bottom: 24px;
+}
+.paper pre {
+  margin: 0;
+  font: 12px/1.65 var(--mono);
+  white-space: pre-wrap;
+}
+.notice {
+  margin-top: 18px;
+}
+.notice i {
+  margin-right: 6px;
+}
+@media (max-width: 980px) {
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 720px) {
+  .builder-head {
+    display: block;
+  }
+  .mode {
+    margin-top: 12px;
+  }
+  .table-head {
+    display: none;
+  }
+  .item-row {
+    grid-template-columns: 1fr 1fr 42px;
+  }
+  .item-row input {
+    grid-column: 1/-1;
+    grid-row: 1;
+  }
+  .task {
+    grid-column: 1/3;
+  }
+  .footer > .field-option {
+    width: 100%;
+    margin: 6px 0 0;
+  }
+}

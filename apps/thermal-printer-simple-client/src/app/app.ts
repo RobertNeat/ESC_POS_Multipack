@@ -5,6 +5,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { PopoverModule } from 'primeng/popover';
 import { PrinterApiService } from './core/printer-api.service';
 import { TextEncoding } from './core/printer.models';
+import { TEXT_ENCODING_OPTIONS } from './shared/printer-options';
 
 @Component({
   selector: 'app-root',
@@ -23,16 +24,7 @@ export class App implements OnInit {
     { label: 'ESC/POS', icon: 'pi pi-code', route: '/esc-pos' },
     { label: 'Ustawienia drukarki', icon: 'pi pi-cog', route: '/ustawienia' },
   ];
-  protected readonly textEncodings: ReadonlyArray<{
-    value: TextEncoding;
-    label: string;
-    printerPage: string;
-  }> = [
-    { value: 'windows1250', label: 'Windows-1250', printerPage: 'WPC1250 (Latin-2)' },
-    { value: 'cp852', label: 'CP852', printerPage: 'OEM852 (Latin-2)' },
-    { value: 'cp3843', label: 'CP3843 / Mazovia', printerPage: 'PC3843 (Polish)' },
-    { value: 'utf8', label: 'UTF-8', printerPage: 'tylko urządzenia z obsługą UTF-8' },
-  ];
+  protected readonly textEncodings = TEXT_ENCODING_OPTIONS;
 
   protected selectTextEncoding(value: TextEncoding): void {
     this.api.setTextEncoding(value);

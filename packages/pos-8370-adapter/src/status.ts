@@ -1,4 +1,4 @@
-import { PrinterStatus } from "@esc-pos-multipack/printer-adapter";
+import { PrinterStatus } from '@esc-pos-multipack/printer-adapter';
 
 export interface Pos8370StatusBytes {
   readonly printer: number;
@@ -22,8 +22,7 @@ export function parsePos8370Status(status: Pos8370StatusBytes): PrinterStatus {
       printer: status.printer,
       offline: status.offline,
       error: status.error,
-      paper: status.paper
-    }
+      paper: status.paper,
+    },
   };
 }
-

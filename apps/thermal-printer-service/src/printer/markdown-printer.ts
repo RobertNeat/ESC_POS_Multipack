@@ -1,27 +1,17 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import type {
-  PrinterAlignment,
-  PrinterTextStyle,
-} from '@esc-pos-multipack/printer-adapter';
+import type { PrinterAlignment } from '@esc-pos-multipack/printer-adapter';
+import type { Pos8370TextStyle } from '@esc-pos-multipack/pos-8370-adapter';
 import { marked, type Token, type Tokens } from 'marked';
+import { NORMAL_TEXT_STYLE } from './printer-text-style';
 
 export interface MarkdownSink {
   text(
     value: string,
-    style: PrinterTextStyle,
+    style: Pos8370TextStyle,
     alignment?: PrinterAlignment,
   ): Promise<void>;
   lineFeed(): Promise<void>;
 }
-
-const NORMAL_STYLE: Required<PrinterTextStyle> = {
-  font: 'A',
-  emphasized: false,
-  underline: 0,
-  width: 1,
-  height: 1,
-  reverse: false,
-};
 
 @Injectable()
 export class MarkdownPrinter {
@@ -32,7 +22,7 @@ export class MarkdownPrinter {
   async print(markdown: string, sink: MarkdownSink): Promise<number> {
     const tokens = this.tokenize(markdown);
     const counter = { lines: 0 };
-    await this.renderBlocks(tokens, sink, NORMAL_STYLE, 0, counter);
+    await this.renderBlocks(tokens, sink, NORMAL_TEXT_STYLE, 0, counter);
     return counter.lines;
   }
 
@@ -52,13 +42,15 @@ export class MarkdownPrinter {
   private async renderBlocks(
     tokens: readonly Token[],
     sink: MarkdownSink,
-    style: PrinterTextStyle,
+    style: Pos8370TextStyle,
     listDepth: number,
     counter: { lines: number },
   ): Promise<void> {
     for (const token of tokens) {
       switch (token.type) {
         case 'space':
+          await this.renderBlankLines(token.raw, sink, counter);
+          break;
         case 'def':
           break;
         case 'heading':
@@ -98,7 +90,7 @@ export class MarkdownPrinter {
           await this.renderCode(token as Tokens.Code, sink, counter);
           break;
         case 'hr':
-          await sink.text('-'.repeat(48), NORMAL_STYLE);
+          await sink.text('-'.repeat(48), NORMAL_TEXT_STYLE);
           await this.endLine(sink, counter);
           break;
         case 'table':
@@ -116,6 +108,19 @@ export class MarkdownPrinter {
     }
   }
 
+  private async renderBlankLines(
+    raw: string,
+    sink: MarkdownSink,
+    counter: { lines: number },
+  ): Promise<void> {
+    const lineBreaks = raw.match(/\r\n|\r|\n/gu)?.length ?? 0;
+    // A preceding block already moved the paper to the first empty line.
+    const feeds = Math.max(0, lineBreaks - (counter.lines > 0 ? 1 : 0));
+    for (let index = 0; index < feeds; index += 1) {
+      await this.endLine(sink, counter);
+    }
+  }
+
   private async renderHeading(
     token: Tokens.Heading,
     sink: MarkdownSink,
@@ -123,7 +128,7 @@ export class MarkdownPrinter {
   ): Promise<void> {
     const scale = token.depth === 1 ? 2 : 1;
     await this.renderInline(token.tokens, sink, {
-      ...NORMAL_STYLE,
+      ...NORMAL_TEXT_STYLE,
       emphasized: true,
       width: scale,
       height: scale,
@@ -134,7 +139,7 @@ export class MarkdownPrinter {
   private async renderList(
     token: Tokens.List,
     sink: MarkdownSink,
-    style: PrinterTextStyle,
+    style: Pos8370TextStyle,
     depth: number,
     counter: { lines: number },
   ): Promise<void> {
@@ -161,7 +166,7 @@ export class MarkdownPrinter {
   private async renderListItemContent(
     tokens: readonly Token[],
     sink: MarkdownSink,
-    style: PrinterTextStyle,
+    style: Pos8370TextStyle,
   ): Promise<void> {
     for (const token of tokens) {
       if (token.type === 'text' || token.type === 'paragraph') {
@@ -183,7 +188,7 @@ export class MarkdownPrinter {
   private async renderBlockquote(
     token: Tokens.Blockquote,
     sink: MarkdownSink,
-    style: PrinterTextStyle,
+    style: Pos8370TextStyle,
     depth: number,
     counter: { lines: number },
   ): Promise<void> {
@@ -197,7 +202,11 @@ export class MarkdownPrinter {
     counter: { lines: number },
   ): Promise<void> {
     for (const line of token.text.split('\n')) {
-      await sink.text(line, { ...NORMAL_STYLE, font: 'B', reverse: true });
+      await sink.text(line, {
+        ...NORMAL_TEXT_STYLE,
+        font: 'B',
+        reverse: true,
+      });
       await this.endLine(sink, counter);
     }
   }
@@ -207,12 +216,17 @@ export class MarkdownPrinter {
     sink: MarkdownSink,
     counter: { lines: number },
   ): Promise<void> {
-    const widths = token.header.map((cell, index) => Math.max(
-      this.tableCellText(cell).length,
-      ...token.rows.map((row) => this.tableCellText(row[index]).length),
-    ));
+    const widths = token.header.map((cell, index) =>
+      Math.max(
+        this.tableCellText(cell).length,
+        ...token.rows.map((row) => this.tableCellText(row[index]).length),
+      ),
+    );
     await this.renderTableRow(token.header, widths, sink, true, counter);
-    await sink.text(`|${widths.map((width) => '-'.repeat(width)).join('|')}|`, NORMAL_STYLE);
+    await sink.text(
+      `|${widths.map((width) => '-'.repeat(width)).join('|')}|`,
+      NORMAL_TEXT_STYLE,
+    );
     await this.endLine(sink, counter);
     for (const row of token.rows) {
       await this.renderTableRow(row, widths, sink, false, counter);
@@ -227,14 +241,19 @@ export class MarkdownPrinter {
     counter: { lines: number },
   ): Promise<void> {
     for (const [index, cell] of cells.entries()) {
-      await sink.text('|', NORMAL_STYLE);
+      await sink.text('|', NORMAL_TEXT_STYLE);
       await this.renderInline(cell.tokens, sink, {
-        ...NORMAL_STYLE,
+        ...NORMAL_TEXT_STYLE,
         emphasized: heading,
       });
-      await sink.text(' '.repeat(Math.max(0, (widths[index] ?? 0) - this.tableCellText(cell).length)), NORMAL_STYLE);
+      await sink.text(
+        ' '.repeat(
+          Math.max(0, (widths[index] ?? 0) - this.tableCellText(cell).length),
+        ),
+        NORMAL_TEXT_STYLE,
+      );
     }
-    await sink.text('|', NORMAL_STYLE);
+    await sink.text('|', NORMAL_TEXT_STYLE);
     await this.endLine(sink, counter);
   }
 
@@ -244,18 +263,22 @@ export class MarkdownPrinter {
   }
 
   private inlineText(tokens: readonly Token[]): string {
-    return tokens.map((token) => {
-      if ('tokens' in token && token.tokens?.length) return this.inlineText(token.tokens);
-      if (token.type === 'image') return `[obraz: ${(token as Tokens.Image).text}] <${(token as Tokens.Image).href}>`;
-      if (token.type === 'link') return (token as Tokens.Link).text;
-      return 'text' in token ? String(token.text) : '';
-    }).join('');
+    return tokens
+      .map((token) => {
+        if ('tokens' in token && token.tokens?.length)
+          return this.inlineText(token.tokens);
+        if (token.type === 'image')
+          return `[obraz: ${(token as Tokens.Image).text}] <${(token as Tokens.Image).href}>`;
+        if (token.type === 'link') return (token as Tokens.Link).text;
+        return 'text' in token ? String(token.text) : '';
+      })
+      .join('');
   }
 
   private async renderInline(
     tokens: readonly Token[],
     sink: MarkdownSink,
-    style: PrinterTextStyle,
+    style: Pos8370TextStyle,
   ): Promise<void> {
     for (const token of tokens) {
       switch (token.type) {

@@ -23,7 +23,26 @@ describe('AppController (e2e)', () => {
       .expect('Thermal Printer Service');
   });
 
+  it('/printer/configuration/options does not expose driver command bytes', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/printer/configuration/options')
+      .expect(200);
+
+    const body: unknown = response.body;
+    if (!isRecord(body)) {
+      throw new TypeError('Configuration catalog response must be an object.');
+    }
+
+    expect(Array.isArray(body.settings)).toBe(true);
+    expect(Array.isArray(body.actions)).toBe(true);
+    expect(JSON.stringify(body)).not.toContain('rawBytes');
+  });
+
   afterEach(async () => {
     await app.close();
   });
 });
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}

@@ -1,12 +1,7 @@
 import { distance, image, utils } from 'image-q';
 
 export type DitherMethod =
-  | 'none'
-  | 'floydSteinberg'
-  | 'atkinson'
-  | 'stucki'
-  | 'burkes'
-  | 'sierraLite';
+  'none' | 'floydSteinberg' | 'atkinson' | 'stucki' | 'burkes' | 'sierraLite';
 
 export interface ColorAdjustments {
   brightness: number;
@@ -49,23 +44,13 @@ export function rasterizeMonochrome(
   dither: DitherMethod,
 ): MonochromeRaster {
   const adjusted = adjustPixels(source.data, adjustments);
-  const points = utils.PointContainer.fromUint8Array(
-    adjusted,
-    source.width,
-    source.height,
-  );
+  const points = utils.PointContainer.fromUint8Array(adjusted, source.width, source.height);
   const palette = blackAndWhitePalette();
   const colorDistance = new distance.EuclideanBT709NoAlpha();
   const quantizer =
     dither === 'none'
       ? new image.NearestColor(colorDistance)
-      : new image.ErrorDiffusionArray(
-          colorDistance,
-          kernelMap[dither],
-          true,
-          0,
-          true,
-        );
+      : new image.ErrorDiffusionArray(colorDistance, kernelMap[dither], true, 0, true);
   const result = quantizer.quantizeSync(points, palette).toUint8Array();
   const pixels = new Uint8ClampedArray(result);
   const packed = packMonochrome(pixels, source.width, source.height);
@@ -117,15 +102,11 @@ function blackAndWhitePalette(): utils.Palette {
   return palette;
 }
 
-function adjustPixels(
-  source: Uint8ClampedArray,
-  settings: ColorAdjustments,
-): Uint8ClampedArray {
+function adjustPixels(source: Uint8ClampedArray, settings: ColorAdjustments): Uint8ClampedArray {
   const output = new Uint8ClampedArray(source.length);
   const brightness = (settings.brightness / 100) * 255;
   const contrastValue = settings.contrast * 2.55;
-  const contrast =
-    (259 * (contrastValue + 255)) / (255 * (259 - contrastValue));
+  const contrast = (259 * (contrastValue + 255)) / (255 * (259 - contrastValue));
   const saturation = 1 + settings.saturation / 100;
   const gamma = 1 / settings.gamma;
   const thresholdShift = 128 - settings.threshold;
@@ -163,15 +144,9 @@ function adjustPixels(
     red = Math.pow(clamp((contrast * (red - 128) + 128 + brightness) / 255), gamma) * 255;
     green = Math.pow(clamp((contrast * (green - 128) + 128 + brightness) / 255), gamma) * 255;
     blue = Math.pow(clamp((contrast * (blue - 128) + 128 + brightness) / 255), gamma) * 255;
-    output[index] = clamp255(
-      (settings.invert ? 255 - red : red) + thresholdShift,
-    );
-    output[index + 1] = clamp255(
-      (settings.invert ? 255 - green : green) + thresholdShift,
-    );
-    output[index + 2] = clamp255(
-      (settings.invert ? 255 - blue : blue) + thresholdShift,
-    );
+    output[index] = clamp255((settings.invert ? 255 - red : red) + thresholdShift);
+    output[index + 1] = clamp255((settings.invert ? 255 - green : green) + thresholdShift);
+    output[index + 2] = clamp255((settings.invert ? 255 - blue : blue) + thresholdShift);
     output[index + 3] = 255;
   }
   return output;

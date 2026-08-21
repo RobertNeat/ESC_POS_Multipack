@@ -28,16 +28,14 @@
         "rawBytes": { "$ref": "#/$defs/bytes" },
         "ascii": { "type": "string" }
       },
-      "anyOf": [
-        { "required": ["commandHex"] },
-        { "required": ["rawBytes"] }
-      ],
+      "anyOf": [{ "required": ["commandHex"] }, { "required": ["rawBytes"] }],
       "additionalProperties": false
     },
     "setting": {
       "type": "object",
       "required": ["title", "options"],
       "properties": {
+        "id": { "type": "string", "minLength": 1 },
         "title": { "type": "string" },
         "description": { "type": "string" },
         "options": { "type": "array", "items": { "$ref": "#/$defs/command" } }
@@ -48,6 +46,7 @@
       "type": "object",
       "required": ["title", "commands"],
       "properties": {
+        "id": { "type": "string", "minLength": 1 },
         "title": { "type": "string" },
         "description": { "type": "string" },
         "commands": { "type": "array", "items": { "$ref": "#/$defs/command" } }
@@ -56,8 +55,14 @@
     },
     "bytes": {
       "oneOf": [
-        { "type": "array", "items": { "type": "integer", "minimum": 0, "maximum": 255 } },
-        { "type": "string", "pattern": "^(?:\\s*(?:0x)?[0-9A-Fa-f]{1,2}\\s*(?:,|\\s|$))*$" }
+        {
+          "type": "array",
+          "items": { "type": "integer", "minimum": 0, "maximum": 255 }
+        },
+        {
+          "type": "string",
+          "pattern": "^(?:\\s*(?:0x)?[0-9A-Fa-f]{1,2}\\s*(?:,|\\s|$))*$"
+        }
       ]
     }
   },

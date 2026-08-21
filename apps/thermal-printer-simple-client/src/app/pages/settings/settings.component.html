@@ -1,0 +1,117 @@
+<div class="page-head">
+  <div>
+    <p class="eyebrow">Firmware POS-8370</p>
+    <h1>Ustawienia drukarki</h1>
+    <p class="lead">
+      Lista ustawień urządzenia budowana na podstawie specyfikacji drukarki i sterownika firmware
+      (obsługa bezpośrednio przez adapter modelu POS-8370).
+    </p>
+  </div>
+  <p-button
+    label="Odśwież opcje"
+    icon="pi pi-refresh"
+    severity="secondary"
+    [outlined]="true"
+    [loading]="loading"
+    (onClick)="load()"
+  />
+</div>
+@if (loading) {
+  <div class="panel loading">
+    <i class="pi pi-spin pi-spinner"></i> Pobieranie możliwości drukarki…
+  </div>
+} @else if (error) {
+  <div class="panel panel-pad error">
+    <i class="pi pi-exclamation-circle"></i>
+    <div>
+      <h2>Nie można pobrać ustawień</h2>
+      <p>{{ error }}</p>
+      <p-button label="Spróbuj ponownie" size="small" (onClick)="load()" />
+    </div>
+  </div>
+} @else {
+  <div class="layout">
+    <section>
+      <div class="section-head">
+        <div>
+          <h2>Konfiguracja urządzenia</h2>
+          <p>Zaznacz tylko wartości, które chcesz zmienić.</p>
+        </div>
+        <span class="badge">{{ selectedCount() }} wybranych</span>
+      </div>
+      <div class="settings-grid">
+        @for (setting of options?.settings; track setting.id) {
+          <article class="panel setting" [class.selected]="selections[setting.id]">
+            <div class="setting-icon"><i [class]="settingIcon(setting.title)"></i></div>
+            <div>
+              <h3>{{ prettyName(setting.title) }}</h3>
+              <p>{{ setting.description || 'Ustawienie firmware drukarki.' }}</p>
+            </div>
+            <p-select
+              class="full-width"
+              [options]="setting.options"
+              [(ngModel)]="selections[setting.id]"
+              optionLabel="label"
+              optionValue="id"
+              [showClear]="true"
+              placeholder="Bez zmian"
+              [filter]="setting.options.length > 12"
+              filterBy="label"
+              [attr.aria-label]="prettyName(setting.title)"
+            />
+          </article>
+        }
+      </div>
+      <div class="savebar panel">
+        <div>
+          <strong>{{ selectedCount() ? 'Gotowe do zapisania' : 'Nie wybrano zmian' }}</strong
+          ><small>Zmiany są wykonywane przez usługę i mogą wymagać restartu drukarki.</small>
+        </div>
+        <p-button
+          label="Zapisz ustawienia"
+          icon="pi pi-check"
+          [loading]="saving"
+          [disabled]="selectedCount() === 0"
+          (onClick)="save()"
+        />
+      </div>
+    </section>
+    <aside>
+      <div class="panel panel-pad">
+        <h2 class="section-title">Akcje urządzenia</h2>
+        <p class="section-subtitle">Polecenia serwisowe udostępniane przez firmware</p>
+        @for (action of availableActions(); track action.id) {
+          <div class="action">
+            <div>
+              <strong>{{ prettyName(action.title) }}</strong
+              ><small>{{ action.description }}</small>
+            </div>
+            @if (action.commands.length === 1) {
+              <p-button
+                icon="pi pi-play"
+                [rounded]="true"
+                [outlined]="true"
+                ariaLabel="Wykonaj"
+                [loading]="activeAction === action.id"
+                (onClick)="runAction(action, action.commands[0].id)"
+              />
+            } @else {
+              <p-select
+                [options]="action.commands"
+                optionLabel="label"
+                optionValue="id"
+                placeholder="Wykonaj…"
+                appendTo="body"
+                (onChange)="runAction(action, $event.value)"
+              />
+            }
+          </div>
+        }
+      </div>
+      <div class="notice">
+        <i class="pi pi-info-circle"></i> Ustawienia są wysyłane nazwami z mapowania producenta.
+        Front-end nie przechowuje ani nie tworzy własnych komend konfiguracyjnych.
+      </div>
+    </aside>
+  </div>
+}

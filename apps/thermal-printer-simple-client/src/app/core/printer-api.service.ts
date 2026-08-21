@@ -1,92 +1,173 @@
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { computed, inject, Injectable, signal } from '@angular/core';
-import { MessageService } from 'primeng/api';
-import { firstValueFrom } from 'rxjs';
-import { Alignment, CharacterFontSize, ConfigurationOptions, ConnectionState, OperationResult, PrinterCapabilities, PrinterStatus, RasterPrintRequest, RawEncoding, TextEncoding, TextStyle } from './printer.models';
+import { HttpErrorResponse } from '@angular/common/http';
+import { inject, Injectable } from '@angular/core';
+import { PrinterHttpClient } from './printer-http.client';
+import {
+  Alignment,
+  CharacterFontSize,
+  ConfigurationOptions,
+  OperationResult,
+  PrinterCapabilities,
+  PrinterStatus,
+  RasterPrintRequest,
+  RawEncoding,
+  TextEncoding,
+  TextStyle,
+} from './printer.models';
+import { PrinterNotificationService } from './printer-notification.service';
+import { PrinterPreferencesService } from './printer-preferences.service';
+import { PrinterSessionService } from './printer-session.service';
 
+/**
+ * Application-facing facade for printer use cases.
+ * Transport, session state, preferences and UI notifications live in focused services.
+ */
 @Injectable({ providedIn: 'root' })
 export class PrinterApiService {
-  private readonly http = inject(HttpClient);
-  private readonly messages = inject(MessageService);
-  private readonly endpointSignal = signal(localStorage.getItem('printer-api-url') ?? 'http://localhost:3000/api');
-  private readonly textEncodingSignal = signal<TextEncoding>(readTextEncoding());
-  readonly connectionState = signal<ConnectionState>('checking');
-  readonly status = signal<PrinterStatus | null>(null);
-  readonly capabilities = signal<PrinterCapabilities | null>(null);
-  readonly endpoint = this.endpointSignal.asReadonly();
-  readonly textEncoding = this.textEncodingSignal.asReadonly();
-  readonly model = computed(() => this.capabilities()?.model ?? 'POS-8370');
+  private readonly http = inject(PrinterHttpClient);
+  private readonly notifications = inject(PrinterNotificationService);
+  private readonly preferences = inject(PrinterPreferencesService);
+  private readonly session = inject(PrinterSessionService);
+
+  readonly connectionState = this.session.connectionState;
+  readonly status = this.session.status;
+  readonly capabilities = this.session.capabilities;
+  readonly model = this.session.model;
+  readonly endpoint = this.preferences.endpoint;
+  readonly textEncoding = this.preferences.textEncoding;
 
   setEndpoint(value: string): void {
-    const normalized = value.trim().replace(/\/+$/, '');
-    this.endpointSignal.set(normalized);
-    localStorage.setItem('printer-api-url', normalized);
+    this.preferences.setEndpoint(value);
   }
+
   setTextEncoding(value: TextEncoding): void {
-    this.textEncodingSignal.set(value);
-    localStorage.setItem('printer-text-encoding', value);
+    this.preferences.setTextEncoding(value);
   }
+
   async refreshStatus(showMessage = true): Promise<void> {
-    this.connectionState.set('checking');
+    this.session.startChecking();
     try {
       const [status, capabilities] = await Promise.all([
-        firstValueFrom(this.http.get<PrinterStatus>(this.url('/printer/status'))),
-        firstValueFrom(this.http.get<PrinterCapabilities>(this.url('/printer/capabilities')))
+        this.http.get<PrinterStatus>('/printer/status'),
+        this.http.get<PrinterCapabilities>('/printer/capabilities'),
       ]);
-      this.status.set(status); this.capabilities.set(capabilities);
-      this.connectionState.set(status.online ? 'online' : 'offline');
-      if (showMessage) this.success('Połączenie aktywne', `${capabilities.model} odpowiada przez usługę.`);
+      this.session.update(status, capabilities);
+      if (showMessage) {
+        this.notifications.success(
+          'Połączenie aktywne',
+          `${capabilities.model} odpowiada przez usługę.`,
+        );
+      }
     } catch (error) {
-      this.status.set(null); this.connectionState.set('offline');
-      if (showMessage) this.failure('Nie udało się połączyć', error);
+      this.session.markOffline(true);
+      if (showMessage) {
+        this.notifications.failure('Nie udało się połączyć', error);
+      }
     }
   }
-  printLine(text: string, alignment: Alignment, style: TextStyle, cut: boolean): Promise<OperationResult> {
-    return this.post('/printer/lines', { lines: [{ text, alignment, style }], encoding: this.textEncodingSignal(), initialize: true, cut }, 'Linia została wysłana');
+
+  printLine(
+    text: string,
+    alignment: Alignment,
+    style: TextStyle,
+    cut: boolean,
+  ): Promise<OperationResult> {
+    return this.post(
+      '/printer/lines',
+      {
+        lines: [{ text, alignment, style }],
+        encoding: this.textEncoding(),
+        initialize: true,
+        cut,
+      },
+      'Linia została wysłana',
+    );
   }
-  printMarkdown(markdown: string, fontSize: CharacterFontSize, cut: boolean, success = 'Dokument został wysłany'): Promise<OperationResult> {
-    return this.post('/printer/markdown', { markdown, fontSize, encoding: this.textEncodingSignal(), initialize: true, cut }, success);
+
+  printMarkdown(
+    markdown: string,
+    fontSize: CharacterFontSize,
+    cut: boolean,
+    success = 'Dokument został wysłany',
+  ): Promise<OperationResult> {
+    return this.post(
+      '/printer/markdown',
+      {
+        markdown,
+        fontSize,
+        encoding: this.textEncoding(),
+        initialize: true,
+        cut,
+      },
+      success,
+    );
   }
+
   printText(text: string, fontSize: CharacterFontSize, cut: boolean): Promise<OperationResult> {
-    return this.post('/printer/text', { text, fontSize, encoding: this.textEncodingSignal(), initialize: true, cut }, 'Dokument tekstowy został wysłany');
+    return this.post(
+      '/printer/text',
+      {
+        text,
+        fontSize,
+        encoding: this.textEncoding(),
+        initialize: true,
+        cut,
+      },
+      'Dokument tekstowy został wysłany',
+    );
   }
+
   cutPaper(): Promise<OperationResult> {
     return this.post('/printer/cut', {}, 'Papier został odcięty');
   }
+
   printRaw(encoding: RawEncoding, data: string | number[]): Promise<OperationResult> {
     return this.post('/printer/raw', { encoding, data }, 'Komendy ESC/POS zostały wysłane');
   }
+
   printRaster(request: RasterPrintRequest): Promise<OperationResult> {
     return this.post('/printer/raster', request, 'Bitmapa została wysłana do drukarki');
   }
+
   getConfigurationOptions(): Promise<ConfigurationOptions> {
-    return firstValueFrom(this.http.get<ConfigurationOptions>(this.url('/printer/configuration/options')));
+    return this.http.get('/printer/configuration/options');
   }
+
   configure(entries: Array<{ setting: string; option: string }>): Promise<OperationResult> {
     return this.post('/printer/configuration/named', { entries }, 'Ustawienia zostały zapisane');
   }
+
   performAction(action: string, command?: string): Promise<OperationResult> {
-    return this.post('/printer/actions', { action, ...(command ? { command } : {}) }, 'Akcja została wykonana');
+    return this.post(
+      '/printer/actions',
+      { action, ...(command ? { command } : {}) },
+      'Akcja została wykonana',
+    );
   }
-  private async post(path: string, body: unknown, message: string): Promise<OperationResult> {
+
+  private async post(
+    path: string,
+    body: unknown,
+    successMessage: string,
+  ): Promise<OperationResult> {
     try {
-      const result = await firstValueFrom(this.http.post<OperationResult>(this.url(path), body));
-      this.connectionState.set('online'); this.success(message, `Przetworzono: ${result.processed}`); return result;
+      const result = await this.http.post<OperationResult>(path, body);
+      this.session.markOnline();
+      this.notifications.success(successMessage, `Przetworzono: ${result.processed}`);
+      return result;
     } catch (error) {
-      this.connectionState.set('offline'); this.failure('Operacja nie powiodła się', error); throw error;
+      if (isConnectionFailure(error)) {
+        this.session.markOffline();
+      }
+      this.notifications.failure('Operacja nie powiodła się', error);
+      throw error;
     }
-  }
-  private url(path: string): string { return `${this.endpointSignal()}${path}`; }
-  private success(summary: string, detail: string): void { this.messages.add({ severity: 'success', summary, detail, life: 3500 }); }
-  private failure(summary: string, error: unknown): void {
-    const detail = error instanceof HttpErrorResponse ? (error.error?.message ?? error.message) : error instanceof Error ? error.message : String(error);
-    this.messages.add({ severity: 'error', summary, detail, life: 6500 });
   }
 }
 
-function readTextEncoding(): TextEncoding {
-  const stored = localStorage.getItem('printer-text-encoding');
-  return stored === 'cp852' || stored === 'cp3843' || stored === 'utf8' || stored === 'windows1250'
-    ? stored
-    : 'windows1250';
+/** A client validation error (4xx) does not imply loss of printer connectivity. */
+export function isConnectionFailure(error: unknown): boolean {
+  return (
+    error instanceof HttpErrorResponse &&
+    (error.status === 0 || [502, 503, 504].includes(error.status))
+  );
 }

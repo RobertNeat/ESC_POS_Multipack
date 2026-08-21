@@ -10,7 +10,5 @@
       "path": "../printer-adapter"
     }
   ],
-  "include": [
-    "src/**/*.ts"
-  ]
+  "include": ["src/**/*.ts"]
 }

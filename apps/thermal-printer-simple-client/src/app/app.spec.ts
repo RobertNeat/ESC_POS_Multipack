@@ -6,7 +6,10 @@ import { App } from './app';
 
 describe('App', () => {
   beforeEach(async () => {
-    await TestBed.configureTestingModule({ imports: [App], providers: [provideHttpClient(), provideRouter([]), MessageService] }).compileComponents();
+    await TestBed.configureTestingModule({
+      imports: [App],
+      providers: [provideHttpClient(), provideRouter([]), MessageService],
+    }).compileComponents();
   });
   it('should create the app shell', () => {
     const fixture = TestBed.createComponent(App);

@@ -9,6 +9,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import {
+  ConfigurationCatalogResponseDto,
   ConfigureNamedDto,
   ConfigurePrinterDto,
   DeviceActionDto,
@@ -48,6 +49,7 @@ export class PrinterController {
   @Get('configuration/options')
   @ApiTags('configuration')
   @ApiOperation({ summary: 'Lista ustawień i akcji dostępnych dla POS-8370' })
+  @ApiOkResponse({ type: ConfigurationCatalogResponseDto })
   availableConfiguration() {
     return this.printer.availableConfiguration();
   }
@@ -135,7 +137,9 @@ export class PrinterController {
   @Post('text')
   @HttpCode(200)
   @ApiTags('printing')
-  @ApiOperation({ summary: 'Drukuje tekst dosłownie, bez interpretowania Markdown' })
+  @ApiOperation({
+    summary: 'Drukuje tekst dosłownie, bez interpretowania Markdown',
+  })
   @ApiOkResponse({ type: OperationResultDto })
   printText(@Body() body: PrintTextDto) {
     return this.printer.printText(body);

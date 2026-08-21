@@ -18,10 +18,21 @@
     "dev:thermal-printer-service": "pnpm --filter thermal-printer-service dev",
     "dev:thermal-printer-simple-client": "pnpm --filter thermal-printer-simple-client dev",
     "build": "pnpm -r build",
+    "lint": "eslint . && pnpm --filter thermal-printer-simple-client lint",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write \"*.{json,mjs}\" \"apps/**/*.{ts,html,css,json,mjs}\" \"packages/**/*.{ts,json,mjs}\"",
+    "format:check": "prettier --check \"*.{json,mjs}\" \"apps/**/*.{ts,html,css,json,mjs}\" \"packages/**/*.{ts,json,mjs}\"",
     "test": "pnpm -r test",
     "clean": "pnpm -r clean"
   },
   "devDependencies": {
+    "@eslint/js": "^9.18.0",
+    "eslint": "^9.18.0",
+    "eslint-config-prettier": "^10.0.1",
+    "eslint-plugin-prettier": "^5.2.2",
+    "globals": "^17.0.0",
+    "prettier": "^3.8.1",
+    "typescript-eslint": "^8.20.0",
     "typescript": "^5.9.0"
   }
 }

@@ -1,7 +1,8 @@
-import type { LowLevelPrinterAdapter } from '@esc-pos-multipack/printer-adapter';
 import type { PrinterSettingsRepository } from '@esc-pos-multipack/pos-8370-adapter';
+import type { Pos8370LowLevelAdapter } from '@esc-pos-multipack/pos-8370-adapter/low-level';
 import { BadRequestException } from '@nestjs/common';
 import { MarkdownPrinter } from './markdown-printer';
+import { PrinterConfigurationCatalog } from './printer-configuration.catalog';
 import {
   AlignmentDto,
   CharacterFontSizeDto,
@@ -10,6 +11,31 @@ import {
   TextEncodingDto,
 } from './printer.dto';
 import { PrinterService } from './printer.service';
+import { PrinterErrorMapper } from './printer.errors';
+import { PrinterOperationExecutor } from './printer-operation.executor';
+import { PrinterOperationQueue } from './printer-operation.queue';
+import { PrinterPayloadDecoder } from './printer-payload.decoder';
+import { PrinterPrintJobRunner } from './printer-print-job.runner';
+
+function createService(
+  adapter: jest.Mocked<Pos8370LowLevelAdapter>,
+  settings = {} as PrinterSettingsRepository,
+  markdownPrinter = new MarkdownPrinter(),
+): PrinterService {
+  const executor = new PrinterOperationExecutor(
+    new PrinterOperationQueue(),
+    new PrinterErrorMapper(),
+    adapter,
+  );
+  return new PrinterService(
+    adapter,
+    markdownPrinter,
+    executor,
+    new PrinterPayloadDecoder(),
+    new PrinterPrintJobRunner(adapter, executor),
+    new PrinterConfigurationCatalog(settings),
+  );
+}
 
 describe('PrinterService raster printing', () => {
   const initialize = jest.fn();
@@ -21,8 +47,8 @@ describe('PrinterService raster printing', () => {
     printRasterImage,
     setAlignment,
     cut,
-  } as unknown as jest.Mocked<LowLevelPrinterAdapter>;
-  const service = new PrinterService(
+  } as unknown as jest.Mocked<Pos8370LowLevelAdapter>;
+  const service = createService(
     adapter,
     {} as PrinterSettingsRepository,
     {} as MarkdownPrinter,
@@ -73,19 +99,15 @@ describe('PrinterService raster printing', () => {
   });
 });
 
-describe('PrinterService text encoding', () => {
+describe('PrinterService text printing', () => {
   it('passes the requested code page encoding to every printed line', async () => {
     const adapter = {
       initialize: jest.fn().mockResolvedValue(undefined),
       printText: jest.fn().mockResolvedValue(undefined),
       setAlignment: jest.fn().mockResolvedValue(undefined),
       setTextStyle: jest.fn().mockResolvedValue(undefined),
-    } as unknown as jest.Mocked<LowLevelPrinterAdapter>;
-    const service = new PrinterService(
-      adapter,
-      {} as PrinterSettingsRepository,
-      new MarkdownPrinter(),
-    );
+    } as unknown as jest.Mocked<Pos8370LowLevelAdapter>;
+    const service = createService(adapter);
 
     await service.printLines({
       lines: [{ text: 'Mężny żółć' }],
@@ -107,12 +129,8 @@ describe('PrinterService text encoding', () => {
       execute: jest.fn().mockResolvedValue(undefined),
       setAlignment: jest.fn().mockResolvedValue(undefined),
       setTextStyle: jest.fn().mockResolvedValue(undefined),
-    } as unknown as jest.Mocked<LowLevelPrinterAdapter>;
-    const service = new PrinterService(
-      adapter,
-      {} as PrinterSettingsRepository,
-      new MarkdownPrinter(),
-    );
+    } as unknown as jest.Mocked<Pos8370LowLevelAdapter>;
+    const service = createService(adapter);
 
     await service.printMarkdown({
       markdown: '**tekst** i `kod`',
@@ -126,5 +144,31 @@ describe('PrinterService text encoding', () => {
     for (const [, options] of adapter.printText.mock.calls) {
       expect(options?.style?.font).toBe('specialB');
     }
+  });
+
+  it('feeds trailing Markdown lines before cutting the paper', async () => {
+    const adapter = {
+      initialize: jest.fn().mockResolvedValue(undefined),
+      printText: jest.fn().mockResolvedValue(undefined),
+      execute: jest.fn().mockResolvedValue(undefined),
+      setAlignment: jest.fn().mockResolvedValue(undefined),
+      setTextStyle: jest.fn().mockResolvedValue(undefined),
+      cut: jest.fn().mockResolvedValue(undefined),
+    } as unknown as jest.Mocked<Pos8370LowLevelAdapter>;
+    const service = createService(adapter);
+
+    await service.printMarkdown({
+      markdown: 'tekst\n\n\n',
+      fontSize: CharacterFontSizeDto.Size12x24,
+      encoding: TextEncodingDto.Windows1250,
+      initialize: true,
+      cut: true,
+    });
+
+    expect(adapter.execute).toHaveBeenCalledTimes(3);
+    expect(adapter.cut).toHaveBeenCalledTimes(1);
+    expect(adapter.execute.mock.invocationCallOrder.at(-1)).toBeLessThan(
+      adapter.cut.mock.invocationCallOrder[0] ?? 0,
+    );
   });
 });
