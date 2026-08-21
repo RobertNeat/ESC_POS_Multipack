@@ -1,0 +1,49 @@
+name: esc-pos-multipack
+
+services:
+  thermal-printer-service:
+    image: ${REGISTRY}/${COMPOSE_PROJECT_NAME}/thermal-printer-service:${IMAGE_TAG}
+    environment:
+      PORT: ${SERVICE_PORT:?SERVICE_PORT must be set in config.env}
+      CLIENT_ORIGIN: http://${PUBLIC_HOST:?PUBLIC_HOST must be set in config.env}:${CLIENT_PORT}
+      PRINTER_TRANSPORT: ${PRINTER_TRANSPORT:-lan}
+      PRINTER_HOST: ${PRINTER_HOST:?PRINTER_HOST must be set in config.env}
+      PRINTER_PORT: ${PRINTER_PORT:-9100}
+      PRINTER_TIMEOUT_MS: ${PRINTER_TIMEOUT_MS:-5000}
+    ports:
+      - '${SERVICE_PORT}:${SERVICE_PORT}'
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://localhost:${SERVICE_PORT}/api').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+
+  thermal-printer-simple-client:
+    image: ${REGISTRY}/${COMPOSE_PROJECT_NAME}/thermal-printer-simple-client:${IMAGE_TAG}
+    depends_on:
+      thermal-printer-service:
+        condition: service_healthy
+    environment:
+      CLIENT_PORT: ${CLIENT_PORT:?CLIENT_PORT must be set in config.env}
+      SERVICE_PORT: ${SERVICE_PORT:?SERVICE_PORT must be set in config.env}
+    ports:
+      - '${CLIENT_PORT}:${CLIENT_PORT}'
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'wget --quiet --tries=1 --spider http://127.0.0.1:$${CLIENT_PORT}/',
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped

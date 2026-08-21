@@ -1,0 +1,47 @@
+name: Build and push Docker image
+description: Build, scan and publish an immutable image to the homelab registry.
+inputs:
+  registry: { required: true }
+  image: { required: true }
+  context: { required: true }
+  dockerfile: { required: true }
+  sha: { required: true }
+  version: { required: true }
+runs:
+  using: composite
+  steps:
+    - name: Build image
+      shell: bash
+      env:
+        REGISTRY: ${{ inputs.registry }}
+        IMAGE: ${{ inputs.image }}
+        CONTEXT: ${{ inputs.context }}
+        DOCKERFILE: ${{ inputs.dockerfile }}
+        SHA: ${{ inputs.sha }}
+        NODE_VERSION: ${{ inputs.version }}
+      run: |
+        set -euo pipefail
+        docker build \
+          --file "$DOCKERFILE" \
+          --build-arg "NODE_VERSION=$NODE_VERSION" \
+          --tag "$REGISTRY/$IMAGE:$SHA" \
+          --tag "$REGISTRY/$IMAGE:latest" \
+          "$CONTEXT"
+
+    - name: Scan image
+      shell: bash
+      env:
+        REF: ${{ inputs.registry }}/${{ inputs.image }}:${{ inputs.sha }}
+      run: trivy image --exit-code 1 --severity HIGH,CRITICAL "$REF"
+
+    - name: Push immutable image
+      shell: bash
+      env:
+        REF: ${{ inputs.registry }}/${{ inputs.image }}:${{ inputs.sha }}
+      run: docker push "$REF"
+
+    - name: Push convenience tag
+      shell: bash
+      env:
+        REF: ${{ inputs.registry }}/${{ inputs.image }}:latest
+      run: docker push "$REF"

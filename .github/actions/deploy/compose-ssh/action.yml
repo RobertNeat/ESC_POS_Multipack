@@ -1,0 +1,52 @@
+name: Deploy Docker Compose over SSH
+description: Copy the production definition and deploy an exact image SHA.
+inputs:
+  host: { required: true }
+  user: { required: true }
+  registry: { required: true }
+  compose-file: { required: true }
+  config-file: { required: true }
+  remote-dir: { required: true }
+  sha: { required: true }
+runs:
+  using: composite
+  steps:
+    - name: Prepare remote directory
+      shell: bash
+      env:
+        HOST: ${{ inputs.host }}
+        SSH_USER: ${{ inputs.user }}
+        REMOTE_DIR: ${{ inputs.remote-dir }}
+      run: |
+        set -euo pipefail
+        remote_dir_q="$(printf '%q' "$REMOTE_DIR")"
+        ssh -o BatchMode=yes "$SSH_USER@$HOST" "mkdir -p -- $remote_dir_q"
+
+    - name: Copy deployment files
+      shell: bash
+      env:
+        HOST: ${{ inputs.host }}
+        SSH_USER: ${{ inputs.user }}
+        COMPOSE_FILE: ${{ inputs.compose-file }}
+        CONFIG_FILE: ${{ inputs.config-file }}
+        REMOTE_DIR: ${{ inputs.remote-dir }}
+      run: |
+        set -euo pipefail
+        scp "$COMPOSE_FILE" "$SSH_USER@$HOST:$REMOTE_DIR/compose.yml"
+        scp "$CONFIG_FILE" "$SSH_USER@$HOST:$REMOTE_DIR/config.env"
+
+    - name: Pull and deploy
+      shell: bash
+      env:
+        HOST: ${{ inputs.host }}
+        SSH_USER: ${{ inputs.user }}
+        REMOTE_DIR: ${{ inputs.remote-dir }}
+        REGISTRY: ${{ inputs.registry }}
+        SHA: ${{ inputs.sha }}
+      run: |
+        set -euo pipefail
+        remote_dir_q="$(printf '%q' "$REMOTE_DIR")"
+        registry_q="$(printf '%q' "$REGISTRY")"
+        sha_q="$(printf '%q' "$SHA")"
+        ssh -o BatchMode=yes "$SSH_USER@$HOST" \
+          "cd $remote_dir_q && REGISTRY=$registry_q IMAGE_TAG=$sha_q docker compose --env-file config.env pull && REGISTRY=$registry_q IMAGE_TAG=$sha_q docker compose --env-file config.env up -d --remove-orphans && docker image prune -f"

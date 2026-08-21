@@ -10,7 +10,10 @@ From the repository root:
 pnpm dev:thermal-printer-simple-client
 ```
 
-The client is available at `http://localhost:4200`,connects to `http://localhost:3000/api` by default.
+The client is available at `http://localhost:10100` and connects through the
+same-origin `/api` proxy by default. During local development the Angular proxy
+forwards requests to `http://localhost:10120`; in Docker the frontend container
+forwards them to the service container.
 The API address can be changed on the `Settings` page and is stored in the browser.
 
 Start the API in a separate terminal with `pnpm dev:thermal-printer-service`.

@@ -1,7 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 import { TextEncoding } from './printer.models';
 
-const DEFAULT_ENDPOINT = 'http://localhost:3000/api';
+const DEFAULT_ENDPOINT = '/api';
 const ENDPOINT_KEY = 'printer-api-url';
 const TEXT_ENCODING_KEY = 'printer-text-encoding';
 
