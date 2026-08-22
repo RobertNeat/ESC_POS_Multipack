@@ -57,7 +57,7 @@
 .slider-control {
   display: grid;
   gap: 7px;
-  color: #4e4f4a;
+  color: var(--color-text-label);
   font-size: 11px;
   font-weight: 700;
 }
@@ -95,7 +95,7 @@ input[type='range'] {
   align-items: center;
   gap: 9px;
   padding-bottom: 9px;
-  color: #4e4f4a;
+  color: var(--color-text-label);
   font-size: 12px;
   font-weight: 650;
 }
@@ -111,13 +111,13 @@ input[type='range'] {
   padding: 12px 8px;
   border: 1px solid var(--line);
   border-radius: 10px;
-  background: white;
+  background: var(--color-surface-raised);
   color: var(--ink);
   cursor: pointer;
   text-align: center;
 }
 .choice-grid button:hover {
-  border-color: #c8a092;
+  border-color: var(--color-border-hover);
 }
 .choice-grid button.active {
   border-color: var(--accent);
@@ -228,9 +228,9 @@ input[type='range'] {
 }
 .warning {
   margin: 16px 22px 0;
-  border-color: #d49a36;
-  background: #fff8e5;
-  color: #795b22;
+  border-color: var(--color-warning-border);
+  background: var(--color-warning-soft);
+  color: var(--color-on-warning-soft);
 }
 .warning i {
   margin-right: 6px;

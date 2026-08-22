@@ -32,8 +32,8 @@
   transition: 0.15s;
 }
 .setting.selected {
-  border-color: #d28a73;
-  box-shadow: 0 0 0 2px rgba(220, 91, 56, 0.08);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px var(--color-focus-ring);
 }
 .setting-icon {
   width: 34px;
@@ -72,7 +72,7 @@
   justify-content: space-between;
   align-items: center;
   gap: 20px;
-  box-shadow: 0 15px 35px rgba(30, 30, 28, 0.14);
+  box-shadow: var(--shadow-floating);
 }
 .savebar strong,
 .savebar small {
@@ -121,7 +121,7 @@
 }
 .error > i {
   font-size: 24px;
-  color: #b94b3c;
+  color: var(--color-danger);
 }
 .error h2 {
   margin: 0;

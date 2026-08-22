@@ -8,6 +8,7 @@ import { I18nService, UiLanguage } from './core/i18n.service';
 import { TranslatePipe } from './core/translate.pipe';
 import { TextEncoding } from './core/printer.models';
 import { TEXT_ENCODING_OPTIONS } from './shared/printer-options';
+import { ThemeService } from './core/theme.service';
 
 @Component({
   selector: 'app-root',
@@ -26,6 +27,7 @@ import { TEXT_ENCODING_OPTIONS } from './shared/printer-options';
 export class App implements OnInit {
   protected readonly api = inject(PrinterApiService);
   protected readonly i18n = inject(I18nService);
+  protected readonly theme = inject(ThemeService);
   private readonly router = inject(Router);
   private readonly updateDocumentTitle = effect(() => {
     this.i18n.language();

@@ -20,6 +20,20 @@
   </nav>
   <div class="topbar-actions">
     <button
+      class="icon-button"
+      type="button"
+      (click)="theme.toggleTheme()"
+      [attr.aria-label]="
+        (theme.theme() === 'dark' ? 'app.enableLightTheme' : 'app.enableDarkTheme') | t
+      "
+      [attr.aria-pressed]="theme.theme() === 'dark'"
+      [pTooltip]="
+        (theme.theme() === 'dark' ? 'app.enableLightTheme' : 'app.enableDarkTheme') | t
+      "
+    >
+      <i [class]="theme.theme() === 'dark' ? 'pi pi-sun' : 'pi pi-moon'"></i>
+    </button>
+    <button
       class="encoding-button"
       type="button"
       (click)="encodingPanel.toggle($event)"

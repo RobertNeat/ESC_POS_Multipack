@@ -12,15 +12,15 @@
   grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 24px;
-  background: rgba(250, 250, 248, 0.94);
-  border-bottom: 1px solid var(--line);
+  background: var(--color-topbar);
+  border-bottom: 1px solid var(--color-border);
   backdrop-filter: blur(18px);
 }
 .brand {
   display: flex;
   align-items: center;
   gap: 11px;
-  color: var(--ink);
+  color: var(--color-text);
   text-decoration: none;
 }
 .brand-mark {
@@ -29,8 +29,8 @@
   display: grid;
   place-items: center;
   border-radius: 10px;
-  background: var(--ink);
-  color: white;
+  background: var(--color-text);
+  color: var(--color-surface);
 }
 .brand strong,
 .brand small {
@@ -43,7 +43,7 @@
 }
 .brand small {
   margin-top: 3px;
-  color: var(--muted);
+  color: var(--color-text-muted);
   font: 600 10px/1 var(--mono);
   letter-spacing: 0.12em;
 }
@@ -55,7 +55,7 @@ nav {
 nav a {
   padding: 10px 12px;
   border-radius: 9px;
-  color: var(--muted);
+  color: var(--color-text-muted);
   text-decoration: none;
   font-size: 13px;
   font-weight: 600;
@@ -66,22 +66,22 @@ nav a i {
   font-size: 12px;
 }
 nav a:hover {
-  background: var(--surface-2);
-  color: var(--ink);
+  background: var(--color-surface-subtle);
+  color: var(--color-text);
 }
 nav a.active {
-  background: var(--ink);
-  color: #fff;
+  background: var(--color-text);
+  color: var(--color-surface);
 }
 .connection-pill {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 8px 11px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--color-border);
   border-radius: 999px;
-  background: white;
-  color: var(--ink);
+  background: var(--color-surface-raised);
+  color: var(--color-text);
   font: 600 12px/1 var(--font);
   cursor: pointer;
 }
@@ -95,15 +95,33 @@ nav a.active {
   align-items: center;
   gap: 7px;
   padding: 8px 10px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--color-border);
   border-radius: 9px;
-  background: white;
-  color: var(--ink);
+  background: var(--color-surface-raised);
+  color: var(--color-text);
   font: 650 11px/1 var(--font);
   cursor: pointer;
 }
 .encoding-button i {
-  color: var(--accent);
+  color: var(--color-accent);
+}
+.icon-button {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border: 1px solid var(--color-border);
+  border-radius: 9px;
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+  cursor: pointer;
+}
+.icon-button:hover,
+.encoding-button:hover,
+.connection-pill:hover {
+  border-color: var(--color-border-hover);
+  background: var(--color-surface-subtle);
 }
 .encoding-panel {
   width: 310px;
@@ -115,7 +133,7 @@ nav a.active {
 }
 .encoding-panel > small {
   margin-bottom: 8px;
-  color: var(--muted);
+  color: var(--color-text-muted);
   font-size: 11px;
   line-height: 1.45;
 }
@@ -129,19 +147,19 @@ nav a.active {
   border: 0;
   border-radius: 8px;
   background: transparent;
-  color: var(--ink);
+  color: var(--color-text);
   text-align: left;
   cursor: pointer;
 }
 .encoding-panel button:hover,
 .encoding-panel button.selected {
-  background: var(--surface-2);
+  background: var(--color-surface-subtle);
 }
 .encoding-panel button > i {
-  color: var(--muted);
+  color: var(--color-text-muted);
 }
 .encoding-panel button.selected > i {
-  color: var(--accent);
+  color: var(--color-accent);
 }
 .encoding-panel button b,
 .encoding-panel button small {
@@ -152,18 +170,18 @@ nav a.active {
 }
 .encoding-panel button small {
   margin-top: 3px;
-  color: var(--muted);
+  color: var(--color-text-muted);
   font-size: 10px;
 }
 .status-dot {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #d35946;
+  background: var(--color-danger);
   box-shadow: 0 0 0 3px rgba(211, 89, 70, 0.12);
 }
 .status-dot.online {
-  background: #2f8b65;
+  background: var(--color-success);
   box-shadow: 0 0 0 3px rgba(47, 139, 101, 0.12);
 }
 .app-content {
