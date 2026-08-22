@@ -6,6 +6,8 @@ import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { PrinterApiService } from '../../core/printer-api.service';
+import { I18nService } from '../../core/i18n.service';
+import { TranslatePipe } from '../../core/translate.pipe';
 import { Alignment, CharacterFontSize, TextStyle } from '../../core/printer.models';
 import { ALIGNMENT_OPTIONS, FONT_OPTIONS, PAPER_OPTIONS } from '../../shared/printer-options';
 import { toggleMarkdownLinePrefix, toggleMarkdownLink } from '../../shared/markdown-editor';
@@ -19,12 +21,14 @@ import { editTextField, toggleTextMarker } from '../../shared/text-editor';
     InputTextModule,
     SelectModule,
     ToggleSwitchModule,
+    TranslatePipe,
   ],
   templateUrl: './typewriter.component.html',
   styleUrl: './typewriter.component.css',
 })
 export class TypewriterComponent {
   private readonly api = inject(PrinterApiService);
+  private readonly i18n = inject(I18nService);
   protected line = '';
   protected markdownMode = true;
   protected paperWidth = 80;
@@ -53,7 +57,12 @@ export class TypewriterComponent {
     };
   }
   protected readonly scaleOptions = [1, 2, 3, 4].map((value) => ({ label: `×${value}`, value }));
-  protected readonly alignmentOptions = ALIGNMENT_OPTIONS;
+  protected alignmentOptions() {
+    return ALIGNMENT_OPTIONS.map((option) => ({
+      ...option,
+      label: this.i18n.t(option.labelKey),
+    }));
+  }
   protected maxChars(): number {
     return Math.floor(
       (this.paperWidth === 80
@@ -163,7 +172,7 @@ export class TypewriterComponent {
     this.sending = true;
     try {
       if (this.markdownMode)
-        await this.api.printMarkdown(value, this.fontSize, false, 'Linia Markdown została wysłana');
+        await this.api.printMarkdown(value, this.fontSize, false, 'notification.markdownLineSent');
       else await this.api.printLine(value, this.alignment, this.style, false);
       this.history = [...this.history, this.previewText()].slice(-5);
       this.line = '';

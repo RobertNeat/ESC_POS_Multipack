@@ -1,31 +1,30 @@
 <div class="page-head">
   <div>
-    <p class="eyebrow">Dokumenty</p>
-    <h1>Drukuj Markdown</h1>
+    <p class="eyebrow">{{ 'markdown.eyebrow' | t }}</p>
+    <h1>{{ 'markdown.title' | t }}</h1>
     <p class="lead">
-      Wczytaj plik <span class="mono">.md</span> albo napisz dokument. HTML jest odrzucany;
-      zagnieżdżenia i style są mapowane bezpośrednio na ESC/POS.
+      {{ 'markdown.lead' | t }}
     </p>
   </div>
-  <span class="badge"><i class="pi pi-shield"></i>Bez HTML · maks. 100 KB</span>
+  <span class="badge"><i class="pi pi-shield"></i>{{ 'markdown.badge' | t }}</span>
 </div>
 <div class="workspace">
   <section class="panel panel-pad">
     <div class="document-bar">
       <div>
-        <h2 class="section-title">Treść dokumentu</h2>
-        <p class="section-subtitle">Markdown zgodny z możliwościami firmware</p>
+        <h2 class="section-title">{{ 'markdown.content' | t }}</h2>
+        <p class="section-subtitle">{{ 'markdown.firmwareCompatible' | t }}</p>
       </div>
       <label class="upload"
         ><input
           type="file"
           accept=".md,.markdown,text/markdown,text/plain"
           (change)="loadFile($event)"
-        /><i class="pi pi-upload"></i> Wczytaj .md</label
+        /><i class="pi pi-upload"></i> {{ 'markdown.load' | t }}</label
       >
     </div>
     <div class="syntax-bar">
-      @for (tool of tools; track tool.label) {
+      @for (tool of tools(); track tool.label) {
         <button type="button" (click)="applyTool(tool, markdownInput)" [title]="tool.hint">
           <i [class]="tool.icon"></i>{{ tool.label }}
         </button>
@@ -38,17 +37,17 @@
       [(ngModel)]="markdown"
       rows="20"
       maxlength="100000"
-      aria-label="Dokument Markdown"
+      [attr.aria-label]="'markdown.documentAria' | t"
       spellcheck="false"
     ></textarea>
     <div class="editor-foot">
       <span [class.error-text]="hasHtml()">{{
         hasHtml()
-          ? 'Usuń znaczniki HTML przed drukiem'
-          : 'Znaki: ' + markdown.length.toLocaleString('pl-PL') + ' / 100 000'
+          ? ('markdown.removeHtml' | t)
+          : ('markdown.characters' | t: { count: markdown.length.toLocaleString(i18n.locale()) })
       }}</span>
       <div class="field-option">
-        <label for="markdown-font-size">Matryca znaków</label>
+        <label for="markdown-font-size">{{ 'common.characterMatrix' | t }}</label>
         <p-select
           inputId="markdown-font-size"
           [options]="fontSizeOptions"
@@ -59,21 +58,21 @@
       </div>
       <div class="field-option">
         <p-checkbox inputId="markdown-cut" [(ngModel)]="cut" [binary]="true" />
-        <label for="markdown-cut">Odetnij dokument</label>
+        <label for="markdown-cut">{{ 'markdown.cutDocument' | t }}</label>
       </div>
     </div>
     <div class="button-row">
       <p-splitbutton
-        label="Drukuj dokument"
+        [label]="'markdown.printDocument' | t"
         icon="pi pi-print"
-        [model]="printOptions"
+        [model]="printOptions()"
         [buttonProps]="{ loading: sending }"
         [disabled]="!markdown.trim() || sending"
         [buttonDisabled]="hasHtml()"
         (onClick)="print()"
         appendTo="body"
       /><p-button
-        label="Wyczyść"
+        [label]="'common.clear' | t"
         icon="pi pi-trash"
         severity="secondary"
         [text]="true"
@@ -83,7 +82,7 @@
   </section>
   <aside>
     <div class="paper preview">
-      <div class="paper-meta">PODGLĄD STRUKTURY</div>
+      <div class="paper-meta">{{ 'markdown.structurePreview' | t }}</div>
       @for (line of previewLines(); track $index) {
         <div [class]="line.className" [style.padding-left.ch]="line.indent">
           {{ line.text || ' ' }}
@@ -91,12 +90,19 @@
       }
     </div>
     <div class="support panel panel-pad">
-      <h3>Obsługiwane elementy</h3>
+      <h3>{{ 'markdown.supported' | t }}</h3>
       <div class="tags">
-        <span># nagłówki</span><span>**pogrubienie**</span><span>_podkreślenie_</span
-        ><span>~~negatyw~~</span><span>---</span><span>listy zagnieżdżone</span
-        ><span>listy zadań</span><span>&gt; cytaty</span><span>tabele GFM</span
-        ><span>kod inline i blok</span><span>odnośniki</span><span>obrazy jako odnośniki</span>
+        <span>{{ 'markdown.headings' | t }}</span
+        ><span>{{ 'markdown.bold' | t }}</span
+        ><span>{{ 'markdown.underline' | t }}</span
+        ><span>{{ 'markdown.reverse' | t }}</span
+        ><span>---</span><span>{{ 'markdown.nestedLists' | t }}</span
+        ><span>{{ 'markdown.taskLists' | t }}</span
+        ><span>{{ 'markdown.quotes' | t }}</span
+        ><span>{{ 'markdown.tables' | t }}</span
+        ><span>{{ 'markdown.code' | t }}</span
+        ><span>{{ 'markdown.links' | t }}</span
+        ><span>{{ 'markdown.images' | t }}</span>
       </div>
     </div>
   </aside>

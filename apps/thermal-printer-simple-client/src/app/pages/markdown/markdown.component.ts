@@ -7,6 +7,8 @@ import { SplitButtonModule } from 'primeng/splitbutton';
 import { SelectModule } from 'primeng/select';
 import { TextareaModule } from 'primeng/textarea';
 import { PrinterApiService } from '../../core/printer-api.service';
+import { I18nService } from '../../core/i18n.service';
+import { TranslatePipe } from '../../core/translate.pipe';
 import { CharacterFontSize } from '../../core/printer.models';
 import { CHARACTER_FONT_OPTIONS } from '../../shared/printer-options';
 import { editTextField, toggleTextMarker } from '../../shared/text-editor';
@@ -17,7 +19,7 @@ import {
   toggleMarkdownLink,
 } from '../../shared/markdown-editor';
 import { markdownPreviewLines } from './markdown-preview';
-import { formatMarkdownSelection, MARKDOWN_TOOLS, MarkdownTool } from './markdown-tools';
+import { formatMarkdownSelection, localizedMarkdownTools, MarkdownTool } from './markdown-tools';
 
 @Component({
   imports: [
@@ -27,22 +29,31 @@ import { formatMarkdownSelection, MARKDOWN_TOOLS, MarkdownTool } from './markdow
     SelectModule,
     SplitButtonModule,
     TextareaModule,
+    TranslatePipe,
   ],
   templateUrl: './markdown.component.html',
   styleUrl: './markdown.component.css',
 })
 export class MarkdownComponent {
   private readonly api = inject(PrinterApiService);
-  protected markdown =
-    '# Zamówienie\n\n1. **Kawa**\n   - duża\n   - bez cukru\n2. _Herbata_\n\n> Dziękujemy i zapraszamy ponownie!';
+  protected readonly i18n = inject(I18nService);
+  protected markdown = `# ${this.i18n.t('example.order')}\n\n1. **${this.i18n.t('example.coffee')}**\n   - ${this.i18n.t('example.large')}\n   - ${this.i18n.t('example.noSugar')}\n2. _${this.i18n.t('example.tea')}_\n\n> ${this.i18n.t('example.thanks')}`;
   protected cut = true;
   protected sending = false;
   protected fontSize: CharacterFontSize = '12x24';
   protected readonly fontSizeOptions = CHARACTER_FONT_OPTIONS;
-  protected readonly printOptions: MenuItem[] = [
-    { label: 'Drukuj jako .txt', icon: 'pi pi-file', command: () => void this.printAsText() },
-  ];
-  protected readonly tools = MARKDOWN_TOOLS;
+  protected printOptions(): MenuItem[] {
+    return [
+      {
+        label: this.i18n.t('markdown.printAsText'),
+        icon: 'pi pi-file',
+        command: () => void this.printAsText(),
+      },
+    ];
+  }
+  protected tools(): readonly MarkdownTool[] {
+    return localizedMarkdownTools(this.i18n);
+  }
   protected applyTool(tool: MarkdownTool, input: HTMLTextAreaElement): void {
     const start = input.selectionStart ?? this.markdown.length;
     const end = input.selectionEnd ?? start;

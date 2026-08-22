@@ -3,24 +3,50 @@ import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
 import { PrinterApiService } from '../../core/printer-api.service';
+import { I18nService } from '../../core/i18n.service';
+import { TranslatePipe } from '../../core/translate.pipe';
 import { ActionDefinition, ConfigurationOptions } from '../../core/printer.models';
-import { printerSettingIcon, printerSettingName } from './setting-presentation';
+import {
+  printerActionCommandNameKey,
+  printerActionDescriptionKey,
+  printerActionTitleKey,
+  printerSettingIcon,
+  printerSettingNameKey,
+} from './setting-presentation';
 
 @Component({
-  imports: [FormsModule, ButtonModule, SelectModule],
+  imports: [FormsModule, ButtonModule, SelectModule, TranslatePipe],
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.css',
 })
 export class SettingsComponent implements OnInit {
   private readonly api = inject(PrinterApiService);
+  private readonly i18n = inject(I18nService);
   protected options: ConfigurationOptions | null = null;
   protected selections: Record<string, string | null> = {};
   protected loading = true;
   protected saving = false;
   protected error = '';
   protected activeAction = '';
-  protected readonly prettyName = printerSettingName;
   protected readonly settingIcon = printerSettingIcon;
+  protected prettyName(value: string): string {
+    const key = printerSettingNameKey(value);
+    return key ? this.i18n.t(key) : value;
+  }
+  protected actionName(action: ActionDefinition): string {
+    const key = printerActionTitleKey(action.title);
+    return key ? this.i18n.t(key) : action.title;
+  }
+  protected actionDescription(action: ActionDefinition): string {
+    const key = printerActionDescriptionKey(action.title);
+    return key ? this.i18n.t(key) : (action.description ?? '');
+  }
+  protected actionCommands(action: ActionDefinition): ActionDefinition['commands'] {
+    return action.commands.map((command) => {
+      const key = printerActionCommandNameKey(command.label);
+      return { ...command, label: key ? this.i18n.t(key) : command.label };
+    });
+  }
   ngOnInit(): void {
     void this.load();
   }
@@ -33,7 +59,8 @@ export class SettingsComponent implements OnInit {
         this.options.settings.map((setting) => [setting.id, null]),
       );
     } catch (error) {
-      this.error = error instanceof Error ? error.message : 'Usługa nie odpowiada.';
+      this.error =
+        error instanceof Error ? error.message : this.i18n.t('settings.serviceUnavailable');
     } finally {
       this.loading = false;
     }

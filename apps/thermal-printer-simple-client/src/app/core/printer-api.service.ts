@@ -1,6 +1,8 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { PrinterHttpClient } from './printer-http.client';
+import { I18nService } from './i18n.service';
+import { TranslationKey } from './translations';
 import {
   Alignment,
   CharacterFontSize,
@@ -27,6 +29,7 @@ export class PrinterApiService {
   private readonly notifications = inject(PrinterNotificationService);
   private readonly preferences = inject(PrinterPreferencesService);
   private readonly session = inject(PrinterSessionService);
+  private readonly i18n = inject(I18nService);
 
   readonly connectionState = this.session.connectionState;
   readonly status = this.session.status;
@@ -53,14 +56,14 @@ export class PrinterApiService {
       this.session.update(status, capabilities);
       if (showMessage) {
         this.notifications.success(
-          'Połączenie aktywne',
-          `${capabilities.model} odpowiada przez usługę.`,
+          this.i18n.t('notification.connectionActive'),
+          this.i18n.t('notification.connectionDetail', { model: capabilities.model }),
         );
       }
     } catch (error) {
       this.session.markOffline(true);
       if (showMessage) {
-        this.notifications.failure('Nie udało się połączyć', error);
+        this.notifications.failure(this.i18n.t('notification.connectionFailed'), error);
       }
     }
   }
@@ -79,7 +82,7 @@ export class PrinterApiService {
         initialize: true,
         cut,
       },
-      'Linia została wysłana',
+      'notification.lineSent',
     );
   }
 
@@ -87,7 +90,7 @@ export class PrinterApiService {
     markdown: string,
     fontSize: CharacterFontSize,
     cut: boolean,
-    success = 'Dokument został wysłany',
+    success: TranslationKey = 'notification.documentSent',
   ): Promise<OperationResult> {
     return this.post(
       '/printer/markdown',
@@ -112,20 +115,20 @@ export class PrinterApiService {
         initialize: true,
         cut,
       },
-      'Dokument tekstowy został wysłany',
+      'notification.textDocumentSent',
     );
   }
 
   cutPaper(): Promise<OperationResult> {
-    return this.post('/printer/cut', {}, 'Papier został odcięty');
+    return this.post('/printer/cut', {}, 'notification.paperCut');
   }
 
   printRaw(encoding: RawEncoding, data: string | number[]): Promise<OperationResult> {
-    return this.post('/printer/raw', { encoding, data }, 'Komendy ESC/POS zostały wysłane');
+    return this.post('/printer/raw', { encoding, data }, 'notification.rawSent');
   }
 
   printRaster(request: RasterPrintRequest): Promise<OperationResult> {
-    return this.post('/printer/raster', request, 'Bitmapa została wysłana do drukarki');
+    return this.post('/printer/raster', request, 'notification.rasterSent');
   }
 
   getConfigurationOptions(): Promise<ConfigurationOptions> {
@@ -133,32 +136,35 @@ export class PrinterApiService {
   }
 
   configure(entries: Array<{ setting: string; option: string }>): Promise<OperationResult> {
-    return this.post('/printer/configuration/named', { entries }, 'Ustawienia zostały zapisane');
+    return this.post('/printer/configuration/named', { entries }, 'notification.settingsSaved');
   }
 
   performAction(action: string, command?: string): Promise<OperationResult> {
     return this.post(
       '/printer/actions',
       { action, ...(command ? { command } : {}) },
-      'Akcja została wykonana',
+      'notification.actionDone',
     );
   }
 
   private async post(
     path: string,
     body: unknown,
-    successMessage: string,
+    successMessage: TranslationKey,
   ): Promise<OperationResult> {
     try {
       const result = await this.http.post<OperationResult>(path, body);
       this.session.markOnline();
-      this.notifications.success(successMessage, `Przetworzono: ${result.processed}`);
+      this.notifications.success(
+        this.i18n.t(successMessage),
+        this.i18n.t('notification.processed', { count: result.processed }),
+      );
       return result;
     } catch (error) {
       if (isConnectionFailure(error)) {
         this.session.markOffline();
       }
-      this.notifications.failure('Operacja nie powiodła się', error);
+      this.notifications.failure(this.i18n.t('notification.operationFailed'), error);
       throw error;
     }
   }

@@ -15,11 +15,11 @@ export function defaultAdjustments(): ColorAdjustments {
   };
 }
 
-export function loadImage(url: string): Promise<HTMLImageElement> {
+export function loadImage(url: string, errorMessage: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const image = new Image();
     image.onload = () => resolve(image);
-    image.onerror = () => reject(new Error('Nie udało się odczytać obrazu.'));
+    image.onerror = () => reject(new Error(errorMessage));
     image.src = url;
   });
 }

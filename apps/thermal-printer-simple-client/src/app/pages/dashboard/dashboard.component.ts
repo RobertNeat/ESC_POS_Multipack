@@ -4,9 +4,10 @@ import { RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { PrinterApiService } from '../../core/printer-api.service';
+import { TranslatePipe } from '../../core/translate.pipe';
 
 @Component({
-  imports: [FormsModule, RouterLink, ButtonModule, InputTextModule],
+  imports: [FormsModule, RouterLink, ButtonModule, InputTextModule, TranslatePipe],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
 })
@@ -15,26 +16,26 @@ export class DashboardComponent {
   protected endpoint = this.api.endpoint();
   protected readonly shortcuts = [
     {
-      title: 'Drukuj obraz',
-      description: 'Raster 1-bit i dithering',
+      titleKey: 'dashboard.imageTitle' as const,
+      descriptionKey: 'dashboard.imageDescription' as const,
       icon: 'pi pi-image',
       route: '/obraz',
     },
     {
-      title: 'Surowe komendy',
-      description: 'Hex, Base64 lub bajty',
+      titleKey: 'dashboard.rawTitle' as const,
+      descriptionKey: 'dashboard.rawDescription' as const,
       icon: 'pi pi-code',
       route: '/esc-pos',
     },
     {
-      title: 'Konfiguracja',
-      description: 'Opcje firmware drukarki',
+      titleKey: 'dashboard.configTitle' as const,
+      descriptionKey: 'dashboard.configDescription' as const,
       icon: 'pi pi-sliders-h',
       route: '/ustawienia',
     },
     {
-      title: 'Dokument .md',
-      description: 'Wczytaj i wydrukuj plik',
+      titleKey: 'dashboard.documentTitle' as const,
+      descriptionKey: 'dashboard.documentDescription' as const,
       icon: 'pi pi-upload',
       route: '/markdown',
     },

@@ -1,10 +1,9 @@
 <div class="page-head">
   <div>
-    <p class="eyebrow">Kreator</p>
-    <h1>Listy i zagnieżdżenia</h1>
+    <p class="eyebrow">{{ 'lists.eyebrow' | t }}</p>
+    <h1>{{ 'lists.title' | t }}</h1>
     <p class="lead">
-      Buduj listy punktowane, numerowane i zadaniowe bez ręcznego pilnowania składni. Wynik jest
-      wysyłany jako bezpieczny Markdown.
+      {{ 'lists.lead' | t }}
     </p>
   </div>
 </div>
@@ -12,17 +11,13 @@
   <section class="panel panel-pad">
     <div class="builder-head">
       <div>
-        <h2 class="section-title">Elementy listy</h2>
+        <h2 class="section-title">{{ 'lists.items' | t }}</h2>
         <p class="section-subtitle">
-          {{
-            markdownMode
-              ? 'Edytuj składnię Markdown bezpośrednio.'
-              : 'Poziom określa zagnieżdżenie względem poprzedniego elementu.'
-          }}
+          {{ markdownMode ? ('lists.editDirectly' | t) : ('lists.depthHelp' | t) }}
         </p>
       </div>
       <div class="mode">
-        <label for="list-markdown-mode">Edytuj Markdown</label>
+        <label for="list-markdown-mode">{{ 'lists.editMarkdown' | t }}</label>
         <p-toggleSwitch
           inputId="list-markdown-mode"
           [(ngModel)]="markdownMode"
@@ -33,30 +28,34 @@
     @if (!markdownMode) {
       <div class="list-table" role="table">
         <div class="table-head">
-          <span>Typ</span><span>Poziom</span><span>Treść</span><span>Zadanie</span><span></span>
+          <span>{{ 'lists.type' | t }}</span
+          ><span>{{ 'lists.depth' | t }}</span
+          ><span>{{ 'lists.content' | t }}</span
+          ><span>{{ 'lists.task' | t }}</span
+          ><span></span>
         </div>
         @for (item of items; track item.id; let i = $index) {
           <div class="item-row" role="row">
             <p-select
-              [options]="types"
+              [options]="types()"
               [(ngModel)]="item.type"
               optionLabel="label"
               optionValue="value"
-              ariaLabel="Typ listy"
+              [ariaLabel]="'lists.typeAria' | t"
             />
             <p-select
-              [options]="depths"
+              [options]="depths()"
               [(ngModel)]="item.depth"
               optionLabel="label"
               optionValue="value"
-              ariaLabel="Poziom zagnieżdżenia"
+              [ariaLabel]="'lists.depthAria' | t"
             />
             <input
               pInputText
               [(ngModel)]="item.text"
               maxlength="180"
-              [attr.aria-label]="'Treść elementu ' + (i + 1)"
-              placeholder="Treść elementu"
+              [attr.aria-label]="'lists.itemAria' | t: { number: i + 1 }"
+              [placeholder]="'lists.itemPlaceholder' | t"
             />
             <div class="task">
               <p-checkbox
@@ -77,7 +76,7 @@
               severity="danger"
               [text]="true"
               [rounded]="true"
-              ariaLabel="Usuń element"
+              [ariaLabel]="'lists.remove' | t"
               [disabled]="items.length === 1"
               (onClick)="remove(i)"
             />
@@ -86,13 +85,13 @@
       </div>
       <div class="button-row footer">
         <p-button
-          label="Dodaj element"
+          [label]="'lists.add' | t"
           icon="pi pi-plus"
           severity="secondary"
           [outlined]="true"
           (onClick)="add()"
         /><p-button
-          label="Dodaj podpunkt"
+          [label]="'lists.addNested' | t"
           icon="pi pi-level-down"
           severity="secondary"
           [outlined]="true"
@@ -103,28 +102,28 @@
       <div class="syntax-bar">
         <button
           type="button"
-          (click)="insertMarkdown('- ', '- element', listEditor)"
-          title="Punkt listy"
+          (click)="insertMarkdownPlaceholder('- ', 'tool.itemPlaceholder', listEditor)"
+          [title]="'lists.bullet' | t"
         >
-          <i class="pi pi-list"></i>Punkt</button
+          <i class="pi pi-list"></i>{{ 'lists.bullet' | t }}</button
         ><button
           type="button"
-          (click)="insertMarkdown('1. ', '1. element', listEditor)"
-          title="Punkt numerowany"
+          (click)="insertMarkdownPlaceholder('1. ', 'tool.itemPlaceholder', listEditor)"
+          [title]="'lists.number' | t"
         >
-          <i class="pi pi-sort-numeric-down"></i>Numer</button
+          <i class="pi pi-sort-numeric-down"></i>{{ 'lists.number' | t }}</button
         ><button
           type="button"
-          (click)="insertMarkdown('- [ ] ', '- [ ] zadanie', listEditor)"
-          title="Zadanie"
+          (click)="insertMarkdownPlaceholder('- [ ] ', 'tool.taskPlaceholder', listEditor)"
+          [title]="'lists.task' | t"
         >
-          <i class="pi pi-check-square"></i>Zadanie</button
+          <i class="pi pi-check-square"></i>{{ 'lists.task' | t }}</button
         ><button
           type="button"
-          (click)="insertMarkdown('   - ', '   - podpunkt', listEditor)"
-          title="Podpunkt"
+          (click)="insertMarkdownPlaceholder('   - ', 'tool.subitemPlaceholder', listEditor)"
+          [title]="'lists.nested' | t"
         >
-          <i class="pi pi-level-down"></i>Podpunkt
+          <i class="pi pi-level-down"></i>{{ 'lists.nested' | t }}
         </button>
       </div>
       <textarea
@@ -133,19 +132,19 @@
         class="full-width mono editor"
         [(ngModel)]="markdown"
         rows="14"
-        aria-label="Lista w Markdown"
+        [attr.aria-label]="'lists.markdownAria' | t"
       ></textarea>
     }
     <div class="button-row footer">
       <p-button
-        label="Drukuj listę"
+        [label]="'lists.print' | t"
         icon="pi pi-print"
         [loading]="sending"
         [disabled]="!hasContent()"
         (onClick)="print()"
       />
       <div class="field-option">
-        <label for="list-font-size">Matryca znaków</label>
+        <label for="list-font-size">{{ 'common.characterMatrix' | t }}</label>
         <p-select
           inputId="list-font-size"
           [options]="fontSizeOptions"
@@ -156,18 +155,15 @@
       </div>
       <div class="field-option">
         <p-checkbox inputId="list-cut" [(ngModel)]="cut" [binary]="true" />
-        <label for="list-cut">Odetnij papier</label>
+        <label for="list-cut">{{ 'common.cutPaper' | t }}</label>
       </div>
     </div>
   </section>
   <aside>
     <div class="paper">
-      <div class="paper-meta">MARKDOWN DO DRUKU</div>
-      <pre>{{ listMarkdown() || 'Dodaj treść listy…' }}</pre>
+      <div class="paper-meta">{{ 'lists.printMarkdown' | t }}</div>
+      <pre>{{ listMarkdown() || ('lists.empty' | t) }}</pre>
     </div>
-    <div class="notice">
-      <i class="pi pi-info-circle"></i> Firmware otrzyma listę przez endpoint Markdown. Wcięcia są
-      zachowane, a numeracja jest wyliczana przez usługę.
-    </div>
+    <div class="notice"><i class="pi pi-info-circle"></i> {{ 'lists.notice' | t }}</div>
   </aside>
 </div>

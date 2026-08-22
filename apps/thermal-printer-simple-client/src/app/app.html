@@ -1,17 +1,20 @@
 <p-toast position="bottom-right" />
 <header class="topbar">
-  <a class="brand" routerLink="/" aria-label="Thermal Console — pulpit">
+  <a class="brand" routerLink="/" [attr.aria-label]="'app.brandHome' | t">
     <span class="brand-mark"><i class="pi pi-print"></i></span>
-    <span><strong>Thermal Console</strong><small>POS-8370</small></span>
+    <span
+      ><strong>{{ 'app.brand' | t }}</strong
+      ><small>{{ 'app.model' | t }}</small></span
+    >
   </a>
-  <nav aria-label="Główna nawigacja">
+  <nav [attr.aria-label]="'app.mainNavigation' | t">
     @for (item of navigation; track item.route) {
       <a
         [routerLink]="item.route"
         routerLinkActive="active"
         [routerLinkActiveOptions]="{ exact: item.route === '/' }"
       >
-        <i [class]="item.icon"></i><span>{{ item.label }}</span>
+        <i [class]="item.icon"></i><span>{{ item.labelKey | t }}</span>
       </a>
     }
   </nav>
@@ -20,17 +23,15 @@
       class="encoding-button"
       type="button"
       (click)="encodingPanel.toggle($event)"
-      pTooltip="Kodowanie tekstu"
+      [pTooltip]="'app.textEncoding' | t"
     >
       <i class="pi pi-cog"></i><span>{{ selectedEncodingLabel() }}</span>
     </button>
     <p-popover #encodingPanel>
       <div class="encoding-panel">
-        <strong>Kodowanie tekstu</strong>
-        <small
-          >Dla matryc 9 × 17 i 9 × 24 polskie znaki są drukowane przez zgodną tablicę CP852.</small
-        >
-        @for (encoding of textEncodings; track encoding.value) {
+        <strong>{{ 'app.textEncoding' | t }}</strong>
+        <small>{{ 'app.encodingHelp' | t }}</small>
+        @for (encoding of textEncodings(); track encoding.value) {
           <button
             type="button"
             [class.selected]="api.textEncoding() === encoding.value"
@@ -49,14 +50,52 @@
         }
       </div>
     </p-popover>
-    <button class="connection-pill" type="button" routerLink="/" pTooltip="Sprawdź połączenie">
+    <button
+      class="encoding-button"
+      type="button"
+      (click)="languagePanel.toggle($event)"
+      [pTooltip]="'app.language' | t"
+    >
+      <i class="pi pi-language"></i><span>{{ i18n.language().toUpperCase() }}</span>
+    </button>
+    <p-popover #languagePanel>
+      <div class="encoding-panel">
+        <strong>{{ 'app.language' | t }}</strong>
+        <button
+          type="button"
+          [class.selected]="i18n.language() === 'pl'"
+          (click)="setLanguage('pl'); languagePanel.hide()"
+        >
+          <i [class]="i18n.language() === 'pl' ? 'pi pi-check-circle' : 'pi pi-circle'"></i
+          ><span
+            ><b>{{ 'app.polish' | t }}</b></span
+          >
+        </button>
+        <button
+          type="button"
+          [class.selected]="i18n.language() === 'en'"
+          (click)="setLanguage('en'); languagePanel.hide()"
+        >
+          <i [class]="i18n.language() === 'en' ? 'pi pi-check-circle' : 'pi pi-circle'"></i
+          ><span
+            ><b>{{ 'app.english' | t }}</b></span
+          >
+        </button>
+      </div>
+    </p-popover>
+    <button
+      class="connection-pill"
+      type="button"
+      routerLink="/"
+      [pTooltip]="'app.checkConnection' | t"
+    >
       <span class="status-dot" [class.online]="api.connectionState() === 'online'"></span>
       {{
         api.connectionState() === 'online'
-          ? 'Drukarka online'
+          ? ('app.printerOnline' | t)
           : api.connectionState() === 'checking'
-            ? 'Sprawdzanie…'
-            : 'Brak połączenia'
+            ? ('app.checking' | t)
+            : ('app.noConnection' | t)
       }}
     </button>
   </div>

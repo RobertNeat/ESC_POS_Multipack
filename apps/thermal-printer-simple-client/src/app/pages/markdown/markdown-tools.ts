@@ -15,110 +15,154 @@ export interface MarkdownReplacement {
   selectedLength: number;
 }
 
-export const MARKDOWN_TOOLS: readonly MarkdownTool[] = [
+type MarkdownToolDefinition = Omit<MarkdownTool, 'label' | 'hint'>;
+
+const MARKDOWN_TOOLS: readonly MarkdownToolDefinition[] = [
   {
-    label: 'H1',
     icon: 'pi pi-hashtag',
-    value: '\n# Nagłówek\n',
+    value: '\n# {heading}\n',
     linePrefix: '# ',
-    hint: 'Nagłówek poziomu 1',
   },
   {
-    label: 'H2',
     icon: 'pi pi-hashtag',
-    value: '\n## Nagłówek\n',
+    value: '\n## {heading}\n',
     linePrefix: '## ',
-    hint: 'Nagłówek poziomu 2',
   },
   {
-    label: 'H3',
     icon: 'pi pi-hashtag',
-    value: '\n### Nagłówek\n',
+    value: '\n### {heading}\n',
     linePrefix: '### ',
-    hint: 'Nagłówek poziomu 3',
   },
   {
-    label: 'H4',
     icon: 'pi pi-hashtag',
-    value: '\n#### Nagłówek\n',
+    value: '\n#### {heading}\n',
     linePrefix: '#### ',
-    hint: 'Nagłówek poziomu 4',
   },
   {
-    label: 'H5',
     icon: 'pi pi-hashtag',
-    value: '\n##### Nagłówek\n',
+    value: '\n##### {heading}\n',
     linePrefix: '##### ',
-    hint: 'Nagłówek poziomu 5',
   },
   {
-    label: 'H6',
     icon: 'pi pi-hashtag',
-    value: '\n###### Nagłówek\n',
+    value: '\n###### {heading}\n',
     linePrefix: '###### ',
-    hint: 'Nagłówek poziomu 6',
   },
-  { label: 'Bold', icon: 'pi pi-bold', marker: '**', hint: 'Pogrubienie' },
-  { label: 'Podkr.', icon: 'pi pi-italic', marker: '_', hint: 'Podkreślenie' },
-  { label: 'Negatyw', icon: 'pi pi-stop', marker: '~~', hint: 'Negatyw' },
-  { label: 'Kod', icon: 'pi pi-code', marker: '`', hint: 'Kod inline' },
+  { icon: 'pi pi-bold', marker: '**' },
+  { icon: 'pi pi-italic', marker: '_' },
+  { icon: 'pi pi-stop', marker: '~~' },
+  { icon: 'pi pi-code', marker: '`' },
   {
-    label: 'Blok kodu',
     icon: 'pi pi-code',
-    value: '\n```\nkod\n```\n',
+    value: '\n```\n{code}\n```\n',
     codeBlock: true,
-    hint: 'Blok kodu',
   },
   {
-    label: 'Cytat',
     icon: 'pi pi-comment',
-    value: '\n> cytat\n',
+    value: '\n> {quote}\n',
     linePrefix: '> ',
-    hint: 'Cytat',
   },
-  { label: '---', icon: 'pi pi-minus', value: '\n---\n', hint: 'Linia oddzielająca' },
+  { icon: 'pi pi-minus', value: '\n---\n' },
   {
-    label: 'Lista',
     icon: 'pi pi-list',
-    value: '\n- element\n  - podpunkt\n',
+    value: '\n- {item}\n  - {subitem}\n',
     linePrefix: '- ',
-    hint: 'Lista punktowana',
   },
   {
-    label: '1. Lista',
     icon: 'pi pi-sort-numeric-down',
-    value: '\n1. element\n   1. podpunkt\n',
+    value: '\n1. {item}\n   1. {subitem}\n',
     linePrefix: '1. ',
-    hint: 'Lista numerowana',
   },
   {
-    label: 'Zadanie',
     icon: 'pi pi-check-square',
-    value: '\n- [ ] zadanie\n',
+    value: '\n- [ ] {task}\n',
     linePrefix: '- [ ] ',
-    hint: 'Lista zadań',
   },
   {
-    label: 'Tabela',
     icon: 'pi pi-table',
-    value: '\n| Kolumna 1 | Kolumna 2 |\n| --- | --- |\n| wartość | wartość |\n',
-    hint: 'Tabela',
+    value: '\n| {column1} | {column2} |\n| --- | --- |\n| {value} | {value} |\n',
   },
   {
-    label: 'Link',
     icon: 'pi pi-link',
-    value: '[opis](https://)',
+    value: '[{description}](https://)',
     reference: 'link',
-    hint: 'Odnośnik',
   },
   {
-    label: 'Obraz',
     icon: 'pi pi-image',
-    value: '![opis](https://)',
+    value: '![{description}](https://)',
     reference: 'image',
-    hint: 'Obraz jako odnośnik',
   },
 ];
+
+const LABEL_KEYS: readonly TranslationKey[] = [
+  'tool.h1',
+  'tool.h2',
+  'tool.h3',
+  'tool.h4',
+  'tool.h5',
+  'tool.h6',
+  'tool.bold',
+  'tool.underlineShort',
+  'tool.reverse',
+  'tool.code',
+  'tool.codeBlock',
+  'tool.quote',
+  'tool.rule',
+  'tool.list',
+  'tool.numberedList',
+  'tool.task',
+  'tool.table',
+  'tool.link',
+  'tool.image',
+];
+
+const HINT_KEYS: readonly TranslationKey[] = [
+  'tool.headingHint',
+  'tool.headingHint',
+  'tool.headingHint',
+  'tool.headingHint',
+  'tool.headingHint',
+  'tool.headingHint',
+  'tool.boldHint',
+  'tool.underlineHint',
+  'tool.reverseHint',
+  'tool.inlineCodeHint',
+  'tool.codeBlockHint',
+  'tool.quoteHint',
+  'tool.ruleHint',
+  'tool.bulletHint',
+  'tool.numberedHint',
+  'tool.taskHint',
+  'tool.tableHint',
+  'tool.linkHint',
+  'tool.imageHint',
+];
+
+export function localizedMarkdownTools(i18n: I18nService): readonly MarkdownTool[] {
+  const replacements: Readonly<Record<string, TranslationKey>> = {
+    heading: 'tool.headingPlaceholder',
+    code: 'tool.codePlaceholder',
+    quote: 'tool.quotePlaceholder',
+    item: 'tool.itemPlaceholder',
+    subitem: 'tool.subitemPlaceholder',
+    task: 'tool.taskPlaceholder',
+    column1: 'tool.column1',
+    column2: 'tool.column2',
+    value: 'tool.valuePlaceholder',
+    description: 'tool.descriptionPlaceholder',
+  };
+  return MARKDOWN_TOOLS.map((tool, index) => {
+    const value = tool.value?.replace(/\{(\w+)\}/g, (token, name: string) =>
+      replacements[name] ? i18n.t(replacements[name]) : token,
+    );
+    return {
+      ...tool,
+      label: i18n.t(LABEL_KEYS[index]),
+      hint: i18n.t(HINT_KEYS[index], index < 6 ? { level: index + 1 } : {}),
+      value,
+    };
+  });
+}
 
 export function formatMarkdownSelection(
   tool: Pick<MarkdownTool, 'value'>,
@@ -131,3 +175,5 @@ export function formatMarkdownSelection(
     selectedLength: selected.length,
   };
 }
+import { I18nService } from '../../core/i18n.service';
+import { TranslationKey } from '../../core/translations';

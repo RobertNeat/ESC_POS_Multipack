@@ -1,4 +1,5 @@
 import { Alignment, CharacterFontSize, TextEncoding, TextStyle } from '../core/printer.models';
+import { TranslationKey } from '../core/translations';
 
 export interface SelectOption<T> {
   readonly label: string;
@@ -26,14 +27,20 @@ export const PAPER_OPTIONS = [
   { label: '80 mm', millimeters: 80, dots: 576 },
 ] as const;
 
-export const ALIGNMENT_OPTIONS: ReadonlyArray<SelectOption<Alignment>> = [
-  { label: 'Do lewej', value: 'left' },
-  { label: 'Wyśrodkuj', value: 'center' },
-  { label: 'Do prawej', value: 'right' },
+export const ALIGNMENT_OPTIONS: ReadonlyArray<{
+  readonly labelKey: TranslationKey;
+  readonly value: Alignment;
+}> = [
+  { labelKey: 'option.alignLeft', value: 'left' },
+  { labelKey: 'option.alignCenter', value: 'center' },
+  { labelKey: 'option.alignRight', value: 'right' },
 ];
 
 export const TEXT_ENCODING_OPTIONS: ReadonlyArray<
-  SelectOption<TextEncoding> & { readonly printerPage: string }
+  SelectOption<TextEncoding> & {
+    readonly printerPage: string;
+    readonly printerPageKey?: TranslationKey;
+  }
 > = [
   {
     value: 'windows1250',
@@ -49,6 +56,7 @@ export const TEXT_ENCODING_OPTIONS: ReadonlyArray<
   {
     value: 'utf8',
     label: 'UTF-8',
-    printerPage: 'tylko urządzenia z obsługą UTF-8',
+    printerPage: '',
+    printerPageKey: 'option.utf8Only',
   },
 ];

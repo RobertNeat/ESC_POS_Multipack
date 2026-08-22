@@ -1,15 +1,16 @@
 <section class="hero">
   <div>
-    <p class="eyebrow">Centrum drukowania</p>
-    <h1>Od tekstu do papieru,<br /><span>w jednej chwili.</span></h1>
+    <p class="eyebrow">{{ 'dashboard.eyebrow' | t }}</p>
+    <h1>
+      {{ 'dashboard.title' | t }}<br /><span>{{ 'dashboard.titleAccent' | t }}</span>
+    </h1>
     <p class="lead">
-      Pisz pojedyncze linie, składaj dokumenty Markdown i steruj drukarką POS-8370 z jednego,
-      bezpiecznego miejsca.
+      {{ 'dashboard.lead' | t }}
     </p>
     <div class="button-row hero-actions">
-      <p-button label="Napisz pierwszą linię" icon="pi pi-pencil" routerLink="/linia" />
+      <p-button [label]="'dashboard.firstLine' | t" icon="pi pi-pencil" routerLink="/linia" />
       <p-button
-        label="Otwórz dokument"
+        [label]="'dashboard.openDocument' | t"
         icon="pi pi-file-edit"
         severity="secondary"
         [outlined]="true"
@@ -17,9 +18,10 @@
       />
     </div>
   </div>
-  <div class="printer-visual" aria-label="Schemat drukarki termicznej">
+  <div class="printer-visual" [attr.aria-label]="'dashboard.printerDiagram' | t">
     <div class="receipt">
-      <span>THERMAL CONSOLE</span><b>GOTOWA DO PRACY</b><i></i><small>{{ api.model() }}</small>
+      <span>THERMAL CONSOLE</span><b>{{ 'dashboard.ready' | t }}</b
+      ><i></i><small>{{ api.model() }}</small>
     </div>
     <div class="printer">
       <div class="slot"></div>
@@ -32,20 +34,20 @@
   <article class="panel connection panel-pad">
     <div class="card-icon"><i class="pi pi-link"></i></div>
     <div>
-      <p class="eyebrow">Usługa</p>
-      <h2 class="section-title">Połączenie z API</h2>
-      <p class="section-subtitle">Adres serwera thermal-printer-service</p>
+      <p class="eyebrow">{{ 'dashboard.service' | t }}</p>
+      <h2 class="section-title">{{ 'dashboard.apiConnection' | t }}</h2>
+      <p class="section-subtitle">{{ 'dashboard.serverAddress' | t }}</p>
     </div>
     <div class="endpoint-row">
       <input
         pInputText
         class="full-width mono"
         [(ngModel)]="endpoint"
-        aria-label="Adres API"
+        [attr.aria-label]="'dashboard.apiAddress' | t"
         (keyup.enter)="connect()"
       />
       <p-button
-        label="Połącz"
+        [label]="'dashboard.connect' | t"
         icon="pi pi-refresh"
         [loading]="api.connectionState() === 'checking'"
         (onClick)="connect()"
@@ -53,15 +55,17 @@
     </div>
     <div class="connection-result" [class.ok]="api.connectionState() === 'online'">
       <span></span
-      ><strong>{{ api.connectionState() === 'online' ? 'Połączono' : 'Niepołączono' }}</strong>
+      ><strong>{{
+        (api.connectionState() === 'online' ? 'dashboard.connected' : 'dashboard.disconnected') | t
+      }}</strong>
       <small>{{
         api.status()?.paperOut
-          ? 'Brak papieru'
+          ? ('dashboard.paperOut' | t)
           : api.status()?.coverOpen
-            ? 'Pokrywa otwarta'
+            ? ('dashboard.coverOpen' | t)
             : api.connectionState() === 'online'
-              ? 'Urządzenie odpowiada poprawnie'
-              : 'Sprawdź usługę i adres'
+              ? ('dashboard.responding' | t)
+              : ('dashboard.checkService' | t)
       }}</small>
     </div>
   </article>
@@ -69,34 +73,34 @@
   <article class="panel panel-pad capabilities">
     <div class="card-icon"><i class="pi pi-print"></i></div>
     <div>
-      <p class="eyebrow">Urządzenie</p>
+      <p class="eyebrow">{{ 'dashboard.device' | t }}</p>
       <h2 class="section-title">{{ api.model() }}</h2>
-      <p class="section-subtitle">Możliwości zgłoszone przez firmware</p>
+      <p class="section-subtitle">{{ 'dashboard.capabilities' | t }}</p>
     </div>
     <dl>
       <div>
-        <dt>Szerokość papieru</dt>
+        <dt>{{ 'dashboard.paperWidth' | t }}</dt>
         <dd>{{ api.capabilities()?.paperWidthsMm?.join(' / ') || '58 / 80' }} mm</dd>
       </div>
       <div>
-        <dt>Rozdzielczość</dt>
+        <dt>{{ 'dashboard.resolution' | t }}</dt>
         <dd>{{ api.capabilities()?.dpi || 203 }} dpi</dd>
       </div>
       <div>
-        <dt>Operacje</dt>
+        <dt>{{ 'dashboard.operations' | t }}</dt>
         <dd>{{ api.capabilities()?.operations?.length || '—' }}</dd>
       </div>
     </dl>
   </article>
 </section>
 
-<section class="quick-grid" aria-label="Skróty funkcji">
+<section class="quick-grid" [attr.aria-label]="'dashboard.shortcuts' | t">
   @for (item of shortcuts; track item.route) {
     <a class="quick-card" [routerLink]="item.route"
       ><i [class]="item.icon"></i>
       <div>
-        <strong>{{ item.title }}</strong
-        ><span>{{ item.description }}</span>
+        <strong>{{ item.titleKey | t }}</strong
+        ><span>{{ item.descriptionKey | t }}</span>
       </div>
       <i class="pi pi-arrow-up-right"></i
     ></a>

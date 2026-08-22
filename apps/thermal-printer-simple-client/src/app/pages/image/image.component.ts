@@ -4,6 +4,8 @@ import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
 import { SelectModule } from 'primeng/select';
 import { PrinterApiService } from '../../core/printer-api.service';
+import { I18nService } from '../../core/i18n.service';
+import { TranslatePipe } from '../../core/translate.pipe';
 import { Alignment, RasterScale } from '../../core/printer.models';
 import { ALIGNMENT_OPTIONS, PAPER_OPTIONS } from '../../shared/printer-options';
 import {
@@ -29,13 +31,14 @@ import {
 } from './image-options';
 
 @Component({
-  imports: [FormsModule, ButtonModule, CheckboxModule, SelectModule],
+  imports: [FormsModule, ButtonModule, CheckboxModule, SelectModule, TranslatePipe],
   templateUrl: './image.component.html',
   styleUrl: './image.component.css',
 })
 export class ImageComponent implements AfterViewInit, OnDestroy {
   @ViewChild('previewCanvas') private previewCanvas?: ElementRef<HTMLCanvasElement>;
   private readonly api = inject(PrinterApiService);
+  private readonly i18n = inject(I18nService);
   private renderFrame?: number;
   protected sourceImage?: HTMLImageElement;
   protected sourceName = '';
@@ -50,15 +53,43 @@ export class ImageComponent implements AfterViewInit, OnDestroy {
   protected scale: RasterScale = 'normal';
   protected dither: DitherMethod = 'floydSteinberg';
   protected adjustments: ColorAdjustments = defaultAdjustments();
-  protected readonly adjustmentControls = ADJUSTMENT_CONTROLS;
-  protected readonly ditherOptions = DITHER_OPTIONS;
-  protected readonly fitOptions = FIT_OPTIONS;
+  protected adjustmentControls() {
+    return ADJUSTMENT_CONTROLS.map((control) => ({
+      ...control,
+      label: this.i18n.t(control.labelKey),
+    }));
+  }
+  protected ditherOptions() {
+    return DITHER_OPTIONS.map((option) => ({
+      ...option,
+      label: this.i18n.t(option.labelKey),
+    }));
+  }
+  protected fitOptions() {
+    return FIT_OPTIONS.map((option) => {
+      return {
+        ...option,
+        label: this.i18n.t(option.labelKey),
+        description: this.i18n.t(option.descriptionKey),
+      };
+    });
+  }
   protected readonly paperOptions = [...PAPER_OPTIONS].reverse().map((option) => ({
-    label: `${option.label} · ${option.dots} pkt`,
+    label: `${option.label} · ${option.dots} ${this.i18n.t('image.dotsShort')}`,
     dots: option.dots,
   }));
-  protected readonly alignmentOptions = ALIGNMENT_OPTIONS;
-  protected readonly scaleOptions = RASTER_SCALE_OPTIONS;
+  protected alignmentOptions() {
+    return ALIGNMENT_OPTIONS.map((option) => ({
+      ...option,
+      label: this.i18n.t(option.labelKey),
+    }));
+  }
+  protected scaleOptions() {
+    return RASTER_SCALE_OPTIONS.map((option) => ({
+      ...option,
+      label: this.i18n.t(option.labelKey),
+    }));
+  }
 
   ngAfterViewInit(): void {
     if (this.sourceImage) this.scheduleRender();
@@ -150,7 +181,7 @@ export class ImageComponent implements AfterViewInit, OnDestroy {
     if (!file.type.startsWith('image/') || file.size > 20 * 1024 * 1024) return;
     const url = URL.createObjectURL(file);
     try {
-      const loaded = await loadImage(url);
+      const loaded = await loadImage(url, this.i18n.t('image.loadError'));
       this.sourceImage = loaded;
       this.sourceName = file.name;
       this.scheduleRender();

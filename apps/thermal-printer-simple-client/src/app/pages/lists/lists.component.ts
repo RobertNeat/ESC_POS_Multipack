@@ -7,6 +7,9 @@ import { SelectModule } from 'primeng/select';
 import { TextareaModule } from 'primeng/textarea';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { PrinterApiService } from '../../core/printer-api.service';
+import { I18nService } from '../../core/i18n.service';
+import { TranslatePipe } from '../../core/translate.pipe';
+import { TranslationKey } from '../../core/translations';
 import { CharacterFontSize } from '../../core/printer.models';
 import { CHARACTER_FONT_OPTIONS } from '../../shared/printer-options';
 import { toggleMarkdownLinePrefix } from '../../shared/markdown-editor';
@@ -22,17 +25,40 @@ import { generateListMarkdown, ListItem, parseListMarkdown } from './list-markdo
     SelectModule,
     TextareaModule,
     ToggleSwitchModule,
+    TranslatePipe,
   ],
   templateUrl: './lists.component.html',
   styleUrl: './lists.component.css',
 })
 export class ListsComponent {
   private readonly api = inject(PrinterApiService);
+  private readonly i18n = inject(I18nService);
   private nextId = 4;
   protected items: ListItem[] = [
-    { id: 1, type: 'number', depth: 0, text: 'Kawa', task: false, checked: false },
-    { id: 2, type: 'bullet', depth: 1, text: 'duża, bez cukru', task: false, checked: false },
-    { id: 3, type: 'number', depth: 0, text: 'Herbata', task: false, checked: false },
+    {
+      id: 1,
+      type: 'number',
+      depth: 0,
+      text: this.i18n.t('example.coffee'),
+      task: false,
+      checked: false,
+    },
+    {
+      id: 2,
+      type: 'bullet',
+      depth: 1,
+      text: this.i18n.t('example.largeNoSugar'),
+      task: false,
+      checked: false,
+    },
+    {
+      id: 3,
+      type: 'number',
+      depth: 0,
+      text: this.i18n.t('example.tea'),
+      task: false,
+      checked: false,
+    },
   ];
   protected cut = true;
   protected sending = false;
@@ -40,14 +66,18 @@ export class ListsComponent {
   protected readonly fontSizeOptions = CHARACTER_FONT_OPTIONS;
   protected markdownMode = false;
   protected markdown = '';
-  protected readonly types = [
-    { label: '1. Numerowana', value: 'number' },
-    { label: '• Punktowana', value: 'bullet' },
-  ];
-  protected readonly depths = [0, 1, 2, 3].map((value) => ({
-    label: value === 0 ? 'Główny' : `Poziom ${value}`,
-    value,
-  }));
+  protected types() {
+    return [
+      { label: this.i18n.t('lists.numbered'), value: 'number' },
+      { label: this.i18n.t('lists.bulleted'), value: 'bullet' },
+    ];
+  }
+  protected depths() {
+    return [0, 1, 2, 3].map((value) => ({
+      label: value === 0 ? this.i18n.t('lists.main') : this.i18n.t('lists.level', { level: value }),
+      value,
+    }));
+  }
   protected add(): void {
     this.items.push({
       id: this.nextId++,
@@ -107,12 +137,19 @@ export class ListsComponent {
     const caret = start + lineBreak.length + value.length;
     editTextField(input, replacement, caret, caret);
   }
+  protected insertMarkdownPlaceholder(
+    marker: string,
+    key: TranslationKey,
+    input: HTMLTextAreaElement,
+  ): void {
+    this.insertMarkdown(marker, `${marker}${this.i18n.t(key)}`, input);
+  }
   protected async print(): Promise<void> {
     const markdown = this.listMarkdown();
     if (!markdown || this.sending) return;
     this.sending = true;
     try {
-      await this.api.printMarkdown(markdown, this.fontSize, this.cut, 'Lista została wysłana');
+      await this.api.printMarkdown(markdown, this.fontSize, this.cut, 'notification.listSent');
     } finally {
       this.sending = false;
     }
