@@ -27,6 +27,11 @@ export const PAPER_OPTIONS = [
   { label: '80 mm', millimeters: 80, dots: 576 },
 ] as const;
 
+export function characterColumns(size: CharacterFontSize, paperWidth = 80): number {
+  if (paperWidth === 80) return size === '12x24' ? 48 : 64;
+  return size === '12x24' ? 32 : 42;
+}
+
 export const ALIGNMENT_OPTIONS: ReadonlyArray<{
   readonly labelKey: TranslationKey;
   readonly value: Alignment;

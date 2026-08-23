@@ -72,9 +72,63 @@ describe('MarkdownPrinter', () => {
     await printer.print('|test|test|\n|-|-|\n|test|test|\n|smalll|test|', sink);
 
     expect(fragments.map((fragment) => fragment.text).join('')).toBe(
-      '|test  |test||------|----||test  |test||smalll|test|',
+      '| test   | test || ------ | ---- || test   | test || smalll | test |',
     );
     expect(lineFeeds).toBe(4);
+  });
+
+  it('keeps H2-H6 compatible as normal-size bold headings', async () => {
+    await printer.print('## H2\n### H3\n###### H6', sink);
+
+    expect(fragments.map((fragment) => fragment.style)).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ emphasized: true, width: 1, height: 1 }),
+      ]),
+    );
+  });
+
+  it('prints quotes with a portable ASCII rail', async () => {
+    await printer.print('> quote', sink);
+
+    expect(fragments[0]?.text).toBe('| ');
+  });
+
+  it('prints code between full-width rules without reverse mode', async () => {
+    sink = { ...sink, columns: 64 };
+    const lines = await printer.print('```\ncode\n```', sink);
+
+    expect(fragments.map((fragment) => fragment.text)).toEqual([
+      '-'.repeat(64),
+      'code',
+      '-'.repeat(64),
+    ]);
+    expect(
+      fragments.every((fragment) => fragment.style.reverse === false),
+    ).toBe(true);
+    expect(lines).toBe(3);
+  });
+
+  it('recognizes a compact horizontal rule without surrounding blank lines', async () => {
+    const lines = await printer.print('before\n---\nafter', sink);
+
+    expect(fragments.map((fragment) => fragment.text)).toEqual([
+      'before',
+      '-'.repeat(48),
+      'after',
+    ]);
+    expect(lines).toBe(3);
+  });
+
+  it('keeps list text normal and applies bold only to selected inline content', async () => {
+    await printer.print('- normal and **bold**', sink);
+
+    expect(
+      fragments.find((fragment) => fragment.text === 'normal and ')?.style
+        .emphasized,
+    ).toBe(false);
+    expect(
+      fragments.find((fragment) => fragment.text === 'bold')?.style.emphasized,
+    ).toBe(true);
   });
 
   it('prints trailing empty lines instead of discarding them', async () => {

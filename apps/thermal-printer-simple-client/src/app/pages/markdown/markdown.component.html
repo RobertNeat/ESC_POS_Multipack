@@ -23,23 +23,14 @@
         /><i class="pi pi-upload"></i> {{ 'markdown.load' | t }}</label
       >
     </div>
-    <div class="syntax-bar">
-      @for (tool of tools(); track tool.label) {
-        <button type="button" (click)="applyTool(tool, markdownInput)" [title]="tool.hint">
-          <i [class]="tool.icon"></i>{{ tool.label }}
-        </button>
-      }
-    </div>
-    <textarea
-      #markdownInput
-      pTextarea
-      class="full-width mono editor"
-      [(ngModel)]="markdown"
-      rows="20"
-      maxlength="100000"
-      [attr.aria-label]="'markdown.documentAria' | t"
-      spellcheck="false"
-    ></textarea>
+    <app-markdown-text-editor
+      [(value)]="markdown"
+      [enabledTools]="markdownTools"
+      [rows]="20"
+      [maxLength]="100000"
+      [wrapColumn]="wrapColumn()"
+      [ariaLabel]="'markdown.documentAria' | t"
+    />
     <div class="editor-foot">
       <span [class.error-text]="hasHtml()">{{
         hasHtml()
@@ -62,16 +53,23 @@
       </div>
     </div>
     <div class="button-row">
-      <p-splitbutton
+      <p-button
         [label]="'markdown.printDocument' | t"
         icon="pi pi-print"
-        [model]="printOptions()"
-        [buttonProps]="{ loading: sending }"
-        [disabled]="!markdown.trim() || sending"
-        [buttonDisabled]="hasHtml()"
+        [loading]="sending"
+        [disabled]="!markdown.trim() || sending || hasHtml()"
         (onClick)="print()"
-        appendTo="body"
-      /><p-button
+      />
+      <p-button
+        [label]="'markdown.printAsText' | t"
+        icon="pi pi-file"
+        severity="secondary"
+        [outlined]="true"
+        [loading]="sending"
+        [disabled]="!markdown.trim() || sending"
+        (onClick)="printAsText()"
+      />
+      <p-button
         [label]="'common.clear' | t"
         icon="pi pi-trash"
         severity="secondary"
@@ -85,7 +83,13 @@
       <div class="paper-meta">{{ 'markdown.structurePreview' | t }}</div>
       @for (line of previewLines(); track $index) {
         <div [class]="line.className" [style.padding-left.ch]="line.indent">
-          {{ line.text || ' ' }}
+          @if (line.fragments.length) {
+            @for (fragment of line.fragments; track $index) {
+              <span [class]="fragment.className">{{ fragment.text }}</span>
+            }
+          } @else {
+            {{ ' ' }}
+          }
         </div>
       }
     </div>

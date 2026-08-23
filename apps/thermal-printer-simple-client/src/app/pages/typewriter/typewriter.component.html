@@ -23,159 +23,17 @@
         <p-toggleSwitch inputId="typewriter-markdown-mode" [(ngModel)]="markdownMode" />
       </div>
     </div>
-    @if (markdownMode) {
-      <div class="toolbar" [attr.aria-label]="'typewriter.markdownFormatting' | t">
-        <p-button
-          [label]="'typewriter.bold' | t"
-          icon="pi pi-bold"
-          size="small"
-          severity="secondary"
-          [outlined]="true"
-          (onClick)="wrap('**', lineInput)"
-        />
-        <p-button
-          [label]="'typewriter.underline' | t"
-          icon="pi pi-italic"
-          size="small"
-          severity="secondary"
-          [outlined]="true"
-          (onClick)="wrap('_', lineInput)"
-        />
-        <p-button
-          [label]="'typewriter.reverse' | t"
-          icon="pi pi-stop"
-          size="small"
-          severity="secondary"
-          [outlined]="true"
-          (onClick)="wrap('~~', lineInput)"
-        />
-        <p-button
-          [label]="'typewriter.code' | t"
-          icon="pi pi-code"
-          size="small"
-          severity="secondary"
-          [outlined]="true"
-          (onClick)="wrapCode(lineInput)"
-        />
-        <p-button
-          [label]="'typewriter.link' | t"
-          icon="pi pi-link"
-          size="small"
-          severity="secondary"
-          [outlined]="true"
-          (onClick)="wrapReference(lineInput)"
-        />
-        <p-button
-          [label]="'typewriter.image' | t"
-          icon="pi pi-image"
-          size="small"
-          severity="secondary"
-          [outlined]="true"
-          (onClick)="wrapReference(lineInput, true)"
-        />
-        <p-button
-          [label]="'tool.h1' | t"
-          icon="pi pi-hashtag"
-          size="small"
-          severity="secondary"
-          [outlined]="true"
-          (onClick)="toggleLinePrefix('# ', lineInput)"
-        />
-        <p-button
-          [label]="'tool.h2' | t"
-          icon="pi pi-hashtag"
-          size="small"
-          severity="secondary"
-          [outlined]="true"
-          (onClick)="toggleLinePrefix('## ', lineInput)"
-        />
-        <p-button
-          [label]="'tool.h3' | t"
-          icon="pi pi-hashtag"
-          size="small"
-          severity="secondary"
-          [outlined]="true"
-          (onClick)="toggleLinePrefix('### ', lineInput)"
-        />
-        <p-button
-          [label]="'tool.h4' | t"
-          icon="pi pi-hashtag"
-          size="small"
-          severity="secondary"
-          [outlined]="true"
-          (onClick)="toggleLinePrefix('#### ', lineInput)"
-        />
-        <p-button
-          [label]="'tool.h5' | t"
-          icon="pi pi-hashtag"
-          size="small"
-          severity="secondary"
-          [outlined]="true"
-          (onClick)="toggleLinePrefix('##### ', lineInput)"
-        />
-        <p-button
-          [label]="'tool.h6' | t"
-          icon="pi pi-hashtag"
-          size="small"
-          severity="secondary"
-          [outlined]="true"
-          (onClick)="toggleLinePrefix('###### ', lineInput)"
-        />
-        <p-button
-          [label]="'typewriter.quote' | t"
-          icon="pi pi-comment"
-          size="small"
-          severity="secondary"
-          [outlined]="true"
-          (onClick)="toggleLinePrefix('> ', lineInput)"
-        />
-        <p-button
-          [label]="'typewriter.list' | t"
-          icon="pi pi-list"
-          size="small"
-          severity="secondary"
-          [outlined]="true"
-          (onClick)="toggleLinePrefix('- ', lineInput)"
-        />
-        <p-button
-          [label]="'typewriter.number' | t"
-          icon="pi pi-sort-numeric-down"
-          size="small"
-          severity="secondary"
-          [outlined]="true"
-          (onClick)="toggleLinePrefix('1. ', lineInput)"
-        />
-        <p-button
-          [label]="'typewriter.task' | t"
-          icon="pi pi-check-square"
-          size="small"
-          severity="secondary"
-          [outlined]="true"
-          (onClick)="toggleLinePrefix('- [ ] ', lineInput)"
-        />
-        <p-button
-          [label]="'tool.rule' | t"
-          icon="pi pi-minus"
-          size="small"
-          severity="secondary"
-          [outlined]="true"
-          (onClick)="replace('---', lineInput)"
-        />
-      </div>
-    }
-    <div class="type-line" [class.limit]="line.length >= maxChars()">
-      <span>&gt;</span
-      ><input
-        #lineInput
-        pInputText
-        class="mono"
-        [(ngModel)]="line"
-        [maxlength]="maxChars()"
-        [placeholder]="'typewriter.inputPlaceholder' | t"
-        [attr.aria-label]="'typewriter.lineContent' | t"
-        (keyup.enter)="send()"
-      /><b>{{ line.length }}/{{ maxChars() }}</b>
-    </div>
+    <app-markdown-text-editor
+      [(value)]="line"
+      [enabledTools]="markdownMode ? markdownTools : []"
+      [multiline]="false"
+      [maxLength]="maxChars()"
+      [placeholder]="'typewriter.inputPlaceholder' | t"
+      [ariaLabel]="'typewriter.lineContent' | t"
+      prefix=">"
+      [showCount]="true"
+      (enterPressed)="send()"
+    />
     <div class="progress"><span [style.width.%]="(line.length / maxChars()) * 100"></span></div>
     <div class="notice"><i class="pi pi-info-circle"></i> {{ 'typewriter.limitNotice' | t }}</div>
     <div class="options">

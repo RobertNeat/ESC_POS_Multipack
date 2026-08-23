@@ -5,6 +5,7 @@ import { marked, type Token, type Tokens } from 'marked';
 import { NORMAL_TEXT_STYLE } from './printer-text-style';
 
 export interface MarkdownSink {
+  readonly columns?: number;
   text(
     value: string,
     style: Pos8370TextStyle,
@@ -27,7 +28,13 @@ export class MarkdownPrinter {
   }
 
   private tokenize(markdown: string): Token[] {
-    const tokens = marked.lexer(markdown, { gfm: true, breaks: false });
+    const tokens = marked
+      .lexer(this.normalizeCompactRules(markdown), { gfm: true, breaks: false })
+      .filter(
+        (token, index, all) =>
+          token.type !== 'space' ||
+          (all[index - 1]?.type !== 'hr' && all[index + 1]?.type !== 'hr'),
+      );
     void marked.walkTokens(tokens, (token) => {
       if (token.type === 'html') {
         throw new BadRequestException(
@@ -37,6 +44,21 @@ export class MarkdownPrinter {
     });
 
     return tokens;
+  }
+
+  private normalizeCompactRules(markdown: string): string {
+    const normalized: string[] = [];
+    let fenced = false;
+    for (const line of markdown.split('\n')) {
+      if (/^\s*```/u.test(line)) fenced = !fenced;
+      if (!fenced && /^\s*---\s*$/u.test(line)) {
+        if (normalized.length && normalized.at(-1) !== '') normalized.push('');
+        normalized.push('---', '');
+      } else {
+        normalized.push(line);
+      }
+    }
+    return normalized.join('\n');
   }
 
   private async renderBlocks(
@@ -90,8 +112,7 @@ export class MarkdownPrinter {
           await this.renderCode(token as Tokens.Code, sink, counter);
           break;
         case 'hr':
-          await sink.text('-'.repeat(48), NORMAL_TEXT_STYLE);
-          await this.endLine(sink, counter);
+          await this.renderRule(sink, counter);
           break;
         case 'table':
           await this.renderTable(token as Tokens.Table, sink, counter);
@@ -192,7 +213,9 @@ export class MarkdownPrinter {
     depth: number,
     counter: { lines: number },
   ): Promise<void> {
-    await sink.text('│ ', { ...style, emphasized: true });
+    // The box-drawing glyph is missing from some printer code pages and was
+    // emitted as '?'. Keep the visual quote rail using portable ASCII.
+    await sink.text('| ', style);
     await this.renderBlocks(token.tokens, sink, style, depth, counter);
   }
 
@@ -201,14 +224,23 @@ export class MarkdownPrinter {
     sink: MarkdownSink,
     counter: { lines: number },
   ): Promise<void> {
+    await this.renderRule(sink, counter);
     for (const line of token.text.split('\n')) {
       await sink.text(line, {
         ...NORMAL_TEXT_STYLE,
         font: 'B',
-        reverse: true,
       });
       await this.endLine(sink, counter);
     }
+    await this.renderRule(sink, counter);
+  }
+
+  private async renderRule(
+    sink: MarkdownSink,
+    counter: { lines: number },
+  ): Promise<void> {
+    await sink.text('-'.repeat(sink.columns ?? 48), NORMAL_TEXT_STYLE);
+    await this.endLine(sink, counter);
   }
 
   private async renderTable(
@@ -224,7 +256,7 @@ export class MarkdownPrinter {
     );
     await this.renderTableRow(token.header, widths, sink, true, counter);
     await sink.text(
-      `|${widths.map((width) => '-'.repeat(width)).join('|')}|`,
+      `| ${widths.map((width) => '-'.repeat(width)).join(' | ')} |`,
       NORMAL_TEXT_STYLE,
     );
     await this.endLine(sink, counter);
@@ -241,7 +273,7 @@ export class MarkdownPrinter {
     counter: { lines: number },
   ): Promise<void> {
     for (const [index, cell] of cells.entries()) {
-      await sink.text('|', NORMAL_TEXT_STYLE);
+      await sink.text(index === 0 ? '| ' : ' | ', NORMAL_TEXT_STYLE);
       await this.renderInline(cell.tokens, sink, {
         ...NORMAL_TEXT_STYLE,
         emphasized: heading,
@@ -253,7 +285,7 @@ export class MarkdownPrinter {
         NORMAL_TEXT_STYLE,
       );
     }
-    await sink.text('|', NORMAL_TEXT_STYLE);
+    await sink.text(' |', NORMAL_TEXT_STYLE);
     await this.endLine(sink, counter);
   }
 

@@ -99,41 +99,13 @@
         />
       </div>
     } @else {
-      <div class="syntax-bar">
-        <button
-          type="button"
-          (click)="insertMarkdownPlaceholder('- ', 'tool.itemPlaceholder', listEditor)"
-          [title]="'lists.bullet' | t"
-        >
-          <i class="pi pi-list"></i>{{ 'lists.bullet' | t }}</button
-        ><button
-          type="button"
-          (click)="insertMarkdownPlaceholder('1. ', 'tool.itemPlaceholder', listEditor)"
-          [title]="'lists.number' | t"
-        >
-          <i class="pi pi-sort-numeric-down"></i>{{ 'lists.number' | t }}</button
-        ><button
-          type="button"
-          (click)="insertMarkdownPlaceholder('- [ ] ', 'tool.taskPlaceholder', listEditor)"
-          [title]="'lists.task' | t"
-        >
-          <i class="pi pi-check-square"></i>{{ 'lists.task' | t }}</button
-        ><button
-          type="button"
-          (click)="insertMarkdownPlaceholder('   - ', 'tool.subitemPlaceholder', listEditor)"
-          [title]="'lists.nested' | t"
-        >
-          <i class="pi pi-level-down"></i>{{ 'lists.nested' | t }}
-        </button>
-      </div>
-      <textarea
-        #listEditor
-        pTextarea
-        class="full-width mono editor"
-        [(ngModel)]="markdown"
-        rows="14"
-        [attr.aria-label]="'lists.markdownAria' | t"
-      ></textarea>
+      <app-markdown-text-editor
+        [(value)]="markdown"
+        [enabledTools]="markdownTools"
+        [rows]="14"
+        [wrapColumn]="wrapColumn()"
+        [ariaLabel]="'lists.markdownAria' | t"
+      />
     }
     <div class="button-row footer">
       <p-button

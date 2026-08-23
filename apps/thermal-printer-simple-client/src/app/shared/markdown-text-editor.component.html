@@ -1,0 +1,54 @@
+@if (enabledTools.length) {
+  <div class="syntax-bar">
+    @for (tool of tools(); track tool.id) {
+      <button type="button" (click)="applyTool(tool, editor)" [title]="tool.hint">
+        <i [class]="tool.icon"></i>{{ tool.label }}
+      </button>
+    }
+  </div>
+}
+<div
+  class="editor-shell"
+  [class.multiline]="multiline"
+  [class.single-line]="!multiline"
+  [class.with-toolbar]="enabledTools.length"
+  [style.--wrap-position]="wrapColumn ? wrapColumn + 'ch' : null"
+>
+  @if (multiline) {
+    <textarea
+      #editor
+      pTextarea
+      class="text-editor mono"
+      [ngModel]="value"
+      (ngModelChange)="updateValue($event)"
+      [rows]="rows"
+      [maxLength]="maxLength"
+      [attr.aria-label]="ariaLabel"
+      [placeholder]="placeholder"
+      [spellcheck]="spellcheck"
+    ></textarea>
+    @if (wrapColumn) {
+      <span class="wrap-guide" [title]="wrapColumnTitle()">
+        <b>{{ wrapColumn }}</b>
+      </span>
+    }
+  } @else {
+    @if (prefix) {
+      <span class="prompt">{{ prefix }}</span>
+    }
+    <input
+      #editor
+      pInputText
+      class="text-editor mono"
+      [ngModel]="value"
+      (ngModelChange)="updateValue($event)"
+      [maxLength]="maxLength"
+      [attr.aria-label]="ariaLabel"
+      [placeholder]="placeholder"
+      (keyup.enter)="enterPressed.emit()"
+    />
+    @if (showCount) {
+      <b class="character-count">{{ value.length }}/{{ maxLength }}</b>
+    }
+  }
+</div>

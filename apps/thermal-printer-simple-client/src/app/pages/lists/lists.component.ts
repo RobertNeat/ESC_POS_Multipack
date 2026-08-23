@@ -4,16 +4,14 @@ import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
-import { TextareaModule } from 'primeng/textarea';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { PrinterApiService } from '../../core/printer-api.service';
 import { I18nService } from '../../core/i18n.service';
 import { TranslatePipe } from '../../core/translate.pipe';
-import { TranslationKey } from '../../core/translations';
 import { CharacterFontSize } from '../../core/printer.models';
-import { CHARACTER_FONT_OPTIONS } from '../../shared/printer-options';
-import { toggleMarkdownLinePrefix } from '../../shared/markdown-editor';
-import { editTextField } from '../../shared/text-editor';
+import { MarkdownTextEditorComponent } from '../../shared/markdown-text-editor.component';
+import { LIST_MARKDOWN_TOOLS } from '../../shared/markdown-tools';
+import { characterColumns, CHARACTER_FONT_OPTIONS } from '../../shared/printer-options';
 import { generateListMarkdown, ListItem, parseListMarkdown } from './list-markdown';
 
 @Component({
@@ -23,9 +21,9 @@ import { generateListMarkdown, ListItem, parseListMarkdown } from './list-markdo
     CheckboxModule,
     InputTextModule,
     SelectModule,
-    TextareaModule,
     ToggleSwitchModule,
     TranslatePipe,
+    MarkdownTextEditorComponent,
   ],
   templateUrl: './lists.component.html',
   styleUrl: './lists.component.css',
@@ -64,6 +62,7 @@ export class ListsComponent {
   protected sending = false;
   protected fontSize: CharacterFontSize = '12x24';
   protected readonly fontSizeOptions = CHARACTER_FONT_OPTIONS;
+  protected readonly markdownTools = LIST_MARKDOWN_TOOLS;
   protected markdownMode = false;
   protected markdown = '';
   protected types() {
@@ -111,6 +110,9 @@ export class ListsComponent {
   protected listMarkdown(): string {
     return this.markdownMode ? this.markdown : this.generatedMarkdown();
   }
+  protected wrapColumn(): number {
+    return characterColumns(this.fontSize);
+  }
   protected changeMode(markdownMode: boolean): void {
     if (markdownMode) {
       this.markdown = this.generatedMarkdown();
@@ -121,28 +123,6 @@ export class ListsComponent {
       this.items = parsed;
       this.nextId = Math.max(...parsed.map((item) => item.id)) + 1;
     }
-  }
-  protected insertMarkdown(marker: string, value: string, input: HTMLTextAreaElement): void {
-    const start = input.selectionStart ?? this.markdown.length;
-    const end = input.selectionEnd ?? start;
-    const selected = this.markdown.slice(start, end);
-    if (selected) {
-      const edit = toggleMarkdownLinePrefix(this.markdown, start, end, marker);
-      input.setSelectionRange(edit.replacementStart, edit.replacementEnd);
-      editTextField(input, edit.replacement, edit.selectionStart, edit.selectionEnd);
-      return;
-    }
-    const lineBreak = start > 0 && !this.markdown.slice(0, start).endsWith('\n') ? '\n' : '';
-    const replacement = `${lineBreak}${value}\n`;
-    const caret = start + lineBreak.length + value.length;
-    editTextField(input, replacement, caret, caret);
-  }
-  protected insertMarkdownPlaceholder(
-    marker: string,
-    key: TranslationKey,
-    input: HTMLTextAreaElement,
-  ): void {
-    this.insertMarkdown(marker, `${marker}${this.i18n.t(key)}`, input);
   }
   protected async print(): Promise<void> {
     const markdown = this.listMarkdown();
