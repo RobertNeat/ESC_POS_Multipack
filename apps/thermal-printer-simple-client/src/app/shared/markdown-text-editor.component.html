@@ -1,7 +1,12 @@
 @if (enabledTools.length) {
   <div class="syntax-bar">
     @for (tool of tools(); track tool.id) {
-      <button type="button" (click)="applyTool(tool, editor)" [title]="tool.hint">
+      <button
+        type="button"
+        (mousedown)="captureSelection($event)"
+        (click)="applyTool(tool)"
+        [title]="tool.hint"
+      >
         <i [class]="tool.icon"></i>{{ tool.label }}
       </button>
     }

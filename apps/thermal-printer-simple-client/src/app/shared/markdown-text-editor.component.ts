@@ -1,4 +1,12 @@
-import { Component, EventEmitter, inject, Input, Output } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  EventEmitter,
+  inject,
+  Input,
+  Output,
+  ViewChild,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
@@ -20,6 +28,10 @@ import { editTextField, toggleTextMarker } from './text-editor';
 })
 export class MarkdownTextEditorComponent {
   private readonly i18n = inject(I18nService);
+  private selectedRange?: { readonly start: number; readonly end: number };
+
+  @ViewChild('editor', { read: ElementRef })
+  private editor?: ElementRef<HTMLInputElement | HTMLTextAreaElement>;
 
   @Input() value = '';
   @Output() readonly valueChange = new EventEmitter<string>();
@@ -48,9 +60,20 @@ export class MarkdownTextEditorComponent {
     return this.i18n.t('editor.wrapColumn', { column: this.wrapColumn ?? '' });
   }
 
-  protected applyTool(tool: MarkdownTool, input: HTMLInputElement | HTMLTextAreaElement): void {
+  protected captureSelection(event: MouseEvent): void {
+    event.preventDefault();
+    const input = this.editor?.nativeElement;
+    if (!input) return;
     const start = input.selectionStart ?? this.value.length;
-    const end = input.selectionEnd ?? start;
+    this.selectedRange = { start, end: input.selectionEnd ?? start };
+  }
+
+  protected applyTool(tool: MarkdownTool): void {
+    const input = this.editor?.nativeElement;
+    if (!input) return;
+    const start = this.selectedRange?.start ?? input.selectionStart ?? this.value.length;
+    const end = this.selectedRange?.end ?? input.selectionEnd ?? start;
+    this.selectedRange = undefined;
     const selected = this.value.slice(start, end);
     if (tool.marker) {
       this.applyEdit(toggleTextMarker(this.value, start, end, tool.marker), input);
