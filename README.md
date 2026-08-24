@@ -11,16 +11,17 @@ Install dependencies once:
 pnpm install
 ```
 
-Run both applications in parallel:
+Start the service and client in two separate terminals.
 
-```powershell
-pnpm dev:thermal-printer
-```
-
-To run them separately, use two terminals:
+In the first terminal, start the API service:
 
 ```powershell
 pnpm dev:thermal-printer-service
+```
+
+In the second terminal, start the Angular client:
+
+```powershell
 pnpm dev:thermal-printer-simple-client
 ```
 

@@ -13,7 +13,10 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(),
     provideAnimationsAsync(),
     provideRouter(routes),
-    providePrimeNG({ theme: { preset: Aura, options: { darkModeSelector: false } }, ripple: true }),
+    providePrimeNG({
+      theme: { preset: Aura, options: { darkModeSelector: '.app-dark' } },
+      ripple: true,
+    }),
     MessageService,
   ],
 };

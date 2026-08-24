@@ -3,7 +3,7 @@ import { rawPayloadByteCount, validateRawPayload } from './raw-payload';
 describe('raw payload', () => {
   it('validates complete hexadecimal bytes', () => {
     expect(validateRawPayload('hex', '1b 40 ff')).toBeNull();
-    expect(validateRawPayload('hex', '1b 4')).toContain('dwie cyfry');
+    expect(validateRawPayload('hex', '1b 4')).toBe('incompleteHexByte');
   });
 
   it('reports decoded Base64 length including padding', () => {
@@ -11,6 +11,6 @@ describe('raw payload', () => {
   });
 
   it('rejects decimal values outside a byte', () => {
-    expect(validateRawPayload('bytes', '0, 255, 256')).toContain('0–255');
+    expect(validateRawPayload('bytes', '0, 255, 256')).toBe('invalidByte');
   });
 });

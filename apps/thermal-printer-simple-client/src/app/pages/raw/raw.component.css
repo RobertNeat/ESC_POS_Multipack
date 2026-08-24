@@ -5,8 +5,8 @@
   align-items: start;
 }
 .danger {
-  background: #fceae7;
-  color: #a74335;
+  background: var(--color-danger-soft);
+  color: var(--color-on-danger-soft);
 }
 .encoding {
   max-width: 250px;
@@ -23,7 +23,7 @@
 .quick button {
   border: 1px solid var(--line);
   border-radius: 6px;
-  background: white;
+  background: var(--color-surface-raised);
   padding: 5px 8px;
   color: var(--ink);
   font: 600 10px var(--mono);
@@ -42,8 +42,8 @@
 }
 .warning {
   margin-top: 18px;
-  border-color: #bd4a3a;
-  background: #fff0ec;
+  border-color: var(--color-danger);
+  background: var(--color-danger-soft);
 }
 .warning i {
   margin-right: 7px;

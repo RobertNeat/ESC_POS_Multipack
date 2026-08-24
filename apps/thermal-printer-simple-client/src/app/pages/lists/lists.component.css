@@ -36,7 +36,7 @@
   border-bottom: 1px solid var(--line);
 }
 .item-row {
-  border-bottom: 1px solid #eeeeea;
+  border-bottom: 1px solid var(--color-border-subtle);
 }
 .item-row input {
   width: 100%;
@@ -46,37 +46,6 @@
   align-items: center;
   gap: 8px;
   min-height: 38px;
-}
-.syntax-bar {
-  display: flex;
-  gap: 5px;
-  flex-wrap: wrap;
-  padding: 10px;
-  background: var(--surface-2);
-  border-radius: 10px 10px 0 0;
-}
-.syntax-bar button {
-  border: 0;
-  background: transparent;
-  padding: 7px 9px;
-  border-radius: 6px;
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 700;
-  cursor: pointer;
-}
-.syntax-bar button:hover {
-  background: white;
-  color: var(--ink);
-}
-.syntax-bar i {
-  margin-right: 5px;
-}
-.editor {
-  border-radius: 0 0 10px 10px !important;
-  resize: vertical;
-  font-size: 13px;
-  line-height: 1.6;
 }
 .footer {
   justify-content: flex-start;

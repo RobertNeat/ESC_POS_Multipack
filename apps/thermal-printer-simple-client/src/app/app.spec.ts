@@ -13,6 +13,7 @@ describe('App', () => {
   });
   it('should create the app shell', () => {
     const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
     expect(fixture.componentInstance).toBeTruthy();
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('Thermal Console');
   });

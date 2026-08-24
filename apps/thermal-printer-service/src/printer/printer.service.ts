@@ -29,6 +29,7 @@ import { PrinterPayloadDecoder } from './printer-payload.decoder';
 import { PrinterPrintJobRunner } from './printer-print-job.runner';
 import {
   completeTextStyle,
+  columnsForSize,
   fontForSize,
   NORMAL_TEXT_STYLE,
 } from './printer-text-style';
@@ -146,6 +147,7 @@ export class PrinterService implements OnApplicationShutdown {
       this.markdownPrinter.validate(dto.markdown);
       return this.printJobs.text(dto, async () => {
         const lines = await this.markdownPrinter.print(dto.markdown, {
+          columns: columnsForSize(dto.fontSize),
           text: (value, style, alignment = 'left') =>
             this.adapter.printText(value, {
               alignment,

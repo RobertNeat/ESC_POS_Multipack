@@ -1,24 +1,24 @@
 <div class="page-head">
   <div>
-    <p class="eyebrow">Tryb ekspercki</p>
-    <h1>Surowe komendy ESC/POS</h1>
+    <p class="eyebrow">{{ 'raw.eyebrow' | t }}</p>
+    <h1>{{ 'raw.title' | t }}</h1>
     <p class="lead">
-      Wysyłaj bajty bez interpretacji. Usługa weryfikuje format i ogranicza rozmiar danych do 1 MB.
+      {{ 'raw.lead' | t }}
     </p>
   </div>
   <span class="badge danger"
-    ><i class="pi pi-exclamation-triangle"></i>Bezpośrednie sterowanie</span
+    ><i class="pi pi-exclamation-triangle"></i>{{ 'raw.directControl' | t }}</span
   >
 </div>
 <div class="workspace">
   <section class="panel panel-pad">
-    <h2 class="section-title">Dane polecenia</h2>
-    <p class="section-subtitle">Wybierz kodowanie zgodne z przygotowanym payloadem</p>
+    <h2 class="section-title">{{ 'raw.commandData' | t }}</h2>
+    <p class="section-subtitle">{{ 'raw.chooseEncoding' | t }}</p>
     <div class="field encoding">
-      <label for="encoding">Kodowanie</label
+      <label for="encoding">{{ 'raw.encoding' | t }}</label
       ><p-select
         inputId="encoding"
-        [options]="encodings"
+        [options]="encodings()"
         [(ngModel)]="encoding"
         optionLabel="label"
         optionValue="value"
@@ -26,13 +26,13 @@
       />
     </div>
     <div class="quick">
-      <span>Gotowe sekwencje:</span>
-      @for (command of presets; track command.label) {
+      <span>{{ 'raw.readySequences' | t }}</span>
+      @for (command of presets(); track command.label) {
         <button type="button" (click)="usePreset(command.hex)">{{ command.label }}</button>
       }
     </div>
     <div class="field">
-      <label for="payload">Payload</label
+      <label for="payload">{{ 'common.payload' | t }}</label
       ><textarea
         id="payload"
         pTextarea
@@ -44,30 +44,35 @@
       ></textarea>
       <div class="payload-meta">
         <span [class.error-text]="validationError()">{{
-          validationError() || 'Format jest poprawny'
+          validationError() || ('raw.validFormat' | t)
         }}</span
         ><span>{{ byteCount() }} B / 1 MB</span>
       </div>
     </div>
     <div class="notice warning">
-      <i class="pi pi-exclamation-triangle"></i><strong>Uwaga:</strong> błędna sekwencja może
-      zmienić trwałe ustawienia drukarki. Dane są wysyłane dokładnie w podanej postaci.
+      <i class="pi pi-exclamation-triangle"></i><strong>{{ 'raw.warningTitle' | t }}</strong>
+      {{ 'raw.warning' | t }}
     </div>
     <div class="button-row send">
       <p-button
-        label="Wyślij komendy"
+        [label]="'raw.send' | t"
         icon="pi pi-send"
         severity="danger"
         [loading]="sending"
         [disabled]="!!validationError() || !payload.trim()"
         (onClick)="send()"
-      /><p-button label="Wyczyść" severity="secondary" [text]="true" (onClick)="payload = ''" />
+      /><p-button
+        [label]="'common.clear' | t"
+        severity="secondary"
+        [text]="true"
+        (onClick)="payload = ''"
+      />
     </div>
   </section>
   <aside class="panel panel-pad reference">
-    <h2 class="section-title">Ściąga ESC/POS</h2>
-    <p class="section-subtitle">Najczęstsze instrukcje POS-8370</p>
-    @for (row of reference; track row.hex) {
+    <h2 class="section-title">{{ 'raw.cheatsheet' | t }}</h2>
+    <p class="section-subtitle">{{ 'raw.commonInstructions' | t }}</p>
+    @for (row of reference(); track row.hex) {
       <button type="button" (click)="usePreset(row.hex)">
         <code>{{ row.hex }}</code
         ><span

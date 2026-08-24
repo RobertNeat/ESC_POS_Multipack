@@ -29,3 +29,9 @@ export function fontForSize(
   } as const;
   return fonts[size ?? CharacterFontSizeDto.Size12x24];
 }
+
+export function columnsForSize(size: CharacterFontSizeDto | undefined): number {
+  return size === CharacterFontSizeDto.Size12x24 || size === undefined
+    ? 48
+    : 64;
+}
