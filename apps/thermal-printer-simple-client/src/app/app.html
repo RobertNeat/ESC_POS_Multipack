@@ -27,9 +27,7 @@
         (theme.theme() === 'dark' ? 'app.enableLightTheme' : 'app.enableDarkTheme') | t
       "
       [attr.aria-pressed]="theme.theme() === 'dark'"
-      [pTooltip]="
-        (theme.theme() === 'dark' ? 'app.enableLightTheme' : 'app.enableDarkTheme') | t
-      "
+      [pTooltip]="(theme.theme() === 'dark' ? 'app.enableLightTheme' : 'app.enableDarkTheme') | t"
     >
       <i [class]="theme.theme() === 'dark' ? 'pi pi-sun' : 'pi pi-moon'"></i>
     </button>

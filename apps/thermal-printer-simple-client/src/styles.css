@@ -83,8 +83,7 @@ body {
   min-height: 100%;
   color: var(--color-text);
   background:
-    radial-gradient(circle at 90% 8%, var(--color-page-glow), transparent 25%),
-    var(--color-surface);
+    radial-gradient(circle at 90% 8%, var(--color-page-glow), transparent 25%), var(--color-surface);
   font-family: var(--font);
 }
 button,
