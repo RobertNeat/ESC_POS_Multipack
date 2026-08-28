@@ -1,41 +1,49 @@
 {
+  "schema_version": 2,
+  "pipeline": {
+    "runner_labels": ["self-hosted", "Linux", "X64", "production"],
+    "project_roots": ["apps"]
+  },
   "projects": [
     {
-      "name": "esc-pos-multipack",
-      "enabled": true,
-      "check": true,
-      "build": false,
-      "type": "node",
-      "framework": "node",
-      "version": "24",
-      "path": ".",
-      "package_manager": "pnpm",
-      "prepare_script": "ci:prepare"
-    },
-    {
       "name": "thermal-printer-service",
-      "enabled": true,
-      "check": false,
-      "build": true,
       "type": "node",
+      "framework": "nestjs",
       "version": "24",
-      "docker_context": ".",
+      "path": "apps/thermal-printer-service",
+      "package_manager": "pnpm",
+      "build_tool": null,
+      "check_script": "check",
       "dockerfile": "apps/thermal-printer-service/Dockerfile",
-      "image": "esc-pos-multipack/thermal-printer-service"
+      "image": "esc-pos-multipack/thermal-printer-service",
+      "package_name": "thermal-printer-service",
+      "Trivy_exceptions": [],
+      "build_output": "dist",
+      "server_config": null,
+      "start_command": "node dist/main.js",
+      "ports": { "host": 10120, "container": 10120 }
     },
     {
       "name": "thermal-printer-simple-client",
-      "enabled": true,
-      "check": false,
-      "build": true,
       "type": "node",
+      "framework": "angular",
       "version": "24",
-      "docker_context": ".",
+      "path": "apps/thermal-printer-simple-client",
+      "package_manager": "pnpm",
+      "build_tool": null,
+      "check_script": "check",
       "dockerfile": "apps/thermal-printer-simple-client/Dockerfile",
-      "image": "esc-pos-multipack/thermal-printer-simple-client"
+      "image": "esc-pos-multipack/thermal-printer-simple-client",
+      "package_name": "thermal-printer-simple-client",
+      "Trivy_exceptions": [],
+      "build_output": "apps/thermal-printer-simple-client/dist/thermal-printer-simple-client/browser",
+      "server_config": "apps/thermal-printer-simple-client/default.conf.template",
+      "start_command": null,
+      "ports": { "host": 10100, "container": 10100 }
     }
   ],
   "deploy": {
+    "environment": "production",
     "host": "192.168.1.160",
     "user": "docker_deploy",
     "registry": "192.168.1.162:5000",
