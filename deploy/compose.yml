@@ -2,6 +2,7 @@ name: esc-pos-multipack
 
 services:
   thermal-printer-service:
+    container_name: thermal-printer_service
     image: ${REGISTRY}/${COMPOSE_PROJECT_NAME}/thermal-printer-service:${IMAGE_TAG}
     environment:
       PORT: ${SERVICE_PORT:?SERVICE_PORT must be set in config.env}
@@ -29,6 +30,7 @@ services:
     restart: unless-stopped
 
   thermal-printer-simple-client:
+    container_name: thermal-printer_client
     image: ${REGISTRY}/${COMPOSE_PROJECT_NAME}/thermal-printer-simple-client:${IMAGE_TAG}
     depends_on:
       thermal-printer-service:
