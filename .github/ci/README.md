@@ -15,7 +15,7 @@ nie wystarczy - trzeba dopisac jej definicje w `projects.json`.
 
 ```json
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "pipeline": {
     "runner_labels": ["self-hosted", "Linux", "X64", "production"],
     "project_roots": ["apps"]
@@ -35,33 +35,33 @@ nie wystarczy - trzeba dopisac jej definicje w `projects.json`.
 
 ## Sekcja `pipeline`
 
-| Pole | Typ | Opis |
-| --- | --- | --- |
-| `runner_labels` | `string[]` | Etykiety self-hosted runnera uzywane przez joby generowane z konfiguracji. |
+| Pole            | Typ        | Opis                                                                                                    |
+| --------------- | ---------- | ------------------------------------------------------------------------------------------------------- |
+| `runner_labels` | `string[]` | Etykiety self-hosted runnera uzywane przez joby generowane z konfiguracji.                              |
 | `project_roots` | `string[]` | Katalogi, w ktorych pipeline szuka aplikacji. Kazdy bezposredni podkatalog musi miec wpis w `projects`. |
 
 ## Sekcja `projects`
 
 Kazdy wpis projektu musi miec dokladnie ponizsze pola.
 
-| Pole | Typ | Wymagania i znaczenie |
-| --- | --- | --- |
-| `name` | `string` | Unikalna nazwa aplikacji w pipeline. Powinna byc stabilna, bo pojawia sie w nazwach jobow i jest uzywana do wyliczania nazw zmiennych pomocniczych. |
-| `type` | `string` | Technologia aplikacji. Dozwolone wartosci: `node`, `python`, `springboot`. |
-| `framework` | `string` | Framework lub wariant technologii, np. `angular`, `nestjs`, `stdlib`, `springboot`. Dla `angular` obowiazuja dodatkowe pola statycznego serwera. |
-| `version` | `string` | Wersja runtime: Node.js dla `node`, Python dla `python`, major Java dla `springboot`. Spring Boot uzywa Eclipse Temurin przez `mise`. |
-| `path` | `string` | Relatywna sciezka do katalogu aplikacji. Musi istniec i nie moze zaczynac sie od `/`. |
-| `package_manager` | `string` albo `null` | Dla `node`: `pnpm`, `npm` albo `yarn`. Dla `python` i `springboot`: `null`. |
-| `build_tool` | `string` albo `null` | Dla `springboot`: `maven` albo `gradle`. Dla `python`: niepusty opis narzedzia budowania, obecnie `setuptools`. Dla `node`: `null`. |
-| `check_script` | `string` albo `null` | Dla `node`: nazwa skryptu z `package.json`, np. `check`. Dla innych typow: `null`. |
-| `dockerfile` | `string` | Relatywna sciezka do Dockerfile uzywanego przy budowie obrazu. Plik musi istniec. |
-| `image` | `string` | Unikalna nazwa obrazu bez rejestru i taga, np. `projekt-testowy-pipeline/nest-backend-api`. |
-| `package_name` | `string` albo `null` | Dla `node`: nazwa pakietu z `package.json`, uzywana przez filtry workspace. Dla innych typow: `null`. |
-| `Trivy_exceptions` | `array` | Lista opisanych wyjatkow ze skanowania obrazu. Kazdy wpis ma pola `name` i `cause`. Gdy nie ma wyjatkow, uzyj `[]`. |
-| `build_output` | `string` albo `null` | Dla Angulara: sciezka do statycznego wyniku buildu. Dla Spring Boota: wzorzec artefaktu, np. `target/*.jar`. Dla Pythona: `null`. |
-| `server_config` | `string` albo `null` | Dla Angulara: relatywna sciezka do konfiguracji Nginx. Dla pozostalych frameworkow: `null`. |
-| `start_command` | `string` albo `null` | Komenda uruchomieniowa w kontenerze dla aplikacji serwerowych. Dla Angulara: `null`, bo obraz startuje przez Nginx. |
-| `ports` | `object` | Porty aplikacji: `host` to port publikowany na hoście, `container` to port wewnatrz kontenera. Oba musza byc unikalnymi liczbami calkowitymi z zakresu `1-65535`; unikalnosc dotyczy `host`. |
+| Pole               | Typ                  | Wymagania i znaczenie                                                                                                                                                                        |
+| ------------------ | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`             | `string`             | Unikalna nazwa aplikacji w pipeline. Powinna byc stabilna, bo pojawia sie w nazwach jobow i jest uzywana do wyliczania nazw zmiennych pomocniczych.                                          |
+| `type`             | `string`             | Technologia aplikacji. Dozwolone wartosci: `node`, `python`, `springboot`.                                                                                                                   |
+| `framework`        | `string`             | Framework lub wariant technologii, np. `angular`, `nestjs`, `stdlib`, `springboot`. Dla `angular` obowiazuja dodatkowe pola statycznego serwera.                                             |
+| `version`          | `string`             | Wersja runtime: Node.js dla `node`, Python dla `python`, major Java dla `springboot`. Spring Boot uzywa Eclipse Temurin przez `mise`.                                                        |
+| `path`             | `string`             | Relatywna sciezka do katalogu aplikacji. Musi istniec i nie moze zaczynac sie od `/`.                                                                                                        |
+| `package_manager`  | `string` albo `null` | Dla `node`: `pnpm`, `npm` albo `yarn`. Dla `python` i `springboot`: `null`.                                                                                                                  |
+| `build_tool`       | `string` albo `null` | Dla `springboot`: `maven` albo `gradle`. Dla `python`: niepusty opis narzedzia budowania, obecnie `setuptools`. Dla `node`: `null`.                                                          |
+| `check_script`     | `string` albo `null` | Dla `node`: nazwa skryptu z `package.json`, np. `check`. Dla innych typow: `null`.                                                                                                           |
+| `dockerfile`       | `string`             | Relatywna sciezka do Dockerfile uzywanego przy budowie obrazu. Plik musi istniec.                                                                                                            |
+| `image`            | `string`             | Unikalna nazwa obrazu bez rejestru i taga, np. `projekt-testowy-pipeline/nest-backend-api`.                                                                                                  |
+| `package_name`     | `string` albo `null` | Dla `node`: nazwa pakietu z `package.json`, uzywana przez filtry workspace. Dla innych typow: `null`.                                                                                        |
+| `Trivy_exceptions` | `array`              | Lista opisanych wyjatkow ze skanowania obrazu. Kazdy wpis ma pola `name` i `cause`. Gdy nie ma wyjatkow, uzyj `[]`.                                                                          |
+| `build_output`     | `string` albo `null` | Dla Angulara: sciezka do statycznego wyniku buildu. Dla Spring Boota: wzorzec artefaktu, np. `target/*.jar`. Dla Pythona: `null`.                                                            |
+| `server_config`    | `string` albo `null` | Dla Angulara: relatywna sciezka do konfiguracji Nginx. Dla pozostalych frameworkow: `null`.                                                                                                  |
+| `start_command`    | `string` albo `null` | Komenda uruchomieniowa w kontenerze dla aplikacji serwerowych. Dla Angulara: `null`, bo obraz startuje przez Nginx.                                                                          |
+| `ports`            | `object`             | Porty aplikacji: `host` to port publikowany na hoście, `container` to port wewnatrz kontenera. Oba musza byc unikalnymi liczbami calkowitymi z zakresu `1-65535`; unikalnosc dotyczy `host`. |
 
 Wartosci `name`, `path`, `image`, `ports.host` oraz nazwa zmiennej wyliczana z
 `name` po zamianie na wielkie litery i podkreslenia musza byc unikalne.
@@ -175,15 +175,15 @@ upewnij sie, ze aplikacja ma wykonywalny `gradlew`.
 
 ## Sekcja `deploy`
 
-| Pole | Typ | Opis |
-| --- | --- | --- |
-| `environment` | `string` | Nazwa srodowiska GitHub Actions dla deploymentu. |
-| `host` | `string` | Adres hosta deploymentowego dostepnego przez SSH. |
-| `user` | `string` | Uzytkownik SSH uzywany przez deployment. |
-| `registry` | `string` | Lokalny rejestr obrazow Docker, do ktorego trafiaja obrazy tagowane pelnym SHA. |
-| `compose_file` | `string` | Relatywna sciezka do pliku Compose kopiowanego na host deploymentowy. |
-| `config_file` | `string` | Relatywna sciezka do pliku env/config kopiowanego na host deploymentowy. |
-| `remote_dir` | `string` | Katalog docelowy na hoście deploymentowym. |
+| Pole           | Typ      | Opis                                                                            |
+| -------------- | -------- | ------------------------------------------------------------------------------- |
+| `environment`  | `string` | Nazwa srodowiska GitHub Actions dla deploymentu.                                |
+| `host`         | `string` | Adres hosta deploymentowego dostepnego przez SSH.                               |
+| `user`         | `string` | Uzytkownik SSH uzywany przez deployment.                                        |
+| `registry`     | `string` | Lokalny rejestr obrazow Docker, do ktorego trafiaja obrazy tagowane pelnym SHA. |
+| `compose_file` | `string` | Relatywna sciezka do pliku Compose kopiowanego na host deploymentowy.           |
+| `config_file`  | `string` | Relatywna sciezka do pliku env/config kopiowanego na host deploymentowy.        |
+| `remote_dir`   | `string` | Katalog docelowy na hoście deploymentowym.                                      |
 
 ## Checklist dodania aplikacji
 
@@ -200,4 +200,3 @@ upewnij sie, ze aplikacja ma wykonywalny `gradlew`.
 ```bash
 bash .github/steps/validate_projects.sh .github/ci/projects.json
 ```
-

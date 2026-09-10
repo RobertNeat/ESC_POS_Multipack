@@ -5,7 +5,7 @@ cfg="${1:-.github/ci/projects.json}"
 test -f "$cfg"
 
 jq -e '
-  .schema_version == 2 and
+  .schema_version == 3 and
   (.pipeline.runner_labels | type == "array" and length > 0 and all(.[]; type == "string" and length > 0)) and
   (.pipeline.project_roots | type == "array" and length > 0 and all(.[]; type == "string" and length > 0)) and
   (.projects | type == "array" and length > 0) and

@@ -14,6 +14,16 @@ RUN apk upgrade --no-cache
 ARG BUILD_OUTPUT
 ARG SERVER_CONFIG
 ARG APP_PORT
+ARG IMAGE_TITLE
+ARG IMAGE_DESCRIPTION
+ARG IMAGE_VENDOR
+ARG IMAGE_LICENSES
+ARG IMAGE_SOURCE
 COPY --from=build /workspace/${BUILD_OUTPUT} /usr/share/nginx/html
 COPY ${SERVER_CONFIG} /etc/nginx/conf.d/default.conf
+LABEL org.opencontainers.image.title="${IMAGE_TITLE}" \
+    org.opencontainers.image.description="${IMAGE_DESCRIPTION}" \
+    org.opencontainers.image.vendor="${IMAGE_VENDOR}" \
+    org.opencontainers.image.licenses="${IMAGE_LICENSES}" \
+    org.opencontainers.image.source="${IMAGE_SOURCE}"
 EXPOSE ${APP_PORT}

@@ -4,9 +4,21 @@ set -euo pipefail
 : "${REGISTRY:?REGISTRY is required}"
 : "${PROJECT_JSON:?PROJECT_JSON is required}"
 : "${SHA:?SHA is required}"
+: "${CONFIG_FILE:=deploy/config.env}"
 
 [[ "$SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "A lowercase full commit SHA is required" >&2; exit 2; }
 jq -e 'type == "object"' <<< "$PROJECT_JSON" >/dev/null
+test -f "$CONFIG_FILE"
+
+set -a
+. "$CONFIG_FILE"
+set +a
+
+: "${IMAGE_TITLE:?IMAGE_TITLE is required in $CONFIG_FILE}"
+: "${IMAGE_DESCRIPTION:?IMAGE_DESCRIPTION is required in $CONFIG_FILE}"
+: "${IMAGE_VENDOR:?IMAGE_VENDOR is required in $CONFIG_FILE}"
+: "${IMAGE_LICENSES:?IMAGE_LICENSES is required in $CONFIG_FILE}"
+: "${IMAGE_SOURCE:?IMAGE_SOURCE is required in $CONFIG_FILE}"
 
 json_string() {
   jq -er "$1 | select(type == \"string\" and length > 0)" <<< "$PROJECT_JSON"
@@ -41,6 +53,11 @@ docker build --pull \
   --build-arg "SERVER_CONFIG=$SERVER_CONFIG" \
   --build-arg "START_COMMAND=$START_COMMAND" \
   --build-arg "APP_PORT=$APP_PORT" \
+  --build-arg "IMAGE_TITLE=$IMAGE_TITLE" \
+  --build-arg "IMAGE_DESCRIPTION=$IMAGE_DESCRIPTION" \
+  --build-arg "IMAGE_VENDOR=$IMAGE_VENDOR" \
+  --build-arg "IMAGE_LICENSES=$IMAGE_LICENSES" \
+  --build-arg "IMAGE_SOURCE=$IMAGE_SOURCE" \
   --label "org.opencontainers.image.revision=$SHA" \
   --tag "$image_ref" \
   .
