@@ -1,6 +1,7 @@
-ARG RUNTIME_VERSION
+ARG RUNTIME_VERSION=24
 FROM node:${RUNTIME_VERSION}-alpine AS build
-RUN apk upgrade --no-cache
+RUN apk upgrade --no-cache \
+    && apk add --no-cache eudev-dev g++ linux-headers make python3
 ARG PACKAGE_NAME
 WORKDIR /workspace
 RUN corepack enable
@@ -10,7 +11,8 @@ RUN pnpm install --frozen-lockfile \
     && pnpm deploy --filter "${PACKAGE_NAME}" --prod --legacy /opt/app
 
 FROM node:${RUNTIME_VERSION}-alpine
-RUN apk upgrade --no-cache
+RUN apk upgrade --no-cache \
+    && apk add --no-cache eudev-libs
 ARG APP_PORT
 ARG START_COMMAND
 ARG IMAGE_TITLE

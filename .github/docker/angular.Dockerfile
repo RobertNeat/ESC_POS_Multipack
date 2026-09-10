@@ -1,4 +1,4 @@
-ARG RUNTIME_VERSION
+ARG RUNTIME_VERSION=24
 FROM node:${RUNTIME_VERSION}-alpine AS build
 RUN apk upgrade --no-cache
 ARG PROJECT_PATH
@@ -6,7 +6,7 @@ ARG PACKAGE_NAME
 WORKDIR /workspace
 RUN corepack enable
 COPY . .
-RUN pnpm install --frozen-lockfile \
+RUN pnpm install --frozen-lockfile --filter "${PACKAGE_NAME}..." \
     && pnpm --filter "${PACKAGE_NAME}..." build
 
 FROM nginx:1.29-alpine
