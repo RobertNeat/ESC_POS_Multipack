@@ -6,7 +6,7 @@ ARG PACKAGE_NAME
 WORKDIR /workspace
 RUN corepack enable
 COPY . .
-RUN pnpm install --frozen-lockfile \
+RUN pnpm install --frozen-lockfile --trust-lockfile \
     && pnpm --filter "${PACKAGE_NAME}..." build \
     && pnpm deploy --filter "${PACKAGE_NAME}" --prod --legacy /opt/app
 

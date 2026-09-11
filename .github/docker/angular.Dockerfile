@@ -6,7 +6,7 @@ ARG PACKAGE_NAME
 WORKDIR /workspace
 RUN corepack enable
 COPY . .
-RUN pnpm install --frozen-lockfile --filter "${PACKAGE_NAME}..." \
+RUN pnpm install --frozen-lockfile --trust-lockfile --filter "${PACKAGE_NAME}..." \
     && pnpm --filter "${PACKAGE_NAME}..." build
 
 FROM nginx:1.29-alpine
