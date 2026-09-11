@@ -17,20 +17,7 @@
       "dockerfile": ".github/docker/node.Dockerfile",
       "image": "esc-pos-multipack/thermal-printer-service",
       "package_name": "thermal-printer-service",
-      "Trivy_exceptions": [
-        {
-          "name": "brace-expansion",
-          "cause": "tymczasowe wyłączenie CVE, żeby sprawdzić budowanie"
-        },
-        {
-          "name": "ip-address",
-          "cause": "tymczasowe wyłączenie CVE, żeby sprawdzić budowanie"
-        },
-        {
-          "name": "tar",
-          "cause": "tymczasowe wyłączenie CVE, żeby sprawdzić budowanie"
-        }
-      ],
+      "Trivy_exceptions": [],
       "build_output": "dist",
       "server_config": null,
       "start_command": "node dist/main.js",

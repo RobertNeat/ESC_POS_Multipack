@@ -17,10 +17,7 @@ allowBuilds:
   usb: true
 overrides:
   '@node-escpos/usb-adapter>usb': '2.17.0'
-  'brace-expansion@5.0.7': '5.0.9'
   fast-uri: '3.1.6'
-  'ip-address@10.2.0': '10.5.0'
   'js-yaml@3.15.1': '3.15.2'
   'js-yaml@4.3.1': '4.3.2'
   'multer@2.2.0': '2.3.0'
-  'tar@7.5.19': '7.5.22'

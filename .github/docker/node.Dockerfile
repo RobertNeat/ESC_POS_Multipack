@@ -12,7 +12,8 @@ RUN pnpm install --frozen-lockfile \
 
 FROM node:${RUNTIME_VERSION}-alpine
 RUN apk upgrade --no-cache \
-    && apk add --no-cache eudev-libs
+    && apk add --no-cache eudev-libs \
+    && rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack
 ARG APP_PORT
 ARG START_COMMAND
 ARG IMAGE_TITLE
