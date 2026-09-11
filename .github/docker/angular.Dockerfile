@@ -20,7 +20,7 @@ ARG IMAGE_VENDOR
 ARG IMAGE_LICENSES
 ARG IMAGE_SOURCE
 COPY --from=build /workspace/${BUILD_OUTPUT} /usr/share/nginx/html
-COPY ${SERVER_CONFIG} /etc/nginx/conf.d/default.conf
+COPY ${SERVER_CONFIG} /etc/nginx/templates/default.conf.template
 LABEL org.opencontainers.image.title="${IMAGE_TITLE}" \
     org.opencontainers.image.description="${IMAGE_DESCRIPTION}" \
     org.opencontainers.image.vendor="${IMAGE_VENDOR}" \

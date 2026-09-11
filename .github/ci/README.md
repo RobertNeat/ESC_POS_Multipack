@@ -59,7 +59,7 @@ Kazdy wpis projektu musi miec dokladnie ponizsze pola.
 | `package_name`     | `string` albo `null` | Dla `node`: nazwa pakietu z `package.json`, uzywana przez filtry workspace. Dla innych typow: `null`.                                                                                        |
 | `Trivy_exceptions` | `array`              | Lista opisanych wyjatkow ze skanowania obrazu. Kazdy wpis ma pola `name` i `cause`. Gdy nie ma wyjatkow, uzyj `[]`.                                                                          |
 | `build_output`     | `string` albo `null` | Dla Angulara: sciezka do statycznego wyniku buildu. Dla Spring Boota: wzorzec artefaktu, np. `target/*.jar`. Dla Pythona: `null`.                                                            |
-| `server_config`    | `string` albo `null` | Dla Angulara: relatywna sciezka do konfiguracji Nginx. Dla pozostalych frameworkow: `null`.                                                                                                  |
+| `server_config`    | `string` albo `null` | Dla Angulara: relatywna sciezka do szablonu konfiguracji Nginx z placeholderami `${VAR}` (np. `${CLIENT_PORT}`), ktore entrypoint obrazu `nginx` podstawia zmiennymi srodowiskowymi kontenera przy starcie (`envsubst`). Dla pozostalych frameworkow: `null`.                                                                                                  |
 | `start_command`    | `string` albo `null` | Komenda uruchomieniowa w kontenerze dla aplikacji serwerowych. Dla Angulara: `null`, bo obraz startuje przez Nginx.                                                                          |
 | `ports`            | `object`             | Porty aplikacji: `host` to port publikowany na hoście, `container` to port wewnatrz kontenera. Oba musza byc unikalnymi liczbami calkowitymi z zakresu `1-65535`; unikalnosc dotyczy `host`. |
 
@@ -112,14 +112,22 @@ wskazany skrypt aplikacji.
   "package_name": "new-angular-app",
   "Trivy_exceptions": [],
   "build_output": "apps/new_angular_app/dist/new_angular_app/browser",
-  "server_config": "apps/new_angular_app/nginx.conf",
+  "server_config": "apps/new_angular_app/default.conf.template",
   "start_command": null,
   "ports": { "host": 10221, "container": 80 }
 }
 ```
 
 Dla `framework: "angular"` wymagane sa `build_output` i `server_config`, a
-`start_command` musi byc `null`.
+`start_command` musi byc `null`. Plik wskazany przez `server_config` jest
+kopiowany przez `.github/docker/angular.Dockerfile` do
+`/etc/nginx/templates/default.conf.template` w obrazie; standardowy
+entrypoint obrazu `nginx` (`20-envsubst-on-templates.sh`) generuje z niego
+`/etc/nginx/conf.d/default.conf`, podstawiajac placeholdery `${VAR}` wartosciami
+zmiennych srodowiskowych ustawionych w `deploy/compose.yml` dla danego serwisu
+(np. `${CLIENT_PORT}`, `${SERVICE_PORT}`). Aplikacja nie definiuje portow ani
+adresow na sztywno - tylko placeholdery odwolujace sie do zmiennych
+srodowiskowych, ktore dostarcza `deploy/compose.yml` i `deploy/config.env`.
 
 ### Python
 
