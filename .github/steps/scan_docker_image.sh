@@ -6,9 +6,16 @@ set -euo pipefail
 : "${SHA:?SHA is required}"
 
 exceptions="${TRIVY_EXCEPTIONS:-[]}"
+image_ref="${REGISTRY}/${IMAGE}:${SHA}"
+revision="$(docker image inspect "$image_ref" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')"
+
+if [ "$revision" != "$SHA" ]; then
+  echo "Image revision label does not match requested SHA: expected $SHA, got ${revision:-<missing>}" >&2
+  exit 2
+fi
 
 if jq -e 'length == 0' <<<"$exceptions" >/dev/null; then
-  trivy image --exit-code 1 --severity HIGH,CRITICAL --scanners vuln --vuln-type library --ignore-unfixed --timeout 15m "${REGISTRY}/${IMAGE}:${SHA}"
+  trivy image --exit-code 1 --severity HIGH,CRITICAL --scanners vuln --vuln-type library --ignore-unfixed --timeout 15m "$image_ref"
   exit 0
 fi
 
@@ -16,7 +23,7 @@ report="$(mktemp)"
 filtered_report="$(mktemp)"
 trap 'rm -f "$report" "$filtered_report"' EXIT
 
-trivy image --exit-code 0 --format json --severity HIGH,CRITICAL --scanners vuln --vuln-type library --ignore-unfixed --timeout 15m "${REGISTRY}/${IMAGE}:${SHA}" > "$report"
+trivy image --exit-code 0 --format json --severity HIGH,CRITICAL --scanners vuln --vuln-type library --ignore-unfixed --timeout 15m "$image_ref" > "$report"
 
 jq --argjson exceptions "$exceptions" '
   def base_path: (.PkgPath // "" | split("/") | last);
