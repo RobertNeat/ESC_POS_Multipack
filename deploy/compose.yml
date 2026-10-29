@@ -13,6 +13,9 @@ services:
       PRINTER_TIMEOUT_MS: ${PRINTER_TIMEOUT_MS:-5000}
       PRINTER_USB_VENDOR_ID: ${PRINTER_USB_VENDOR_ID:-}
       PRINTER_USB_PRODUCT_ID: ${PRINTER_USB_PRODUCT_ID:-}
+      FONTS_DIR: ${FONTS_DIR:-/home/node/fonts}
+    volumes:
+      - fonts_data:${FONTS_DIR:-/home/node/fonts}
     ports:
       - '${SERVICE_PORT}:${SERVICE_PORT}'
     healthcheck:
@@ -51,3 +54,6 @@ services:
       retries: 5
       start_period: 5s
     restart: unless-stopped
+
+volumes:
+  fonts_data:
