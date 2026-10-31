@@ -115,6 +115,30 @@ export class PrinterService implements OnApplicationShutdown {
     });
   }
 
+  /** Prints an already-packed 1-bit bitmap, e.g. from the raster-text renderer. Bypasses the raw-bytes HTTP DTO entirely. */
+  printRasterBitmap(request: {
+    readonly data: Uint8Array;
+    readonly widthBytes: number;
+    readonly height: number;
+    readonly alignment: AlignmentDto;
+    readonly initialize: boolean;
+    readonly cut: boolean;
+  }): Promise<OperationResultDto> {
+    return this.printJobs.raster(
+      { initialize: request.initialize, cut: request.cut },
+      async () => {
+        await this.adapter.printRasterImage({
+          data: request.data,
+          widthBytes: request.widthBytes,
+          height: request.height,
+          alignment: request.alignment,
+          scale: 'normal',
+        });
+        return ok(request.data.length);
+      },
+    );
+  }
+
   printLines(dto: PrintLinesDto): Promise<OperationResultDto> {
     return this.printJobs.text(dto, async () => {
       for (const line of dto.lines) {

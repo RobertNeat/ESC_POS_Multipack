@@ -6,6 +6,7 @@ import {
   BUILT_IN_FONTS,
   MAX_FONT_UPLOAD_BYTES,
 } from './font-library.constants';
+import type { FontDeletionHook } from './font-deletion-hook';
 import {
   BuiltInFontImmutableError,
   DuplicateFontError,
@@ -34,11 +35,18 @@ export interface UploadFontInput {
 
 @Injectable()
 export class FontLibraryService implements OnModuleInit {
+  private readonly deletionHooks: FontDeletionHook[] = [];
+
   constructor(
     private readonly storage: FontStorage,
     private readonly inspector: FontInspector,
     private readonly usage: FontUsageTracker,
   ) {}
+
+  /** Registered by consumers (e.g. the renderer's font registry) that must react to a font being deleted. */
+  addDeletionHook(hook: FontDeletionHook): void {
+    this.deletionHooks.push(hook);
+  }
 
   async onModuleInit(): Promise<void> {
     await this.storage.ensureReady();
@@ -113,6 +121,8 @@ export class FontLibraryService implements OnModuleInit {
       fonts: current.fonts.filter((font) => font.id !== id),
     }));
     await this.storage.deleteUserFont(record.fileName);
+
+    for (const hook of this.deletionHooks) hook.onFontDeleted(id);
   }
 
   /** Absolute path to a stored font's regular file, for the renderer to load. */

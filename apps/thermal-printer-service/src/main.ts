@@ -36,6 +36,7 @@ async function bootstrap() {
     .addTag('configuration', 'Konfiguracja POS-8370')
     .addTag('printing', 'Drukowanie tekstu, Markdown, bitmap i surowych komend')
     .addTag('fonts', 'Biblioteka czcionek do druku rastrowego tekstu')
+    .addTag('raster-text', 'Render i druk tekstu jako bitmapa 1-bit')
     .build();
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('docs', app, document, {
