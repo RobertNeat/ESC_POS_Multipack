@@ -16,6 +16,14 @@ export class PrinterHttpClient {
     return firstValueFrom(this.http.post<T>(this.url(path), body));
   }
 
+  postForm<T>(path: string, body: FormData): Promise<T> {
+    return firstValueFrom(this.http.post<T>(this.url(path), body));
+  }
+
+  delete<T>(path: string): Promise<T> {
+    return firstValueFrom(this.http.delete<T>(this.url(path)));
+  }
+
   private url(path: string): string {
     return `${this.preferences.endpoint()}${path}`;
   }

@@ -1,0 +1,256 @@
+<div class="page-head">
+  <div>
+    <p class="eyebrow">{{ 'rasterText.eyebrow' | t }}</p>
+    <h1>{{ 'rasterText.title' | t }}</h1>
+    <p class="lead">{{ 'rasterText.lead' | t }}</p>
+  </div>
+</div>
+
+<div class="image-workspace">
+  <section class="controls">
+    <div class="panel panel-pad settings">
+      <div class="section-row">
+        <div>
+          <h2 class="section-title">{{ 'rasterText.fontLibrary' | t }}</h2>
+          <p class="section-subtitle">{{ 'rasterText.fontLibraryHelp' | t }}</p>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="font">{{ 'rasterText.font' | t }}</label>
+        <p-select
+          inputId="font"
+          [options]="fonts"
+          [(ngModel)]="fontId"
+          optionLabel="displayName"
+          optionValue="id"
+          [loading]="loadingFonts"
+          (onChange)="schedulePreview()"
+        />
+      </div>
+
+      @if (selectedFont(); as font) {
+        @if (!font.coverage.ok) {
+          <div class="notice warning">
+            <i class="pi pi-exclamation-triangle"></i>
+            {{ 'rasterText.fontMissingGlyphs' | t: { characters: font.coverage.missingCharacters.join(' ') } }}
+          </div>
+        }
+      }
+
+      <ul class="font-list">
+        @for (font of fonts; track font.id) {
+          <li>
+            <span class="font-name">{{ font.displayName }}</span>
+            @if (font.builtIn) {
+              <span class="badge">{{ 'rasterText.builtIn' | t }}</span>
+            } @else if (!font.coverage.ok) {
+              <span class="badge warning"><i class="pi pi-exclamation-triangle"></i></span>
+            }
+            @if (!font.builtIn) {
+              <button
+                type="button"
+                class="text-button"
+                [disabled]="deletingFontId === font.id"
+                (click)="deleteFont(font)"
+              >
+                <i class="pi pi-trash"></i>
+              </button>
+            }
+          </li>
+        }
+      </ul>
+
+      <input
+        #fontFileInput
+        type="file"
+        accept=".ttf,.otf,.ttc"
+        (change)="onFontUpload($event)"
+        hidden
+      />
+      <p-button
+        [label]="'rasterText.uploadFont' | t"
+        icon="pi pi-upload"
+        severity="secondary"
+        [outlined]="true"
+        [loading]="uploading"
+        (onClick)="fontFileInput.click()"
+      />
+      <p class="section-subtitle">{{ 'rasterText.uploadFontHelp' | t }}</p>
+    </div>
+
+    <div class="panel panel-pad settings">
+      <h2 class="section-title">{{ 'rasterText.content' | t }}</h2>
+      <div class="field">
+        <label for="text">{{ 'rasterText.text' | t }}</label>
+        <textarea
+          id="text"
+          class="raster-text-input"
+          rows="6"
+          [(ngModel)]="text"
+          [placeholder]="'rasterText.textPlaceholder' | t"
+          (input)="schedulePreview()"
+        ></textarea>
+      </div>
+
+      <div class="inline-options">
+        <div class="field">
+          <label for="fontSize">{{ 'rasterText.fontSize' | t }}</label>
+          <input
+            id="fontSize"
+            type="number"
+            pInputText
+            [min]="minFontSizePx"
+            [max]="maxFontSizePx"
+            [(ngModel)]="fontSizePx"
+            (input)="schedulePreview()"
+          />
+        </div>
+        <div class="check">
+          <p-checkbox [(ngModel)]="bold" [binary]="true" inputId="bold" (onChange)="schedulePreview()" />
+          <label for="bold">{{ 'rasterText.bold' | t }}</label>
+        </div>
+        <div class="field">
+          <label for="lineSpacing">{{ 'rasterText.lineSpacing' | t }}</label>
+          <input
+            id="lineSpacing"
+            type="number"
+            pInputText
+            step="0.1"
+            [min]="minLineSpacing"
+            [max]="maxLineSpacing"
+            [(ngModel)]="lineSpacing"
+            (input)="schedulePreview()"
+          />
+        </div>
+      </div>
+
+      <div class="print-options">
+        <div class="field">
+          <label for="alignment">{{ 'common.alignment' | t }}</label>
+          <p-select
+            inputId="alignment"
+            [options]="alignmentOptions()"
+            [(ngModel)]="align"
+            optionLabel="label"
+            optionValue="value"
+            (onChange)="schedulePreview()"
+          />
+        </div>
+        <div class="field">
+          <label for="mode">{{ 'rasterText.renderMode' | t }}</label>
+          <p-select
+            inputId="mode"
+            [options]="modeOptions()"
+            [(ngModel)]="mode"
+            optionLabel="label"
+            optionValue="value"
+            (onChange)="schedulePreview()"
+          />
+        </div>
+      </div>
+
+      @if (mode === 'antialiased') {
+        <div class="slider-control">
+          <span><label for="threshold">{{ 'rasterText.threshold' | t }}</label><output>{{ thresholdPercent }}%</output></span>
+          <input
+            id="threshold"
+            type="range"
+            [min]="minThresholdPercent"
+            [max]="maxThresholdPercent"
+            [(ngModel)]="thresholdPercent"
+            (input)="schedulePreview()"
+          />
+        </div>
+      }
+      @if (mode === 'dithered') {
+        <div class="field">
+          <label for="ditherAlgorithm">{{ 'common.dithering' | t }}</label>
+          <p-select
+            inputId="ditherAlgorithm"
+            [options]="ditherAlgorithmOptions()"
+            [(ngModel)]="ditherAlgorithm"
+            optionLabel="label"
+            optionValue="value"
+            (onChange)="schedulePreview()"
+          />
+        </div>
+      }
+
+      <div class="check">
+        <p-checkbox
+          [(ngModel)]="allowMissingGlyphs"
+          [binary]="true"
+          inputId="allowMissingGlyphs"
+          (onChange)="schedulePreview()"
+        />
+        <label for="allowMissingGlyphs">{{ 'rasterText.allowMissingGlyphs' | t }}</label>
+      </div>
+    </div>
+  </section>
+
+  <aside class="preview-column">
+    <div class="panel preview-panel">
+      <div class="preview-head">
+        <div>
+          <h2 class="section-title">{{ 'image.preview' | t }}</h2>
+          <p class="section-subtitle">{{ 'rasterText.previewHelp' | t }}</p>
+        </div>
+        @if (previewing) {
+          <i class="pi pi-spin pi-spinner"></i>
+        }
+      </div>
+      <div class="preview-stage">
+        <div class="preview-paper" [class.align-left]="align === 'left'" [class.align-right]="align === 'right'">
+          @if (!preview && !previewError) {
+            <div class="empty">
+              <i class="pi pi-align-left"></i><strong>{{ 'rasterText.previewPlaceholderTitle' | t }}</strong>
+              <span>{{ 'rasterText.previewPlaceholder' | t }}</span>
+            </div>
+          }
+          @if (preview) {
+            <img class="raster-preview-image" [src]="'data:image/png;base64,' + preview.pngBase64" [alt]="'image.preview' | t" />
+          }
+        </div>
+      </div>
+
+      @if (previewError) {
+        <div class="notice error">
+          <i class="pi pi-times-circle"></i>
+          {{ previewError }}
+        </div>
+      }
+      @if (preview && preview.missingCharacters.length > 0) {
+        <div class="notice warning">
+          <i class="pi pi-exclamation-triangle"></i>
+          {{ 'rasterText.missingCharacters' | t: { characters: preview.missingCharacters.join(' ') } }}
+        </div>
+      }
+
+      @if (preview) {
+        <div class="raster-meta">
+          <span><strong>{{ preview.widthDots }} × {{ preview.heightDots }}</strong> {{ 'image.points' | t }}</span>
+          <span><strong>{{ preview.lineCount }}</strong> {{ 'rasterText.lines' | t }}</span>
+        </div>
+        <div class="print-actions">
+          <p-button
+            [label]="'common.print' | t"
+            icon="pi pi-print"
+            [loading]="printing && !cutting"
+            [disabled]="previewing || printing"
+            (onClick)="print(false)"
+          />
+          <p-button
+            [label]="'image.printAndCut' | t"
+            icon="pi pi-minus"
+            severity="secondary"
+            [outlined]="true"
+            [loading]="cutting"
+            [disabled]="previewing || printing"
+            (onClick)="print(true)"
+          />
+        </div>
+      }
+    </div>
+  </aside>
+</div>

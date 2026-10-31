@@ -28,6 +28,12 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/image/image.component').then((m) => m.ImageComponent),
   },
   {
+    path: 'tekst-rastrowy',
+    title: translatedTitle('route.rasterText'),
+    loadComponent: () =>
+      import('./pages/raster-text/raster-text.component').then((m) => m.RasterTextComponent),
+  },
+  {
     path: 'listy',
     title: translatedTitle('route.lists'),
     loadComponent: () => import('./pages/lists/lists.component').then((m) => m.ListsComponent),

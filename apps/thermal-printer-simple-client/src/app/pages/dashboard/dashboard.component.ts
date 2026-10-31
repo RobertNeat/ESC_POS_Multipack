@@ -22,6 +22,12 @@ export class DashboardComponent {
       route: '/obraz',
     },
     {
+      titleKey: 'dashboard.rasterTextTitle' as const,
+      descriptionKey: 'dashboard.rasterTextDescription' as const,
+      icon: 'pi pi-align-left',
+      route: '/tekst-rastrowy',
+    },
+    {
       titleKey: 'dashboard.rawTitle' as const,
       descriptionKey: 'dashboard.rawDescription' as const,
       icon: 'pi pi-code',
