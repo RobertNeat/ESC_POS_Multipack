@@ -59,6 +59,17 @@
   align-items: center;
   justify-content: space-between;
 }
+.threshold-reset {
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 1px 4px;
+}
+.threshold-reset:hover,
+.threshold-reset:focus-visible {
+  background: var(--color-surface-raised);
+  color: var(--accent);
+  outline: none;
+}
 input[type='range'] {
   width: 100%;
   accent-color: var(--accent);

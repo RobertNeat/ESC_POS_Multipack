@@ -168,7 +168,18 @@
 
       @if (mode === 'antialiased') {
         <div class="slider-control">
-          <span><label for="threshold">{{ 'rasterText.threshold' | t }}</label><output>{{ thresholdPercent }}%</output></span>
+          <span
+            ><label for="threshold">{{ 'rasterText.threshold' | t }}</label
+            ><output
+              class="threshold-reset"
+              role="button"
+              tabindex="0"
+              [title]="'rasterText.resetThreshold' | t"
+              (click)="resetThreshold()"
+              (keydown.enter)="resetThreshold()"
+              >{{ thresholdPercent }}%</output
+            ></span
+          >
           <input
             id="threshold"
             type="range"

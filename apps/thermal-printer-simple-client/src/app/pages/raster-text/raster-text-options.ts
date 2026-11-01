@@ -18,7 +18,7 @@ export const DITHER_ALGORITHM_OPTIONS: ReadonlyArray<{
 export const FONT_SIZE_PRESETS_PX = [16, 18, 20] as const;
 export const MIN_FONT_SIZE_PX = 8;
 export const MAX_FONT_SIZE_PX = 64;
-export const DEFAULT_FONT_SIZE_PX = 18;
+export const DEFAULT_FONT_SIZE_PX = 25;
 
 export const MIN_THRESHOLD_PERCENT = 1;
 export const MAX_THRESHOLD_PERCENT = 99;

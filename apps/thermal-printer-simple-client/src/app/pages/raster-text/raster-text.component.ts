@@ -119,6 +119,11 @@ export class RasterTextComponent implements OnInit, OnDestroy {
     this.schedulePreview();
   }
 
+  protected resetThreshold(): void {
+    this.thresholdPercent = 50;
+    this.schedulePreview();
+  }
+
   protected async onFontUpload(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
