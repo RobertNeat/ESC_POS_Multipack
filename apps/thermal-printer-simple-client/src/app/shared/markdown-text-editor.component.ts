@@ -12,6 +12,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
 import { I18nService } from '../core/i18n.service';
 import {
+  currentMarkdownHeadingLevel,
   cycleMarkdownHeading,
   type MarkdownEdit,
   toggleMarkdownCodeBlock,
@@ -61,6 +62,16 @@ export class MarkdownTextEditorComponent {
     const start = input.selectionStart ?? this.value.length;
     const end = input.selectionEnd ?? start;
     return toggleMarkdownSubitem(this.value, start, end) === undefined;
+  }
+
+  protected toolLabel(tool: MarkdownTool): string {
+    if (tool.id !== 'headingCycle') return tool.label;
+    const input = this.editor?.nativeElement;
+    if (!input) return tool.label;
+    const start = input.selectionStart ?? this.value.length;
+    const end = input.selectionEnd ?? start;
+    const level = currentMarkdownHeadingLevel(this.value, start, end);
+    return level > 0 ? `H${level}` : tool.label;
   }
 
   protected refreshToolState(): void {

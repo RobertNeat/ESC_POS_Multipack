@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
+import { DialogModule } from 'primeng/dialog';
 import { SelectModule } from 'primeng/select';
 import { InputTextModule } from 'primeng/inputtext';
 import { FontLibraryApiService } from '../../core/font-library-api.service';
@@ -38,6 +39,7 @@ const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
     FormsModule,
     ButtonModule,
     CheckboxModule,
+    DialogModule,
     SelectModule,
     InputTextModule,
     TranslatePipe,
@@ -57,6 +59,7 @@ export class RasterTextComponent implements OnInit, OnDestroy {
   protected loadingFonts = true;
   protected uploading = false;
   protected deletingFontId?: string;
+  protected fontDialogOpen = false;
 
   protected text = '';
   protected fontId = '';

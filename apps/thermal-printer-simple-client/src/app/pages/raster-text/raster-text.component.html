@@ -8,14 +8,38 @@
 
 <div class="image-workspace">
   <section class="controls">
-    <div class="panel panel-pad settings">
-      <div class="section-row">
-        <div>
-          <h2 class="section-title">{{ 'rasterText.fontLibrary' | t }}</h2>
-          <p class="section-subtitle">{{ 'rasterText.fontLibraryHelp' | t }}</p>
+    <div class="panel panel-pad settings font-summary">
+      <div class="font-summary-row">
+        <div class="font-summary-info">
+          <span class="section-subtitle">{{ 'rasterText.font' | t }}</span>
+          <span class="font-summary-name">{{ selectedFont()?.displayName ?? '—' }}</span>
         </div>
+        <p-button
+          [label]="'rasterText.changeFont' | t"
+          icon="pi pi-palette"
+          severity="secondary"
+          [outlined]="true"
+          [loading]="loadingFonts"
+          (onClick)="fontDialogOpen = true"
+        />
       </div>
+      @if (selectedFont(); as font) {
+        @if (!font.coverage.ok) {
+          <div class="notice warning">
+            <i class="pi pi-exclamation-triangle"></i>
+            {{ 'rasterText.fontMissingGlyphs' | t: { characters: font.coverage.missingCharacters.join(' ') } }}
+          </div>
+        }
+      }
+    </div>
 
+    <p-dialog
+      [(visible)]="fontDialogOpen"
+      [header]="'rasterText.fontDialogTitle' | t"
+      [modal]="true"
+      [dismissableMask]="true"
+      [style]="{ width: '420px' }"
+    >
       <div class="field">
         <label for="font">{{ 'rasterText.font' | t }}</label>
         <p-select
@@ -28,15 +52,6 @@
           (onChange)="schedulePreview()"
         />
       </div>
-
-      @if (selectedFont(); as font) {
-        @if (!font.coverage.ok) {
-          <div class="notice warning">
-            <i class="pi pi-exclamation-triangle"></i>
-            {{ 'rasterText.fontMissingGlyphs' | t: { characters: font.coverage.missingCharacters.join(' ') } }}
-          </div>
-        }
-      }
 
       <ul class="font-list">
         @for (font of fonts; track font.id) {
@@ -77,7 +92,7 @@
         (onClick)="fontFileInput.click()"
       />
       <p class="section-subtitle">{{ 'rasterText.uploadFontHelp' | t }}</p>
-    </div>
+    </p-dialog>
 
     <div class="panel panel-pad settings">
       <h2 class="section-title">{{ 'rasterText.content' | t }}</h2>

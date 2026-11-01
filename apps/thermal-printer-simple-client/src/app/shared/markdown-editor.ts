@@ -94,6 +94,21 @@ export function toggleMarkdownLink(
 const HEADING_PATTERN = /^(#{1,6}) /u;
 
 /**
+ * Reads the heading level (0-6, 0 = not a heading) of the line the
+ * selection/caret is on, so the toolbar button can display the level that
+ * pressing it will produce next.
+ */
+export function currentMarkdownHeadingLevel(
+  text: string,
+  selectionStart: number,
+  selectionEnd: number,
+): number {
+  const range = selectedLineRange(text, selectionStart, selectionEnd);
+  const firstLine = text.slice(range.start, range.end).split('\n')[0] ?? '';
+  return firstLine.match(HEADING_PATTERN)?.[1].length ?? 0;
+}
+
+/**
  * Cycles the first selected line's heading level: plain text -> H1 -> H2 ->
  * ... -> H6 -> H1. Only the first line of a multi-line selection is
  * affected, since headings are block-level.

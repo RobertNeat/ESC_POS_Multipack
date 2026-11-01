@@ -63,10 +63,31 @@ input[type='range'] {
   width: 100%;
   accent-color: var(--accent);
 }
+.font-summary {
+  gap: 10px;
+}
+.font-summary-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.font-summary-info {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.font-summary-name {
+  font-size: 14px;
+  font-weight: 650;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .font-list {
   display: grid;
   gap: 6px;
-  margin: 0;
+  margin: 12px 0;
   padding: 0;
   list-style: none;
 }

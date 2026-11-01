@@ -367,6 +367,8 @@ export const PL_TRANSLATIONS = {
   'rasterText.uploadFontHelp': 'TTF, OTF lub TTC · maks. 5 MB',
   'rasterText.fontMissingGlyphs':
     'Ta czcionka nie zawiera glifów dla: {characters}. Te znaki w tekście zostaną zablokowane, chyba że włączysz "Zezwól na brakujące znaki".',
+  'rasterText.changeFont': 'Zmień czcionkę',
+  'rasterText.fontDialogTitle': 'Wybór czcionki',
   'rasterText.content': 'Treść',
   'rasterText.text': 'Tekst do wydrukowania',
   'rasterText.textPlaceholder': 'Wpisz tekst…',
@@ -769,6 +771,8 @@ export const EN_TRANSLATIONS: Record<TranslationKey, string> = {
   'rasterText.uploadFontHelp': 'TTF, OTF, or TTC · max. 5 MB',
   'rasterText.fontMissingGlyphs':
     'This font has no glyphs for: {characters}. Those characters will be blocked unless you enable "Allow missing glyphs".',
+  'rasterText.changeFont': 'Change font',
+  'rasterText.fontDialogTitle': 'Choose font',
   'rasterText.content': 'Content',
   'rasterText.text': 'Text to print',
   'rasterText.textPlaceholder': 'Type text…',
