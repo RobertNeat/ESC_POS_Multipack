@@ -14,7 +14,7 @@ import type { PrintRasterTextDto } from './dto/print-raster-text.dto';
 import type { RenderRasterTextDto } from './dto/render-raster-text.dto';
 import type { RasterTextPreviewDto } from './dto/raster-text-result.dto';
 import { paperWidthDots } from './paper-width.provider';
-import type { RasterBlock } from './raster-markdown';
+import type { RasterBlock, RasterRun } from './raster-markdown';
 import { parseRasterMarkdown } from './raster-markdown';
 import { RasterTextRenderer, type RenderRequest } from './raster-text-renderer';
 import {
@@ -23,7 +23,20 @@ import {
 } from './raster-text.constants';
 import { RequestGlyphChecker } from './request-glyph-checker';
 
-const RULE_CODEPOINT = 0x2500;
+/** Box-drawing codepoints used for rule lines and table borders (U+2500-257F subset). */
+const BORDER_CODEPOINTS = [
+  0x2500, // ─
+  0x2502, // │
+  0x250c, // ┌
+  0x2510, // ┐
+  0x2514, // └
+  0x2518, // ┘
+  0x251c, // ├
+  0x2524, // ┤
+  0x252c, // ┬
+  0x2534, // ┴
+  0x253c, // ┼
+] as const;
 
 @Injectable()
 export class RasterTextService {
@@ -126,12 +139,17 @@ export class RasterTextService {
     return { result, missingCharacters };
   }
 
-  /** Rule lines use box-drawing glyphs the selected font may lack; fall back to the built-in font when it does. */
+  /** Rule lines and table borders use box-drawing glyphs the selected font may lack; fall back to the built-in font when any are missing. */
   private async resolveRuleFontAlias(
     fontId: string,
     selectedFontAlias: string,
   ): Promise<string> {
-    if (await this.glyphChecker.hasGlyph(fontId, RULE_CODEPOINT)) {
+    const coverage = await Promise.all(
+      BORDER_CODEPOINTS.map((codePoint) =>
+        this.glyphChecker.hasGlyph(fontId, codePoint),
+      ),
+    );
+    if (coverage.every(Boolean)) {
       return selectedFontAlias;
     }
     const builtIn = await this.fontRegistry.ensureRegistered(
@@ -141,24 +159,37 @@ export class RasterTextService {
   }
 }
 
-function applyBoldOverride(
+export function applyBoldOverride(
   blocks: readonly RasterBlock[],
   forceBold: boolean,
 ): readonly RasterBlock[] {
   if (!forceBold) return blocks;
-  return blocks.map((block) =>
-    block.kind === 'line'
-      ? { ...block, runs: block.runs.map((run) => ({ ...run, bold: true })) }
-      : block,
-  );
+  const bolden = (run: RasterRun): RasterRun => ({ ...run, bold: true });
+  return blocks.map((block) => {
+    if (block.kind === 'line') {
+      return { ...block, runs: block.runs.map(bolden) };
+    }
+    if (block.kind === 'table') {
+      return {
+        ...block,
+        header: block.header.map((cell) => cell.map(bolden)),
+        rows: block.rows.map((row) => row.map((cell) => cell.map(bolden))),
+      };
+    }
+    return block;
+  });
 }
 
-function visibleTextOf(blocks: readonly RasterBlock[]): string {
-  return blocks
-    .filter(
-      (block): block is Extract<RasterBlock, { kind: 'line' }> =>
-        block.kind === 'line',
-    )
-    .map((block) => block.runs.map((run) => run.text).join(''))
-    .join('\n');
+export function visibleTextOf(blocks: readonly RasterBlock[]): string {
+  const parts: string[] = [];
+  for (const block of blocks) {
+    if (block.kind === 'line') {
+      parts.push(block.runs.map((run) => run.text).join(''));
+    } else if (block.kind === 'table') {
+      for (const cell of [...block.header, ...block.rows.flat()]) {
+        parts.push(cell.map((run) => run.text).join(''));
+      }
+    }
+  }
+  return parts.join('\n');
 }

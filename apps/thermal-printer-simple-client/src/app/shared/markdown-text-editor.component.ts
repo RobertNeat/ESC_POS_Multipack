@@ -11,6 +11,7 @@ import { FormsModule } from '@angular/forms';
 import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
 import { I18nService } from '../core/i18n.service';
+import { TranslatePipe } from '../core/translate.pipe';
 import {
   currentMarkdownHeadingLevel,
   cycleMarkdownHeading,
@@ -22,11 +23,12 @@ import {
   toggleMarkdownTask,
 } from './markdown-editor';
 import { localizedMarkdownTools, MarkdownTool, MarkdownToolId } from './markdown-tools';
+import { formatMarkdownTables, hasMarkdownTable } from './table-markdown';
 import { editTextField, toggleTextMarker } from './text-editor';
 
 @Component({
   selector: 'app-markdown-text-editor',
-  imports: [FormsModule, InputTextModule, TextareaModule],
+  imports: [FormsModule, InputTextModule, TextareaModule, TranslatePipe],
   templateUrl: './markdown-text-editor.component.html',
   styleUrl: './markdown-text-editor.component.css',
 })
@@ -77,6 +79,37 @@ export class MarkdownTextEditorComponent {
   protected refreshToolState(): void {
     // Triggers change detection to re-evaluate isToolDisabled() after the
     // caret/selection moves without the value itself changing.
+  }
+
+  protected showTableFormatter(): boolean {
+    return this.enabledTools.includes('table');
+  }
+
+  protected isTableFormatterDisabled(): boolean {
+    return !hasMarkdownTable(this.value);
+  }
+
+  protected formatTables(): void {
+    const input = this.editor?.nativeElement;
+    if (!input || this.isTableFormatterDisabled()) return;
+    const caret = input.selectionStart ?? this.value.length;
+    const { text, caret: nextCaret } = formatMarkdownTables(this.value, caret);
+    if (text === this.value) return;
+    if (text.length > this.maxLength) return;
+    input.setSelectionRange(0, this.value.length);
+    editTextField(input, text, nextCaret, nextCaret);
+  }
+
+  protected onTextEditorKeydown(event: KeyboardEvent): void {
+    if (!this.showTableFormatter()) return;
+    // AltGr is reported by the browser as ctrlKey+altKey (e.g. producing
+    // "ś" on a Polish keyboard via AltGr+S) - excluding altKey here keeps
+    // that combination typing its character instead of being swallowed.
+    const isSaveShortcut =
+      (event.ctrlKey || event.metaKey) && !event.altKey && event.key.toLowerCase() === 's';
+    if (!isSaveShortcut) return;
+    event.preventDefault();
+    this.formatTables();
   }
 
   protected updateValue(value: string): void {

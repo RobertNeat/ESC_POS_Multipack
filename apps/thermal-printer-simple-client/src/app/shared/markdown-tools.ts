@@ -85,6 +85,7 @@ export const RASTER_TEXT_MARKDOWN_TOOLS: readonly MarkdownToolId[] = [
   'numberedList',
   'taskList',
   'nestedList',
+  'table',
   'link',
 ];
 

@@ -135,3 +135,70 @@ describe('RasterLayoutEngine', () => {
     expect(rule.height).toBeGreaterThan(0);
   });
 });
+
+describe('RasterLayoutEngine tables', () => {
+  const engine = new RasterLayoutEngine();
+
+  beforeAll(() => {
+    if (!GlobalFonts.has(FONT_ALIAS)) {
+      GlobalFonts.register(readFileSync(BUILT_IN_FONT_PATH), FONT_ALIAS);
+    }
+  });
+
+  function tableSource(): string {
+    return ['| a | b |', '| - | - |', '| 1 | two |', '| 3 | four |'].join('\n');
+  }
+
+  it('produces one PositionedTable with a border row above and below each content row', () => {
+    const blocks = parseRasterMarkdown(tableSource(), 18);
+    const layout = engine.layout(blocks, baseOptions());
+    expect(layout.tables).toHaveLength(1);
+    const [table] = layout.tables;
+    expect(table.borderRowsY).toHaveLength(4); // top, header/body separator, between the 2 body rows, bottom
+    expect(table.contentRowsY).toHaveLength(3); // header + 2 body rows
+    expect(table.columnBoundariesX).toHaveLength(3); // 2 columns -> 3 boundaries
+  });
+
+  it('keeps column boundaries strictly increasing and within the paper width', () => {
+    const blocks = parseRasterMarkdown(tableSource(), 18);
+    const layout = engine.layout(blocks, baseOptions({ widthDots: 300 }));
+    const [table] = layout.tables;
+    for (let index = 1; index < table.columnBoundariesX.length; index += 1) {
+      expect(table.columnBoundariesX[index]).toBeGreaterThan(
+        table.columnBoundariesX[index - 1],
+      );
+    }
+    expect(table.columnBoundariesX.at(-1)).toBeLessThanOrEqual(300);
+  });
+
+  it('wraps a cell whose content cannot fit the available column width', () => {
+    const source = [
+      '| a |',
+      '| - |',
+      '| this is a long cell that must wrap onto more than one line |',
+    ].join('\n');
+    const blocks = parseRasterMarkdown(source, 18);
+    const layout = engine.layout(blocks, baseOptions({ widthDots: 80 }));
+    const [table] = layout.tables;
+    expect(table.contentRowsY[1].bottom).toBeGreaterThan(
+      table.contentRowsY[1].top + Math.round(18 * 1.2),
+    );
+  });
+
+  it('throws when a table has too many columns to fit the paper width', () => {
+    const cells = Array.from({ length: 50 }, (_, index) => `c${index}`);
+    const header = `| ${cells.join(' | ')} |`;
+    const delimiter = `| ${cells.map(() => '-').join(' | ')} |`;
+    const blocks = parseRasterMarkdown(`${header}\n${delimiter}`, 18);
+    expect(() =>
+      engine.layout(blocks, baseOptions({ widthDots: 80 })),
+    ).toThrow();
+  });
+
+  it('keeps the table within heightDots so the renderer never clips it', () => {
+    const blocks = parseRasterMarkdown(tableSource(), 18);
+    const layout = engine.layout(blocks, baseOptions());
+    const [table] = layout.tables;
+    expect(table.borderRowsY.at(-1)).toBeLessThanOrEqual(layout.heightDots);
+  });
+});

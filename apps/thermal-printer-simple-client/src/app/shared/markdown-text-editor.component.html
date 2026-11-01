@@ -35,11 +35,25 @@
       (select)="refreshToolState()"
       (keyup)="refreshToolState()"
       (click)="refreshToolState()"
+      (keydown)="onTextEditorKeydown($event)"
     ></textarea>
     @if (wrapColumn) {
       <span class="wrap-guide" [title]="wrapColumnTitle()">
         <b>{{ wrapColumn }}</b>
       </span>
+    }
+    @if (showTableFormatter()) {
+      <button
+        type="button"
+        class="table-format-fab"
+        [disabled]="isTableFormatterDisabled()"
+        (mousedown)="$event.preventDefault()"
+        (click)="formatTables()"
+        [title]="'editor.formatTables' | t"
+        [attr.aria-label]="'editor.formatTables' | t"
+      >
+        <i class="pi pi-refresh"></i>
+      </button>
     }
   } @else {
     @if (prefix) {

@@ -61,6 +61,73 @@ describe('MarkdownTextEditorComponent', () => {
     expect(editor.value).toBe('Ala ma _kota_ i psa');
     expect([editor.selectionStart, editor.selectionEnd]).toEqual([8, 12]);
   });
+
+  it('formats tables and prevents default on Ctrl+S when the table tool is enabled', async () => {
+    const fixture = await createEditor('|a|b|\n|-|-|\n|1|two|', ['table']);
+    const host = fixture.nativeElement as HTMLElement;
+    const editor = host.querySelector('textarea');
+    editor.setSelectionRange(0, 0);
+
+    const keydown = new KeyboardEvent('keydown', {
+      key: 's',
+      ctrlKey: true,
+      bubbles: true,
+      cancelable: true,
+    });
+    editor.dispatchEvent(keydown);
+    await fixture.whenStable();
+
+    expect(keydown.defaultPrevented).toBe(true);
+    expect(editor.value).toBe('| a | b   |\n| --- | --- |\n| 1 | two |');
+  });
+
+  it('does not treat AltGr+S (reported as Ctrl+Alt+S) as the format shortcut', async () => {
+    const original = '|a|b|\n|-|-|\n|1|two|';
+    const fixture = await createEditor(original, ['table']);
+    const host = fixture.nativeElement as HTMLElement;
+    const editor = host.querySelector('textarea');
+
+    const keydown = new KeyboardEvent('keydown', {
+      key: 's',
+      ctrlKey: true,
+      altKey: true,
+      bubbles: true,
+      cancelable: true,
+    });
+    editor.dispatchEvent(keydown);
+    await fixture.whenStable();
+
+    expect(keydown.defaultPrevented).toBe(false);
+    expect(editor.value).toBe(original);
+  });
+
+  it('hides the table-format FAB when the table tool is not enabled', async () => {
+    const fixture = await createEditor('plain text', ['bold']);
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('.table-format-fab')).toBeNull();
+  });
+
+  it('disables the table-format FAB when the text has no table to format', async () => {
+    const fixture = await createEditor('plain text', ['table']);
+    const host = fixture.nativeElement as HTMLElement;
+    const fab = host.querySelector<HTMLButtonElement>('.table-format-fab');
+    expect(fab).not.toBeNull();
+    expect(fab?.disabled).toBe(true);
+  });
+
+  it('enables the table-format FAB when the text has a table and formats it on click', async () => {
+    const fixture = await createEditor('|a|b|\n|-|-|\n|1|two|', ['table']);
+    const host = fixture.nativeElement as HTMLElement;
+    const editor = host.querySelector('textarea');
+    const fab = host.querySelector<HTMLButtonElement>('.table-format-fab');
+    expect(fab?.disabled).toBe(false);
+
+    fab?.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
+    fab?.click();
+    await fixture.whenStable();
+
+    expect(editor.value).toBe('| a | b   |\n| --- | --- |\n| 1 | two |');
+  });
 });
 
 async function createEditor(
