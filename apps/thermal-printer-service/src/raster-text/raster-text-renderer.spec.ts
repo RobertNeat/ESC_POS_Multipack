@@ -43,6 +43,7 @@ describe('RasterTextRenderer', () => {
     if (!GlobalFonts.has(FONT_ALIAS)) {
       GlobalFonts.register(readFileSync(BUILT_IN_FONT_PATH), FONT_ALIAS);
     }
+    expect(GlobalFonts.has(FONT_ALIAS)).toBe(true);
   });
 
   it('packs bitmap width as a multiple of 8 (byte-padded)', () => {
@@ -87,7 +88,7 @@ describe('RasterTextRenderer', () => {
     );
   });
 
-  it('matches a pixel-count snapshot for a fixed sample render', () => {
+  it('matches a fixed sample render (dimensions exact, black-pixel count within a tolerance band)', () => {
     const result = renderer.render(
       baseRequest('Snapshot ABC', {
         widthDots: 200,
@@ -104,8 +105,17 @@ describe('RasterTextRenderer', () => {
       heightDots: result.heightDots,
       lineCount: result.lineCount,
       widthBytes: result.bitmap.widthBytes,
-      blackBits,
-    }).toMatchSnapshot();
+    }).toEqual({
+      widthDots: 200,
+      heightDots: 22,
+      lineCount: 1,
+      widthBytes: 25,
+    });
+    // Skia's glyph rasterization differs slightly between platforms (observed
+    // 380 on Windows, 398 on the Linux CI runner), so the exact count isn't
+    // portable; a wide band still catches real rendering regressions.
+    expect(blackBits).toBeGreaterThanOrEqual(340);
+    expect(blackBits).toBeLessThanOrEqual(440);
   });
 
   it('draws a rule line fully black across the full width in every mode', () => {
