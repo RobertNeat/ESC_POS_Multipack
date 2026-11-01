@@ -1,9 +1,20 @@
 name: esc-pos-multipack
 
 services:
+  fonts-permissions:
+    image: ${REGISTRY}/${COMPOSE_PROJECT_NAME}/thermal-printer-service:${IMAGE_TAG}
+    user: '0'
+    command: ['chown', '-R', 'node:node', '${FONTS_DIR:-/home/node/fonts}']
+    volumes:
+      - fonts_data:${FONTS_DIR:-/home/node/fonts}
+    restart: 'no'
+
   thermal-printer-service:
     container_name: thermal-printer_service
     image: ${REGISTRY}/${COMPOSE_PROJECT_NAME}/thermal-printer-service:${IMAGE_TAG}
+    depends_on:
+      fonts-permissions:
+        condition: service_completed_successfully
     environment:
       PORT: ${SERVICE_PORT:?SERVICE_PORT must be set in config.env}
       CLIENT_ORIGIN: http://${PUBLIC_HOST:?PUBLIC_HOST must be set in config.env}:${CLIENT_PORT}
