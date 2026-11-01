@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { BUILT_IN_GEIST_MONO_ID } from '../fonts/font-library.constants';
 import { FontNotFoundError } from '../fonts/font-library.errors';
 import { FontUsageTracker } from '../fonts/font-usage-tracker';
 import { OperationResultDto } from '../printer/dto/operation-result.dto';
@@ -13,12 +14,16 @@ import type { PrintRasterTextDto } from './dto/print-raster-text.dto';
 import type { RenderRasterTextDto } from './dto/render-raster-text.dto';
 import type { RasterTextPreviewDto } from './dto/raster-text-result.dto';
 import { paperWidthDots } from './paper-width.provider';
+import type { RasterBlock } from './raster-markdown';
+import { parseRasterMarkdown } from './raster-markdown';
 import { RasterTextRenderer, type RenderRequest } from './raster-text-renderer';
 import {
+  MAX_RASTER_HEIGHT_DOTS,
   MAX_RASTER_WIDTH_BYTES,
-  maxLinesForLineHeight,
 } from './raster-text.constants';
 import { RequestGlyphChecker } from './request-glyph-checker';
+
+const RULE_CODEPOINT = 0x2500;
 
 @Injectable()
 export class RasterTextService {
@@ -69,9 +74,15 @@ export class RasterTextService {
   }
 
   private async renderCheckedUnsafe(dto: RenderRasterTextDto) {
+    const blocks = applyBoldOverride(
+      parseRasterMarkdown(dto.text, dto.fontSizePx),
+      dto.bold,
+    );
+    const visibleText = visibleTextOf(blocks);
+
     const missingCharacters = await this.glyphChecker.missingCharacters(
       dto.fontId,
-      dto.text,
+      visibleText,
     );
     if (missingCharacters.length > 0 && !dto.allowMissingGlyphs) {
       throw new BadRequestException(
@@ -88,29 +99,66 @@ export class RasterTextService {
     }
 
     const aliases = await this.fontRegistry.ensureRegistered(dto.fontId);
-    const lineHeightPx = Math.round(dto.fontSizePx * dto.lineSpacing);
+    const ruleFontAlias = await this.resolveRuleFontAlias(
+      dto.fontId,
+      aliases.regular,
+    );
 
     const request: RenderRequest = {
-      text: dto.text,
+      blocks,
       widthDots,
       fontAlias: aliases.regular,
-      fontSizePx: dto.fontSizePx,
-      bold: dto.bold,
-      lineHeightPx,
+      ruleFontAlias,
+      lineSpacing: dto.lineSpacing,
       align: dto.align,
       mode: dto.mode,
       thresholdPercent: dto.thresholdPercent,
       ditherAlgorithm: dto.ditherAlgorithm,
     };
 
-    const maxLines = maxLinesForLineHeight(lineHeightPx);
     const result = this.renderer.render(request);
-    if (result.lineCount > maxLines) {
+    if (result.heightDots > MAX_RASTER_HEIGHT_DOTS) {
       throw new BadRequestException(
-        `Text renders to ${result.lineCount} lines, which exceeds the ${maxLines}-line limit for one raster block at this size. Shorten the text.`,
+        `Text renders to ${result.heightDots} dots tall, which exceeds the ${MAX_RASTER_HEIGHT_DOTS}-dot limit for one raster block. Shorten the text.`,
       );
     }
 
     return { result, missingCharacters };
   }
+
+  /** Rule lines use box-drawing glyphs the selected font may lack; fall back to the built-in font when it does. */
+  private async resolveRuleFontAlias(
+    fontId: string,
+    selectedFontAlias: string,
+  ): Promise<string> {
+    if (await this.glyphChecker.hasGlyph(fontId, RULE_CODEPOINT)) {
+      return selectedFontAlias;
+    }
+    const builtIn = await this.fontRegistry.ensureRegistered(
+      BUILT_IN_GEIST_MONO_ID,
+    );
+    return builtIn.regular;
+  }
+}
+
+function applyBoldOverride(
+  blocks: readonly RasterBlock[],
+  forceBold: boolean,
+): readonly RasterBlock[] {
+  if (!forceBold) return blocks;
+  return blocks.map((block) =>
+    block.kind === 'line'
+      ? { ...block, runs: block.runs.map((run) => ({ ...run, bold: true })) }
+      : block,
+  );
+}
+
+function visibleTextOf(blocks: readonly RasterBlock[]): string {
+  return blocks
+    .filter(
+      (block): block is Extract<RasterBlock, { kind: 'line' }> =>
+        block.kind === 'line',
+    )
+    .map((block) => block.runs.map((run) => run.text).join(''))
+    .join('\n');
 }

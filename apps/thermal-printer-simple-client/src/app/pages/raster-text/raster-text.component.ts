@@ -12,6 +12,8 @@ import { I18nService } from '../../core/i18n.service';
 import { TranslatePipe } from '../../core/translate.pipe';
 import { Alignment } from '../../core/printer.models';
 import { ALIGNMENT_OPTIONS } from '../../shared/printer-options';
+import { MarkdownTextEditorComponent } from '../../shared/markdown-text-editor.component';
+import { RASTER_TEXT_MARKDOWN_TOOLS } from '../../shared/markdown-tools';
 import { DitherAlgorithm, FontSummary, RasterTextMode, RasterTextPreview } from '../../core/raster-text.models';
 import {
   DEFAULT_FONT_SIZE_PX,
@@ -32,7 +34,15 @@ const PREVIEW_DEBOUNCE_MS = 300;
 const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
 
 @Component({
-  imports: [FormsModule, ButtonModule, CheckboxModule, SelectModule, InputTextModule, TranslatePipe],
+  imports: [
+    FormsModule,
+    ButtonModule,
+    CheckboxModule,
+    SelectModule,
+    InputTextModule,
+    TranslatePipe,
+    MarkdownTextEditorComponent,
+  ],
   templateUrl: './raster-text.component.html',
   styleUrl: './raster-text.component.css',
 })
@@ -72,6 +82,7 @@ export class RasterTextComponent implements OnInit, OnDestroy {
   protected readonly maxThresholdPercent = MAX_THRESHOLD_PERCENT;
   protected readonly minLineSpacing = MIN_LINE_SPACING;
   protected readonly maxLineSpacing = MAX_LINE_SPACING;
+  protected readonly rasterTextMarkdownTools = RASTER_TEXT_MARKDOWN_TOOLS;
 
   protected alignmentOptions() {
     return ALIGNMENT_OPTIONS.map((option) => ({ ...option, label: this.i18n.t(option.labelKey) }));
@@ -98,6 +109,11 @@ export class RasterTextComponent implements OnInit, OnDestroy {
   protected schedulePreview(): void {
     if (this.debounceHandle !== undefined) clearTimeout(this.debounceHandle);
     this.debounceHandle = setTimeout(() => void this.runPreview(), PREVIEW_DEBOUNCE_MS);
+  }
+
+  protected onTextChange(value: string): void {
+    this.text = value;
+    this.schedulePreview();
   }
 
   protected async onFontUpload(event: Event): Promise<void> {

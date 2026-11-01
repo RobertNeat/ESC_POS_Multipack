@@ -1,16 +1,26 @@
 import {
-  MAX_RASTER_HEIGHT_DOTS,
-  maxLinesForLineHeight,
+  HEADING_SIZE_LADDER_PX,
+  nextHeadingSizePx,
 } from './raster-text.constants';
 
-describe('maxLinesForLineHeight', () => {
-  it('matches the GS v 0 height cap divided by line height', () => {
-    expect(maxLinesForLineHeight(22)).toBe(
-      Math.floor(MAX_RASTER_HEIGHT_DOTS / 22),
-    );
+describe('nextHeadingSizePx', () => {
+  it('picks the next step strictly larger than the current size', () => {
+    expect(nextHeadingSizePx(18)).toBe(20);
+    expect(nextHeadingSizePx(20)).toBe(24);
   });
 
-  it('never returns less than 1, even for a huge line height', () => {
-    expect(maxLinesForLineHeight(MAX_RASTER_HEIGHT_DOTS * 10)).toBe(1);
+  it('caps at the top of the ladder', () => {
+    expect(nextHeadingSizePx(64)).toBe(64);
+    expect(nextHeadingSizePx(100)).toBe(64);
+  });
+
+  it('steps up from a size between two ladder rungs', () => {
+    expect(nextHeadingSizePx(17)).toBe(18);
+  });
+
+  it('matches the documented ladder', () => {
+    expect([...HEADING_SIZE_LADDER_PX]).toEqual([
+      16, 18, 20, 24, 28, 32, 40, 48, 64,
+    ]);
   });
 });

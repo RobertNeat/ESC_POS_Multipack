@@ -50,6 +50,12 @@ describe('RequestGlyphChecker', () => {
     expect(missing).toEqual(['अ']);
   });
 
+  it('reports whether the font covers a specific codepoint (box-drawing rule glyph)', async () => {
+    const checker = new RequestGlyphChecker(fakeFontLibrary());
+    expect(await checker.hasGlyph('font-a', 0x2500)).toBe(true);
+    expect(await checker.hasGlyph('font-a', 0x1f600)).toBe(false);
+  });
+
   it('forgets a cached font after onFontDeleted', async () => {
     let resolveCalls = 0;
     const fonts = {

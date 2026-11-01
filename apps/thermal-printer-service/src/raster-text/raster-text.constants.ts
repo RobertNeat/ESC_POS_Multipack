@@ -17,10 +17,14 @@ export const MAX_THRESHOLD_PERCENT = 99;
 export const SUPERSAMPLE_FACTOR = 3;
 
 /**
- * One raster-text request renders to a single GS v 0 block (v1 scope — no
- * multi-band pagination). This caps how many wrapped lines fit before the
- * UI must warn/truncate, assuming the tallest supported line height.
+ * Ladder the H1 heading cycle steps through: the next size strictly larger
+ * than the current body fontSizePx, capped at the top of the ladder.
  */
-export function maxLinesForLineHeight(lineHeightPx: number): number {
-  return Math.max(1, Math.floor(MAX_RASTER_HEIGHT_DOTS / lineHeightPx));
+export const HEADING_SIZE_LADDER_PX = [
+  16, 18, 20, 24, 28, 32, 40, 48, 64,
+] as const;
+
+export function nextHeadingSizePx(currentFontSizePx: number): number {
+  const next = HEADING_SIZE_LADDER_PX.find((step) => step > currentFontSizePx);
+  return next ?? HEADING_SIZE_LADDER_PX[HEADING_SIZE_LADDER_PX.length - 1];
 }

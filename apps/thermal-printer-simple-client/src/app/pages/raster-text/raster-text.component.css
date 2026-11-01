@@ -26,9 +26,6 @@
   font-weight: 700;
   cursor: pointer;
 }
-.raster-text-input {
-  resize: vertical;
-}
 .inline-options {
   display: grid;
   grid-template-columns: 1fr auto 1fr;

@@ -3,6 +3,7 @@ import { TranslationKey } from '../core/translations';
 
 export type MarkdownToolId =
   | 'h1'
+  | 'headingCycle'
   | 'bold'
   | 'underline'
   | 'reverse'
@@ -15,8 +16,7 @@ export type MarkdownToolId =
   | 'taskList'
   | 'nestedList'
   | 'table'
-  | 'link'
-  | 'image';
+  | 'link';
 
 export interface MarkdownTool {
   readonly id: MarkdownToolId;
@@ -27,7 +27,7 @@ export interface MarkdownTool {
   readonly value?: string;
   readonly linePrefix?: string;
   readonly codeBlock?: boolean;
-  readonly reference?: 'link' | 'image';
+  readonly reference?: 'link';
 }
 
 interface MarkdownToolDefinition extends Omit<MarkdownTool, 'label' | 'hint' | 'value'> {
@@ -51,7 +51,6 @@ export const MARKDOWN_DOCUMENT_TOOLS: readonly MarkdownToolId[] = [
   'nestedList',
   'table',
   'link',
-  'image',
 ];
 
 export const TYPEWRITER_MARKDOWN_TOOLS: readonly MarkdownToolId[] = [
@@ -66,7 +65,6 @@ export const TYPEWRITER_MARKDOWN_TOOLS: readonly MarkdownToolId[] = [
   'numberedList',
   'taskList',
   'link',
-  'image',
 ];
 
 export const LIST_MARKDOWN_TOOLS: readonly MarkdownToolId[] = [
@@ -79,6 +77,17 @@ export const LIST_MARKDOWN_TOOLS: readonly MarkdownToolId[] = [
   'reverse',
 ];
 
+export const RASTER_TEXT_MARKDOWN_TOOLS: readonly MarkdownToolId[] = [
+  'headingCycle',
+  'bold',
+  'codeBlock',
+  'bulletList',
+  'numberedList',
+  'taskList',
+  'nestedList',
+  'link',
+];
+
 const TOOL_DEFINITIONS: readonly MarkdownToolDefinition[] = [
   {
     id: 'h1',
@@ -87,6 +96,12 @@ const TOOL_DEFINITIONS: readonly MarkdownToolDefinition[] = [
     icon: 'pi pi-hashtag',
     value: '\n# {heading}\n',
     linePrefix: '# ',
+  },
+  {
+    id: 'headingCycle',
+    labelKey: 'tool.h1',
+    hintKey: 'tool.headingCycleHint',
+    icon: 'pi pi-hashtag',
   },
   {
     id: 'bold',
@@ -185,14 +200,6 @@ const TOOL_DEFINITIONS: readonly MarkdownToolDefinition[] = [
     icon: 'pi pi-link',
     value: '[{description}](https://)',
     reference: 'link',
-  },
-  {
-    id: 'image',
-    labelKey: 'tool.image',
-    hintKey: 'tool.imageHint',
-    icon: 'pi pi-image',
-    value: '![{description}](https://)',
-    reference: 'image',
   },
 ];
 

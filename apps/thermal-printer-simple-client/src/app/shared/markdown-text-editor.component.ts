@@ -12,10 +12,13 @@ import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
 import { I18nService } from '../core/i18n.service';
 import {
+  cycleMarkdownHeading,
   type MarkdownEdit,
   toggleMarkdownCodeBlock,
   toggleMarkdownLinePrefix,
   toggleMarkdownLink,
+  toggleMarkdownSubitem,
+  toggleMarkdownTask,
 } from './markdown-editor';
 import { localizedMarkdownTools, MarkdownTool, MarkdownToolId } from './markdown-tools';
 import { editTextField, toggleTextMarker } from './text-editor';
@@ -51,6 +54,20 @@ export class MarkdownTextEditorComponent {
     return localizedMarkdownTools(this.i18n, this.enabledTools);
   }
 
+  protected isToolDisabled(tool: MarkdownTool): boolean {
+    if (tool.id !== 'nestedList') return false;
+    const input = this.editor?.nativeElement;
+    if (!input) return false;
+    const start = input.selectionStart ?? this.value.length;
+    const end = input.selectionEnd ?? start;
+    return toggleMarkdownSubitem(this.value, start, end) === undefined;
+  }
+
+  protected refreshToolState(): void {
+    // Triggers change detection to re-evaluate isToolDisabled() after the
+    // caret/selection moves without the value itself changing.
+  }
+
   protected updateValue(value: string): void {
     this.value = value;
     this.valueChange.emit(value);
@@ -75,6 +92,19 @@ export class MarkdownTextEditorComponent {
     const end = this.selectedRange?.end ?? input.selectionEnd ?? start;
     this.selectedRange = undefined;
     const selected = this.value.slice(start, end);
+    if (tool.id === 'headingCycle') {
+      this.applyEdit(cycleMarkdownHeading(this.value, start, end), input);
+      return;
+    }
+    if (tool.id === 'taskList') {
+      this.applyEdit(toggleMarkdownTask(this.value, start, end), input);
+      return;
+    }
+    if (tool.id === 'nestedList') {
+      const edit = toggleMarkdownSubitem(this.value, start, end);
+      if (edit) this.applyEdit(edit, input);
+      return;
+    }
     if (tool.marker) {
       this.applyEdit(toggleTextMarker(this.value, start, end, tool.marker), input);
       return;
@@ -88,7 +118,7 @@ export class MarkdownTextEditorComponent {
       return;
     }
     if (selected && tool.reference) {
-      this.applyEdit(toggleMarkdownLink(this.value, start, end, tool.reference === 'image'), input);
+      this.applyEdit(toggleMarkdownLink(this.value, start, end), input);
       return;
     }
 

@@ -3,6 +3,7 @@
     @for (tool of tools(); track tool.id) {
       <button
         type="button"
+        [disabled]="isToolDisabled(tool)"
         (mousedown)="captureSelection($event)"
         (click)="applyTool(tool)"
         [title]="tool.hint"
@@ -31,6 +32,9 @@
       [attr.aria-label]="ariaLabel"
       [placeholder]="placeholder"
       [spellcheck]="spellcheck"
+      (select)="refreshToolState()"
+      (keyup)="refreshToolState()"
+      (click)="refreshToolState()"
     ></textarea>
     @if (wrapColumn) {
       <span class="wrap-guide" [title]="wrapColumnTitle()">

@@ -82,15 +82,16 @@
     <div class="panel panel-pad settings">
       <h2 class="section-title">{{ 'rasterText.content' | t }}</h2>
       <div class="field">
-        <label for="text">{{ 'rasterText.text' | t }}</label>
-        <textarea
-          id="text"
-          class="raster-text-input"
-          rows="6"
-          [(ngModel)]="text"
+        <span class="field-label">{{ 'rasterText.text' | t }}</span>
+        <app-markdown-text-editor
+          [value]="text"
+          (valueChange)="onTextChange($event)"
+          [enabledTools]="rasterTextMarkdownTools"
+          [rows]="8"
+          [maxLength]="4000"
           [placeholder]="'rasterText.textPlaceholder' | t"
-          (input)="schedulePreview()"
-        ></textarea>
+          [ariaLabel]="'rasterText.text' | t"
+        />
       </div>
 
       <div class="inline-options">

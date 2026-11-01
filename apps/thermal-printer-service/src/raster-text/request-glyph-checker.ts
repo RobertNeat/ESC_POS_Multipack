@@ -41,6 +41,12 @@ export class RequestGlyphChecker implements FontDeletionHook, OnModuleInit {
     return [...missing];
   }
 
+  /** Used to decide whether a renderer-generated glyph (e.g. a rule's ─) needs a font fallback. */
+  async hasGlyph(fontId: string, codePoint: number): Promise<boolean> {
+    const font = await this.loadFont(fontId);
+    return hasGlyph(font, codePoint);
+  }
+
   private async loadFont(fontId: string): Promise<Font> {
     const cached = this.fontsById.get(fontId);
     if (cached) return cached;

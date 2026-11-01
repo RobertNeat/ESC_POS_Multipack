@@ -7,24 +7,25 @@ import {
   packGrayscaleToBits,
   type PackedBitmap,
 } from './monochrome-packing';
+import {
+  RasterLayoutEngine,
+  type BlockLayout,
+  type BlockLayoutOptions,
+} from './raster-layout-engine';
+import type { RasterBlock } from './raster-markdown';
 import type {
   DitherAlgorithm,
   RasterTextRenderMode,
 } from './raster-text-render-mode';
 import { SUPERSAMPLE_FACTOR } from './raster-text.constants';
-import {
-  fontString,
-  TextLayoutEngine,
-  type TextLayout,
-} from './text-layout-engine';
+import { fontString } from './text-layout-engine';
 
 export interface RenderRequest {
-  readonly text: string;
+  readonly blocks: readonly RasterBlock[];
   readonly widthDots: number;
   readonly fontAlias: string;
-  readonly fontSizePx: number;
-  readonly bold: boolean;
-  readonly lineHeightPx: number;
+  readonly ruleFontAlias: string;
+  readonly lineSpacing: number;
   readonly align: 'left' | 'center' | 'right';
   readonly mode: RasterTextRenderMode;
   readonly thresholdPercent: number;
@@ -38,19 +39,21 @@ export interface RenderResult {
   readonly lineCount: number;
 }
 
+const RULE_CHARACTER = '─';
+
 @Injectable()
 export class RasterTextRenderer {
-  constructor(private readonly layoutEngine: TextLayoutEngine) {}
+  constructor(private readonly layoutEngine: RasterLayoutEngine) {}
 
   render(request: RenderRequest): RenderResult {
-    const layout = this.layoutEngine.layout(request.text, {
+    const layoutOptions: BlockLayoutOptions = {
       widthDots: request.widthDots,
-      fontAlias: request.fontAlias,
-      fontSizePx: request.fontSizePx,
-      bold: request.bold,
-      lineHeightPx: request.lineHeightPx,
+      lineSpacing: request.lineSpacing,
       align: request.align,
-    });
+      fontAlias: request.fontAlias,
+      ruleFontAlias: request.ruleFontAlias,
+    };
+    const layout = this.layoutEngine.layout(request.blocks, layoutOptions);
 
     const grayscale =
       request.mode === 'raw'
@@ -80,17 +83,17 @@ export class RasterTextRenderer {
    * step `renderSupersampled` applies.
    */
   private renderDirect(
-    layout: TextLayout,
-    request: RenderRequestFontOnly,
+    layout: BlockLayout,
+    request: RenderRequest,
   ): Uint8ClampedArray {
-    const context = this.paint(
-      request,
+    const context = this.paint(request.widthDots, layout.heightDots);
+    this.paintLines(
+      context,
+      layout,
       request.widthDots,
-      layout.heightDots,
+      request.ruleFontAlias,
       1,
     );
-    for (const line of layout.lines)
-      context.fillText(line.text, line.x, line.y);
     return toGrayscale(context, request.widthDots, layout.heightDots);
   }
 
@@ -100,45 +103,67 @@ export class RasterTextRenderer {
    * filter choice we don't control runs after the final pixels exist).
    */
   private renderSupersampled(
-    layout: TextLayout,
-    request: RenderRequestFontOnly,
+    layout: BlockLayout,
+    request: RenderRequest,
   ): Uint8ClampedArray {
     const scale = SUPERSAMPLE_FACTOR;
     const bigWidth = request.widthDots * scale;
     const bigHeight = layout.heightDots * scale;
-    const context = this.paint(request, bigWidth, bigHeight, scale);
-    for (const line of layout.lines) {
-      context.fillText(line.text, line.x * scale, line.y * scale);
-    }
+    const context = this.paint(bigWidth, bigHeight);
+    this.paintLines(
+      context,
+      layout,
+      request.widthDots,
+      request.ruleFontAlias,
+      scale,
+    );
     const big = toGrayscale(context, bigWidth, bigHeight);
     return boxDownscale(big, bigWidth, bigHeight, scale);
   }
 
-  private paint(
-    request: RenderRequestFontOnly,
-    canvasWidth: number,
-    canvasHeight: number,
+  private paintLines(
+    context: SKRSContext2D,
+    layout: BlockLayout,
+    widthDots: number,
+    ruleFontAlias: string,
     scale: number,
-  ): SKRSContext2D {
-    const canvas = createCanvas(canvasWidth, canvasHeight);
+  ): void {
+    for (const line of layout.lines) {
+      if (line.isRule) {
+        context.font = fontString({
+          fontAlias: ruleFontAlias,
+          fontSizePx: line.ruleSizePx * scale,
+          bold: false,
+        });
+        const advance = context.measureText(RULE_CHARACTER).width || 1;
+        const repeats = Math.ceil((widthDots * scale) / advance) + 1;
+        context.fillText(RULE_CHARACTER.repeat(repeats), 0, line.y * scale);
+        continue;
+      }
+      for (const run of line.runs) {
+        context.font = fontString({
+          fontAlias: run.fontAlias,
+          fontSizePx: run.sizePx * scale,
+          bold: run.bold,
+        });
+        context.fillText(run.text, run.x * scale, line.y * scale);
+      }
+    }
+  }
+
+  private paint(canvasWidth: number, canvasHeight: number): SKRSContext2D {
+    const canvas = createCanvas(
+      Math.max(1, canvasWidth),
+      Math.max(1, canvasHeight),
+    );
     const context = canvas.getContext('2d');
     context.fillStyle = '#fff';
     context.fillRect(0, 0, canvasWidth, canvasHeight);
     context.fillStyle = '#000';
-    context.font = fontString({
-      fontAlias: request.fontAlias,
-      fontSizePx: request.fontSizePx * scale,
-      bold: request.bold,
-    });
     context.textBaseline = 'alphabetic';
     return context;
   }
 }
-
-type RenderRequestFontOnly = Pick<
-  RenderRequest,
-  'widthDots' | 'fontAlias' | 'fontSizePx' | 'bold'
->;
 
 function toGrayscale(
   context: SKRSContext2D,
@@ -183,7 +208,7 @@ function applyMode(
   request: Pick<
     RenderRequest,
     'mode' | 'thresholdPercent' | 'ditherAlgorithm' | 'widthDots'
-  > & { readonly widthDots: number },
+  >,
 ): Uint8ClampedArray {
   const cutPoint = Math.round((request.thresholdPercent / 100) * 255);
   if (request.mode === 'dithered') {
